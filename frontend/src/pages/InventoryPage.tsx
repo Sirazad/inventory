@@ -265,14 +265,52 @@ const InventoryPage: React.FC = () => {
               </div>
               <div>
                 <label>Quantity*:</label>
-                <input
-                  type="number"
-                  min="1"
-                  value={formData.quantity}
-                  onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                  required
-                  style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-                />
+                <div style={{ display: 'flex', gap: '5px', marginTop: '5px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newQty = Math.max(1, parseInt(formData.quantity || '1') - 1);
+                      setFormData({ ...formData, quantity: newQty.toString() });
+                    }}
+                    style={{ 
+                      padding: '8px 15px', 
+                      backgroundColor: '#dc3545', 
+                      color: 'white', 
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '16px',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    −
+                  </button>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formData.quantity}
+                    onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                    required
+                    style={{ flex: 1, padding: '8px', textAlign: 'center' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newQty = parseInt(formData.quantity || '1') + 1;
+                      setFormData({ ...formData, quantity: newQty.toString() });
+                    }}
+                    style={{ 
+                      padding: '8px 15px', 
+                      backgroundColor: '#28a745', 
+                      color: 'white', 
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '16px',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    +
+                  </button>
+                </div>
               </div>
               <div>
                 <label>Price:</label>
