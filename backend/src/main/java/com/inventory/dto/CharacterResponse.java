@@ -19,13 +19,11 @@ public class CharacterResponse {
         this.id = character.getId();
         this.name = character.getName();
         this.createdAt = character.getCreatedAt();
-        this.currentYear = character.getCurrentYear();
-        this.currentDay = character.getCurrentDay();
+        this.currentYear = character.getCurrentYear() != null ? character.getCurrentYear() : 3692;
+        this.currentDay = character.getCurrentDay() != null ? character.getCurrentDay() : 1;
         
         // Format the Pyarr calendar date
-        if (currentYear != null && currentDay != null) {
-            this.formattedDate = calendarService.formatDate(currentYear, currentDay);
-        }
+        this.formattedDate = calendarService.formatDate(this.currentYear, this.currentDay);
     }
     
     // Getters and Setters

@@ -34,3 +34,8 @@ INSERT INTO calendar_months (month_number, month_name, season, god_name, god_mon
     (30, 'Sólyomszárny', 'Esős évszak', 'Arel', 3),
     (31, 'Holdak és vándorok', 'Esős évszak', 'Arel', 4)
 ON CONFLICT (month_number) DO NOTHING;
+
+-- Update existing characters with null calendar dates to default values
+UPDATE characters 
+SET current_year = 3692, current_day = 1 
+WHERE current_year IS NULL OR current_day IS NULL;
