@@ -8,6 +8,9 @@ export interface Character {
   id: number;
   name: string;
   createdAt: string;
+  currentYear?: number;
+  currentDay?: number;
+  formattedDate?: string; // Pyarr calendar formatted date
 }
 
 export interface Inventory {

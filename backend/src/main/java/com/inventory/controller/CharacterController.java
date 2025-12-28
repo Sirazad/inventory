@@ -1,7 +1,7 @@
 package com.inventory.controller;
 
 import com.inventory.dto.CharacterRequest;
-import com.inventory.entity.Character;
+import com.inventory.dto.CharacterResponse;
 import com.inventory.service.CharacterService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +22,7 @@ public class CharacterController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Character>> getCharacters(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<List<CharacterResponse>> getCharacters(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(characterService.getCharactersByUser(userDetails.getUsername()));
     }
 
@@ -46,6 +46,28 @@ public class CharacterController {
             return ResponseEntity.ok().build();
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping("/{id}/increment-day")
+    public ResponseEntity<?> incrementDay(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(characterService.incrementDay(userDetails.getUsername(), id));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{id}/decrement-day")
+    public ResponseEntity<?> decrementDay(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(characterService.decrementDay(userDetails.getUsername(), id));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
         }
     }
 }

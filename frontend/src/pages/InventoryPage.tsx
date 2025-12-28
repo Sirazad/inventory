@@ -30,16 +30,19 @@ const InventoryPage: React.FC = () => {
 
   useEffect(() => {
     loadCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     loadInventory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [characterId]);
 
   useEffect(() => {
     if (filters.category === '' && filters.minPrice === '' && filters.maxWeight === '') {
       loadInventory();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
   const loadCategories = async () => {

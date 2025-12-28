@@ -45,6 +45,16 @@ export const characterService = {
   deleteCharacter: async (id: number) => {
     await axiosInstance.delete(`/characters/${id}`);
   },
+
+  incrementDay: async (id: number) => {
+    const response = await axiosInstance.post(`/characters/${id}/increment-day`);
+    return response.data;
+  },
+
+  decrementDay: async (id: number) => {
+    const response = await axiosInstance.post(`/characters/${id}/decrement-day`);
+    return response.data;
+  },
 };
 
 export const inventoryService = {

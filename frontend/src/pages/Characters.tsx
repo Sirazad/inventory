@@ -46,6 +46,24 @@ const Characters: React.FC = () => {
     }
   };
 
+  const handleIncrementDay = async (id: number) => {
+    try {
+      await characterService.incrementDay(id);
+      loadCharacters();
+    } catch (err) {
+      alert('Failed to increment day');
+    }
+  };
+
+  const handleDecrementDay = async (id: number) => {
+    try {
+      await characterService.decrementDay(id);
+      loadCharacters();
+    } catch (err) {
+      alert('Failed to decrement day');
+    }
+  };
+
   const handleDeleteAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     if (window.confirm('Are you sure you want to delete your account? This cannot be undone.')) {
@@ -65,7 +83,7 @@ const Characters: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '800px', margin: '50px auto', padding: '20px' }}>
+    <div style={{ maxWidth: '900px', margin: '50px auto', padding: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h2>My Characters</h2>
         <div>
@@ -137,7 +155,8 @@ const Characters: React.FC = () => {
             <thead>
               <tr style={{ backgroundColor: '#f0f0f0' }}>
                 <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Name</th>
-                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Created</th>
+                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Current Date</th>
+                <th style={{ padding: '10px', textAlign: 'center', border: '1px solid #ccc' }}>Date Controls</th>
                 <th style={{ padding: '10px', textAlign: 'center', border: '1px solid #ccc' }}>Actions</th>
               </tr>
             </thead>
@@ -145,8 +164,41 @@ const Characters: React.FC = () => {
               {characters.map((character) => (
                 <tr key={character.id}>
                   <td style={{ padding: '10px', border: '1px solid #ccc' }}>{character.name}</td>
-                  <td style={{ padding: '10px', border: '1px solid #ccc' }}>
-                    {new Date(character.createdAt).toLocaleDateString()}
+                  <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '14px' }}>
+                    {character.formattedDate || `Year ${character.currentYear}, Day ${character.currentDay}`}
+                  </td>
+                  <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
+                    <button
+                      onClick={() => handleDecrementDay(character.id)}
+                      style={{
+                        padding: '5px 12px',
+                        marginRight: '5px',
+                        backgroundColor: '#dc3545',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '3px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold'
+                      }}
+                      title="Previous day"
+                    >
+                      −
+                    </button>
+                    <button
+                      onClick={() => handleIncrementDay(character.id)}
+                      style={{
+                        padding: '5px 12px',
+                        backgroundColor: '#28a745',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '3px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold'
+                      }}
+                      title="Next day"
+                    >
+                      +
+                    </button>
                   </td>
                   <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
                     <button
