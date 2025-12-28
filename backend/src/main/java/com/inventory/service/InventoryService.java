@@ -48,11 +48,17 @@ public class InventoryService {
             }
 
             if (minPrice != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get("price"), minPrice));
+                predicates.add(cb.and(
+                    cb.isNotNull(root.get("price")),
+                    cb.greaterThanOrEqualTo(root.get("price"), minPrice)
+                ));
             }
 
             if (maxWeight != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.get("weight"), maxWeight));
+                predicates.add(cb.and(
+                    cb.isNotNull(root.get("weight")),
+                    cb.lessThanOrEqualTo(root.get("weight"), maxWeight)
+                ));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));

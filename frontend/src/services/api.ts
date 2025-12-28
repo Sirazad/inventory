@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { AuthResponse, LoginRequest, RegisterRequest } from '../types';
+import { AuthResponse, LoginRequest, RegisterRequest, InventoryCreateRequest, InventoryUpdateRequest } from '../types';
 
 const API_URL = 'http://localhost:8080/api';
 
@@ -65,7 +65,7 @@ export const inventoryService = {
     return response.data;
   },
 
-  createInventory: async (characterId: number, data: any) => {
+  createInventory: async (characterId: number, data: InventoryCreateRequest) => {
     const response = await axiosInstance.post(
       `/characters/${characterId}/inventory`,
       data
@@ -73,7 +73,7 @@ export const inventoryService = {
     return response.data;
   },
 
-  updateInventory: async (characterId: number, inventoryId: number, data: any) => {
+  updateInventory: async (characterId: number, inventoryId: number, data: InventoryUpdateRequest) => {
     const response = await axiosInstance.put(
       `/characters/${characterId}/inventory/${inventoryId}`,
       data

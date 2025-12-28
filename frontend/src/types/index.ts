@@ -42,3 +42,25 @@ export interface AuthResponse {
   username: string;
   email: string;
 }
+
+export interface InventoryCreateRequest {
+  category: string;
+  item: string;
+  quality?: string;
+  description: string;
+  price?: number;
+  quantity: number;
+  addedUpdated?: string;
+  weight?: number;
+}
+
+export interface InventoryUpdateRequest {
+  category: string;
+  item: string;
+  quality?: string;
+  description: string;
+  price?: number;
+  quantity: number;
+  addedUpdated?: string;
+  weight?: number;
+}

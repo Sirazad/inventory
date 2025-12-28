@@ -29,6 +29,12 @@ const InventoryPage: React.FC = () => {
     loadInventory();
   }, [characterId]);
 
+  useEffect(() => {
+    if (filters.category === '' && filters.minPrice === '' && filters.maxWeight === '') {
+      loadInventory();
+    }
+  }, [filters]);
+
   const loadInventory = async () => {
     try {
       const minPrice = filters.minPrice ? parseFloat(filters.minPrice) : undefined;
@@ -159,7 +165,6 @@ const InventoryPage: React.FC = () => {
           <button
             onClick={() => {
               setFilters({ category: '', minPrice: '', maxWeight: '' });
-              setTimeout(loadInventory, 100);
             }}
             style={{ padding: '5px 15px' }}
           >
