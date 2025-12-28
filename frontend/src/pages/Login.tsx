@@ -19,8 +19,9 @@ const Login: React.FC = () => {
       localStorage.setItem('token', response.token);
       localStorage.setItem('username', response.username);
       navigate('/characters');
-    } catch (err) {
-      setError('Invalid username or password');
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.error || 'Invalid username or password';
+      setError(errorMessage);
     }
   };
 

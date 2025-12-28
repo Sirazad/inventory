@@ -20,8 +20,9 @@ const Register: React.FC = () => {
       localStorage.setItem('token', response.token);
       localStorage.setItem('username', response.username);
       navigate('/characters');
-    } catch (err) {
-      setError('Registration failed. Username or email may already exist.');
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.error || 'Registration failed. Please try again.';
+      setError(errorMessage);
     }
   };
 
