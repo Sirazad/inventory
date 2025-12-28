@@ -22,7 +22,8 @@ public class Inventory {
     @Column(nullable = false)
     private String description;
 
-    private Double price;
+    @Column(name = "price_in_copper")
+    private Long priceInCopper;
 
     @Column(nullable = false)
     private Integer quantity;
@@ -106,12 +107,33 @@ public class Inventory {
         this.description = description;
     }
 
-    public Double getPrice() {
-        return price;
+    public Long getPriceInCopper() {
+        return priceInCopper;
     }
 
-    public void setPrice(Double price) {
-        this.price = price;
+    public void setPriceInCopper(Long priceInCopper) {
+        this.priceInCopper = priceInCopper;
+    }
+
+    // Helper methods for currency conversion
+    public Long getGold() {
+        return priceInCopper != null ? priceInCopper / 1000 : 0;
+    }
+
+    public Long getSilver() {
+        return priceInCopper != null ? (priceInCopper % 1000) / 100 : 0;
+    }
+
+    public Long getCopper() {
+        return priceInCopper != null ? priceInCopper % 100 : 0;
+    }
+
+    public void setPriceFromCurrency(Long gold, Long silver, Long copper) {
+        long totalCopper = 0;
+        if (gold != null) totalCopper += gold * 1000;
+        if (silver != null) totalCopper += silver * 100;
+        if (copper != null) totalCopper += copper;
+        this.priceInCopper = totalCopper > 0 ? totalCopper : null;
     }
 
     public Integer getQuantity() {

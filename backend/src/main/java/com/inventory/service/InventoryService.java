@@ -48,9 +48,10 @@ public class InventoryService {
             }
 
             if (minPrice != null) {
+                // minPrice is expected to be in copper
                 predicates.add(cb.and(
-                    cb.isNotNull(root.get("price")),
-                    cb.greaterThanOrEqualTo(root.get("price"), minPrice)
+                    cb.isNotNull(root.get("priceInCopper")),
+                    cb.greaterThanOrEqualTo(root.get("priceInCopper"), minPrice.longValue())
                 ));
             }
 
@@ -79,7 +80,7 @@ public class InventoryService {
         inventory.setItem(request.getItem());
         inventory.setQuality(request.getQuality());
         inventory.setDescription(request.getDescription());
-        inventory.setPrice(request.getPrice());
+        inventory.setPriceFromCurrency(request.getGold(), request.getSilver(), request.getCopper());
         inventory.setQuantity(request.getQuantity());
         inventory.setAddedUpdated(request.getAddedUpdated());
         inventory.setWeight(request.getWeight());
@@ -102,7 +103,7 @@ public class InventoryService {
         inventory.setItem(request.getItem());
         inventory.setQuality(request.getQuality());
         inventory.setDescription(request.getDescription());
-        inventory.setPrice(request.getPrice());
+        inventory.setPriceFromCurrency(request.getGold(), request.getSilver(), request.getCopper());
         inventory.setQuantity(request.getQuantity());
         inventory.setAddedUpdated(request.getAddedUpdated());
         inventory.setWeight(request.getWeight());

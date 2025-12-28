@@ -18,7 +18,9 @@ const InventoryPage: React.FC = () => {
     item: '',
     quality: '',
     description: '',
-    price: '',
+    gold: '',
+    silver: '',
+    copper: '',
     quantity: '1',
     addedUpdated: '',
     weight: '',
@@ -60,7 +62,9 @@ const InventoryPage: React.FC = () => {
     try {
       const data = {
         ...formData,
-        price: formData.price ? parseFloat(formData.price) : undefined,
+        gold: formData.gold ? parseInt(formData.gold) : undefined,
+        silver: formData.silver ? parseInt(formData.silver) : undefined,
+        copper: formData.copper ? parseInt(formData.copper) : undefined,
         quantity: parseInt(formData.quantity),
         weight: formData.weight ? parseFloat(formData.weight) : undefined,
       };
@@ -77,7 +81,9 @@ const InventoryPage: React.FC = () => {
         item: '',
         quality: '',
         description: '',
-        price: '',
+        gold: '',
+        silver: '',
+        copper: '',
         quantity: '1',
         addedUpdated: '',
         weight: '',
@@ -95,7 +101,9 @@ const InventoryPage: React.FC = () => {
       item: item.item,
       quality: item.quality || '',
       description: item.description,
-      price: item.price?.toString() || '',
+      gold: item.gold?.toString() || '',
+      silver: item.silver?.toString() || '',
+      copper: item.copper?.toString() || '',
       quantity: item.quantity.toString(),
       addedUpdated: item.addedUpdated || '',
       weight: item.weight?.toString() || '',
@@ -140,13 +148,14 @@ const InventoryPage: React.FC = () => {
             />
           </div>
           <div>
-            <label>Min Price: </label>
+            <label>Min Price (copper): </label>
             <input
               type="number"
-              step="0.01"
+              min="0"
               value={filters.minPrice}
               onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })}
               style={{ padding: '5px', width: '100px' }}
+              placeholder="Total copper"
             />
           </div>
           <div>
@@ -184,7 +193,9 @@ const InventoryPage: React.FC = () => {
               item: '',
               quality: '',
               description: '',
-              price: '',
+              gold: '',
+              silver: '',
+              copper: '',
               quantity: '1',
               addedUpdated: '',
               weight: '',
@@ -243,13 +254,35 @@ const InventoryPage: React.FC = () => {
               </div>
               <div>
                 <label>Price:</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-                />
+                <div style={{ display: 'flex', gap: '5px', marginTop: '5px' }}>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="Gold"
+                    value={formData.gold}
+                    onChange={(e) => setFormData({ ...formData, gold: e.target.value })}
+                    style={{ width: '30%', padding: '8px' }}
+                  />
+                  <span style={{ alignSelf: 'center' }}>g</span>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="Silver"
+                    value={formData.silver}
+                    onChange={(e) => setFormData({ ...formData, silver: e.target.value })}
+                    style={{ width: '30%', padding: '8px' }}
+                  />
+                  <span style={{ alignSelf: 'center' }}>s</span>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="Copper"
+                    value={formData.copper}
+                    onChange={(e) => setFormData({ ...formData, copper: e.target.value })}
+                    style={{ width: '30%', padding: '8px' }}
+                  />
+                  <span style={{ alignSelf: 'center' }}>c</span>
+                </div>
               </div>
               <div>
                 <label>Weight:</label>
@@ -318,7 +351,9 @@ const InventoryPage: React.FC = () => {
                   <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.quality || '-'}</td>
                   <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.description}</td>
                   <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
-                    {item.price ? `$${item.price.toFixed(2)}` : '-'}
+                    {item.gold !== undefined || item.silver !== undefined || item.copper !== undefined
+                      ? `${item.gold || 0}g ${item.silver || 0}s ${item.copper || 0}c`
+                      : '-'}
                   </td>
                   <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
                     {item.quantity}

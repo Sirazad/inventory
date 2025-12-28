@@ -16,7 +16,10 @@ export interface Inventory {
   item: string;
   quality?: string;
   description: string;
-  price?: number;
+  priceInCopper?: number;
+  gold?: number;
+  silver?: number;
+  copper?: number;
   quantity: number;
   addedUpdated?: string;
   weight?: number;
@@ -48,7 +51,9 @@ export interface InventoryCreateRequest {
   item: string;
   quality?: string;
   description: string;
-  price?: number;
+  gold?: number;
+  silver?: number;
+  copper?: number;
   quantity: number;
   addedUpdated?: string;
   weight?: number;
@@ -59,7 +64,9 @@ export interface InventoryUpdateRequest {
   item: string;
   quality?: string;
   description: string;
-  price?: number;
+  gold?: number;
+  silver?: number;
+  copper?: number;
   quantity: number;
   addedUpdated?: string;
   weight?: number;

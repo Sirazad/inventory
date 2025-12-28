@@ -16,7 +16,9 @@ public class InventoryRequest {
     @NotBlank
     private String description;
 
-    private Double price;
+    private Long gold;
+    private Long silver;
+    private Long copper;
 
     @NotNull
     @Min(1)
@@ -61,12 +63,28 @@ public class InventoryRequest {
         this.description = description;
     }
 
-    public Double getPrice() {
-        return price;
+    public Long getGold() {
+        return gold;
     }
 
-    public void setPrice(Double price) {
-        this.price = price;
+    public void setGold(Long gold) {
+        this.gold = gold;
+    }
+
+    public Long getSilver() {
+        return silver;
+    }
+
+    public void setSilver(Long silver) {
+        this.silver = silver;
+    }
+
+    public Long getCopper() {
+        return copper;
+    }
+
+    public void setCopper(Long copper) {
+        this.copper = copper;
     }
 
     public Integer getQuantity() {
