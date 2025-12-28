@@ -48,8 +48,8 @@ All required and optional fields implemented:
 
 **Optional Fields**:
 - ✅ Quality
-- ✅ Price
-- ✅ Weight
+- ✅ Price (fantasy currency: gold/silver/copper)
+- ✅ Weight (kilograms per item)
 - ✅ Added/Updated (text notes)
 
 **Special Features**:
@@ -61,8 +61,8 @@ All required and optional fields implemented:
 ### ✅ Filtering
 Three filters implemented:
 1. **Category**: Exact match filter
-2. **Price (min)**: Show items with price >= minimum (excludes items without price)
-3. **Weight (max)**: Show items with weight <= maximum (excludes items without weight)
+2. **Price (min)**: Show items with price >= minimum in copper (excludes items without price)
+3. **Weight (max)**: Show items with weight <= maximum in kg per item (excludes items without weight)
 
 ## Architecture
 
@@ -125,11 +125,12 @@ frontend/
 - item (required)
 - quality
 - description (required)
-- price
+- price (stored as priceInCopper - Long)
 - quantity (required)
 - added_updated
-- weight
+- weight (Double - kilograms per item)
 - character_id (FK -> characters)
+- category_id (FK -> categories)
 - removed (boolean, default false)
 - removed_text
 - created_at
@@ -150,7 +151,7 @@ frontend/
 
 3. **Inventory Management**
    - Add items with required and optional fields
-   - Filter items by category, price, weight
+   - Filter items by category, price (in copper), weight (kg per item)
    - Edit existing items
    - Remove items (soft delete with reason)
    - Removed items stay in database but hidden from UI
@@ -245,7 +246,10 @@ All requirements from the problem statement have been successfully implemented:
 - ✅ Create/delete account with confirmation
 - ✅ Character management (list, add, delete)
 - ✅ Inventory with all required fields
+- ✅ Fantasy currency system (gold/silver/copper with auto-normalization)
+- ✅ Category management system with database table
+- ✅ Weight in kilograms per item
 - ✅ Soft delete with database retention
-- ✅ Filtering by category, price, weight
+- ✅ Filtering by category, price (copper), and weight (kg per item)
 
 The application is ready for deployment and can be started with a single command: `docker compose up --build`

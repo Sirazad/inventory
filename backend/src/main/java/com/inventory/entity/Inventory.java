@@ -36,6 +36,7 @@ public class Inventory {
     @Column(name = "added_updated")
     private String addedUpdated;
 
+    // Weight in kilograms per single item
     private Double weight;
 
     @ManyToOne(fetch = FetchType.LAZY)

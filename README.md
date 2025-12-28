@@ -17,9 +17,9 @@ A full-stack inventory management application with TypeScript React frontend and
 ### Inventory System
 Each character has their own inventory with the following features:
 - **Required fields**: Category, Item, Description, Quantity
-- **Optional fields**: Quality, Price, Weight, Added/Updated notes
+- **Optional fields**: Quality, Price (in fantasy currency: gold/silver/copper), Weight (kg per item), Added/Updated notes
 - **Soft delete**: Items are marked as removed and kept in database with removal reason
-- **Filtering**: Filter by category, minimum price, and maximum weight
+- **Filtering**: Filter by category, minimum price (in copper), and maximum weight (kg per item)
 
 ## Tech Stack
 

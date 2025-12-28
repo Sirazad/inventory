@@ -173,13 +173,15 @@ const InventoryPage: React.FC = () => {
             />
           </div>
           <div>
-            <label>Max Weight: </label>
+            <label>Max Weight (kg): </label>
             <input
               type="number"
               step="0.01"
+              min="0"
               value={filters.maxWeight}
               onChange={(e) => setFilters({ ...filters, maxWeight: e.target.value })}
               style={{ padding: '5px', width: '100px' }}
+              placeholder="Per item"
             />
           </div>
           <button onClick={handleApplyFilters} style={{ padding: '5px 15px' }}>
@@ -305,10 +307,12 @@ const InventoryPage: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label>Weight:</label>
+                <label>Weight (kg per item):</label>
                 <input
                   type="number"
                   step="0.01"
+                  min="0"
+                  placeholder="Kilograms"
                   value={formData.weight}
                   onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
                   style={{ width: '100%', padding: '8px', marginTop: '5px' }}
@@ -358,7 +362,7 @@ const InventoryPage: React.FC = () => {
                 <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Description</th>
                 <th style={{ padding: '10px', textAlign: 'right', border: '1px solid #ccc' }}>Price</th>
                 <th style={{ padding: '10px', textAlign: 'right', border: '1px solid #ccc' }}>Qty</th>
-                <th style={{ padding: '10px', textAlign: 'right', border: '1px solid #ccc' }}>Weight</th>
+                <th style={{ padding: '10px', textAlign: 'right', border: '1px solid #ccc' }}>Weight (kg)</th>
                 <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Notes</th>
                 <th style={{ padding: '10px', textAlign: 'center', border: '1px solid #ccc' }}>Actions</th>
               </tr>
@@ -379,7 +383,7 @@ const InventoryPage: React.FC = () => {
                     {item.quantity}
                   </td>
                   <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
-                    {item.weight ? `${item.weight} lbs` : '-'}
+                    {item.weight ? `${item.weight} kg` : '-'}
                   </td>
                   <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.addedUpdated || '-'}</td>
                   <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
