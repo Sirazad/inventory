@@ -1,0 +1,44 @@
+export interface User {
+  username: string;
+  email: string;
+  token: string;
+}
+
+export interface Character {
+  id: number;
+  name: string;
+  createdAt: string;
+}
+
+export interface Inventory {
+  id: number;
+  category: string;
+  item: string;
+  quality?: string;
+  description: string;
+  price?: number;
+  quantity: number;
+  addedUpdated?: string;
+  weight?: number;
+  removed: boolean;
+  removedText?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  username: string;
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  username: string;
+  email: string;
+}
