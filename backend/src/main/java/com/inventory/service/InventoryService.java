@@ -1,9 +1,11 @@
 package com.inventory.service;
 
 import com.inventory.dto.InventoryRequest;
+import com.inventory.entity.Category;
 import com.inventory.entity.Character;
 import com.inventory.entity.Inventory;
 import com.inventory.entity.User;
+import com.inventory.repository.CategoryRepository;
 import com.inventory.repository.CharacterRepository;
 import com.inventory.repository.InventoryRepository;
 import com.inventory.repository.UserRepository;
@@ -20,13 +22,16 @@ public class InventoryService {
     private final InventoryRepository inventoryRepository;
     private final CharacterRepository characterRepository;
     private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
 
     public InventoryService(InventoryRepository inventoryRepository, 
                           CharacterRepository characterRepository,
-                          UserRepository userRepository) {
+                          UserRepository userRepository,
+                          CategoryRepository categoryRepository) {
         this.inventoryRepository = inventoryRepository;
         this.characterRepository = characterRepository;
         this.userRepository = userRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     public List<Inventory> getInventoryByCharacter(String username, Long characterId, 
@@ -77,6 +82,13 @@ public class InventoryService {
 
         Inventory inventory = new Inventory();
         inventory.setCategory(request.getCategory());
+        
+        // Set category entity if it exists
+        if (request.getCategory() != null && !request.getCategory().isEmpty()) {
+            categoryRepository.findByName(request.getCategory())
+                    .ifPresent(inventory::setCategoryEntity);
+        }
+        
         inventory.setItem(request.getItem());
         inventory.setQuality(request.getQuality());
         inventory.setDescription(request.getDescription());
@@ -100,6 +112,13 @@ public class InventoryService {
                 .orElseThrow(() -> new RuntimeException("Inventory not found"));
 
         inventory.setCategory(request.getCategory());
+        
+        // Set category entity if it exists
+        if (request.getCategory() != null && !request.getCategory().isEmpty()) {
+            categoryRepository.findByName(request.getCategory())
+                    .ifPresent(inventory::setCategoryEntity);
+        }
+        
         inventory.setItem(request.getItem());
         inventory.setQuality(request.getQuality());
         inventory.setDescription(request.getDescription());

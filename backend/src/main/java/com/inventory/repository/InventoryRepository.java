@@ -1,5 +1,6 @@
 package com.inventory.repository;
 
+import com.inventory.entity.Category;
 import com.inventory.entity.Inventory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -12,4 +13,5 @@ import java.util.Optional;
 public interface InventoryRepository extends JpaRepository<Inventory, Long>, JpaSpecificationExecutor<Inventory> {
     List<Inventory> findByCharacterIdAndRemovedFalse(Long characterId);
     Optional<Inventory> findByIdAndCharacterId(Long id, Long characterId);
+    long countByCategoryEntity(Category category);
 }

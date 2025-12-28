@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { inventoryService } from '../services/api';
-import { Inventory } from '../types';
+import { inventoryService, categoryService } from '../services/api';
+import { Inventory, Category } from '../types';
 
 const InventoryPage: React.FC = () => {
   const { characterId } = useParams<{ characterId: string }>();
   const [inventory, setInventory] = useState<Inventory[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [filters, setFilters] = useState({
@@ -28,6 +29,10 @@ const InventoryPage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    loadCategories();
+  }, []);
+
+  useEffect(() => {
     loadInventory();
   }, [characterId]);
 
@@ -36,6 +41,15 @@ const InventoryPage: React.FC = () => {
       loadInventory();
     }
   }, [filters]);
+
+  const loadCategories = async () => {
+    try {
+      const data = await categoryService.getCategories();
+      setCategories(data);
+    } catch (err) {
+      console.error('Failed to load categories', err);
+    }
+  };
 
   const loadInventory = async () => {
     try {
@@ -214,13 +228,19 @@ const InventoryPage: React.FC = () => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
               <div>
                 <label>Category*:</label>
-                <input
-                  type="text"
+                <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   required
                   style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-                />
+                >
+                  <option value="">Select a category</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.name}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label>Item*:</label>

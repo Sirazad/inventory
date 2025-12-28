@@ -69,6 +69,12 @@ const Characters: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h2>My Characters</h2>
         <div>
+          <button 
+            onClick={() => navigate('/categories')} 
+            style={{ padding: '10px 20px', marginRight: '10px', backgroundColor: '#007bff', color: 'white' }}
+          >
+            Manage Categories
+          </button>
           <button onClick={handleLogout} style={{ padding: '10px 20px', marginRight: '10px' }}>
             Logout
           </button>

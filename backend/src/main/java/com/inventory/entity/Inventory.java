@@ -14,6 +14,11 @@ public class Inventory {
     @Column(nullable = false)
     private String category;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    @JsonIgnore
+    private Category categoryEntity;
+
     @Column(nullable = false)
     private String item;
 
@@ -81,6 +86,17 @@ public class Inventory {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public Category getCategoryEntity() {
+        return categoryEntity;
+    }
+
+    public void setCategoryEntity(Category categoryEntity) {
+        this.categoryEntity = categoryEntity;
+        if (categoryEntity != null) {
+            this.category = categoryEntity.getName();
+        }
     }
 
     public String getItem() {

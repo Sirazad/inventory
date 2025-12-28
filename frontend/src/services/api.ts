@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { AuthResponse, LoginRequest, RegisterRequest, InventoryCreateRequest, InventoryUpdateRequest } from '../types';
+import { AuthResponse, LoginRequest, RegisterRequest, InventoryCreateRequest, InventoryUpdateRequest, Category, CategoryRequest } from '../types';
 
 const API_URL = 'http://localhost:8080/api';
 
@@ -90,5 +90,26 @@ export const inventoryService = {
       `/characters/${characterId}/inventory/${inventoryId}`,
       { data: { removalText } }
     );
+  },
+};
+
+export const categoryService = {
+  getCategories: async (): Promise<Category[]> => {
+    const response = await axiosInstance.get('/categories');
+    return response.data;
+  },
+
+  createCategory: async (data: CategoryRequest): Promise<Category> => {
+    const response = await axiosInstance.post('/categories', data);
+    return response.data;
+  },
+
+  updateCategory: async (id: number, data: CategoryRequest): Promise<Category> => {
+    const response = await axiosInstance.put(`/categories/${id}`, data);
+    return response.data;
+  },
+
+  deleteCategory: async (id: number): Promise<void> => {
+    await axiosInstance.delete(`/categories/${id}`);
   },
 };

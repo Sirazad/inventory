@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Characters from './pages/Characters';
 import InventoryPage from './pages/InventoryPage';
+import Categories from './pages/Categories';
 
 const PrivateRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
   const token = localStorage.getItem('token');
@@ -22,6 +23,14 @@ const App: React.FC = () => {
             element={
               <PrivateRoute>
                 <Characters />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/categories"
+            element={
+              <PrivateRoute>
+                <Categories />
               </PrivateRoute>
             }
           />
