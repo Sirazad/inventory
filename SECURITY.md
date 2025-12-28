@@ -11,6 +11,7 @@ This application implements several security measures, but as with any web appli
 - **Password encryption**: All passwords are encrypted using BCrypt before storage
 - **Token expiration**: JWT tokens expire after 24 hours (configurable)
 - **Protected endpoints**: All API endpoints except registration and login require authentication
+- **JWT Secret Key**: Uses HS512 algorithm with a 520-bit secret key (exceeds the required 512-bit minimum)
 
 ### 2. Database Security
 - **SQL Injection protection**: JPA/Hibernate parameterized queries prevent SQL injection
@@ -73,7 +74,7 @@ This application implements several security measures, but as with any web appli
 Before deploying to production, ensure:
 
 - [ ] Change default database credentials
-- [ ] Use a strong, unique JWT secret (minimum 256 bits)
+- [ ] Use a strong, unique JWT secret (minimum 512 bits for HS512 algorithm)
 - [ ] Enable HTTPS/TLS for all connections
 - [ ] Implement rate limiting on authentication endpoints
 - [ ] Set up proper CORS origins (remove localhost)
