@@ -27,10 +27,14 @@ public class CharacterController {
     }
 
     @PostMapping
-    public ResponseEntity<Character> createCharacter(
+    public ResponseEntity<?> createCharacter(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody CharacterRequest request) {
-        return ResponseEntity.ok(characterService.createCharacter(userDetails.getUsername(), request));
+        try {
+            return ResponseEntity.ok(characterService.createCharacter(userDetails.getUsername(), request));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
+        }
     }
 
     @DeleteMapping("/{id}")

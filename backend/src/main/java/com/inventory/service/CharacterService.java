@@ -30,6 +30,10 @@ public class CharacterService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        if (characterRepository.existsByNameAndUserId(request.getName(), user.getId())) {
+            throw new RuntimeException("Character name already exists");
+        }
+
         Character character = new Character();
         character.setName(request.getName());
         character.setUser(user);

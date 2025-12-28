@@ -29,8 +29,9 @@ const Characters: React.FC = () => {
       await characterService.createCharacter(newCharacterName);
       setNewCharacterName('');
       loadCharacters();
-    } catch (err) {
-      alert('Failed to create character');
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.error || 'Failed to create character';
+      alert(errorMessage);
     }
   };
 

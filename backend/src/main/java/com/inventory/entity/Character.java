@@ -7,7 +7,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "characters")
+@Table(name = "characters", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"name", "user_id"})
+})
 public class Character {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
