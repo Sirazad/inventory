@@ -26,6 +26,13 @@ public class Character {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    // Pyarr Calendar Fields
+    @Column(name = "current_year")
+    private Integer currentYear;
+
+    @Column(name = "current_day")
+    private Integer currentDay; // Day of year (1-620)
+
     @OneToMany(mappedBy = "character", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private Set<Inventory> inventories = new HashSet<>();
@@ -33,6 +40,13 @@ public class Character {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+        // Set default calendar date if not provided
+        if (currentYear == null) {
+            currentYear = 3692; // Default starting year
+        }
+        if (currentDay == null) {
+            currentDay = 1; // Default to first day of year
+        }
     }
 
     public Character() {}
@@ -81,5 +95,21 @@ public class Character {
 
     public void setInventories(Set<Inventory> inventories) {
         this.inventories = inventories;
+    }
+
+    public Integer getCurrentYear() {
+        return currentYear;
+    }
+
+    public void setCurrentYear(Integer currentYear) {
+        this.currentYear = currentYear;
+    }
+
+    public Integer getCurrentDay() {
+        return currentDay;
+    }
+
+    public void setCurrentDay(Integer currentDay) {
+        this.currentDay = currentDay;
     }
 }

@@ -50,6 +50,25 @@ public class Inventory {
     @Column(name = "removed_text")
     private String removedText;
 
+    // Pyarr Calendar Date Tracking
+    @Column(name = "added_year")
+    private Integer addedYear;
+
+    @Column(name = "added_day")
+    private Integer addedDay;
+
+    @Column(name = "modified_year")
+    private Integer modifiedYear;
+
+    @Column(name = "modified_day")
+    private Integer modifiedDay;
+
+    @Column(name = "removed_year")
+    private Integer removedYear;
+
+    @Column(name = "removed_day")
+    private Integer removedDay;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -215,5 +234,53 @@ public class Inventory {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Integer getAddedYear() {
+        return addedYear;
+    }
+
+    public void setAddedYear(Integer addedYear) {
+        this.addedYear = addedYear;
+    }
+
+    public Integer getAddedDay() {
+        return addedDay;
+    }
+
+    public void setAddedDay(Integer addedDay) {
+        this.addedDay = addedDay;
+    }
+
+    public Integer getModifiedYear() {
+        return modifiedYear;
+    }
+
+    public void setModifiedYear(Integer modifiedYear) {
+        this.modifiedYear = modifiedYear;
+    }
+
+    public Integer getModifiedDay() {
+        return modifiedDay;
+    }
+
+    public void setModifiedDay(Integer modifiedDay) {
+        this.modifiedDay = modifiedDay;
+    }
+
+    public Integer getRemovedYear() {
+        return removedYear;
+    }
+
+    public void setRemovedYear(Integer removedYear) {
+        this.removedYear = removedYear;
+    }
+
+    public Integer getRemovedDay() {
+        return removedDay;
+    }
+
+    public void setRemovedDay(Integer removedDay) {
+        this.removedDay = removedDay;
     }
 }
