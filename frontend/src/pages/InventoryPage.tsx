@@ -138,6 +138,30 @@ const InventoryPage: React.FC = () => {
     }
   };
 
+  const handleQuantityChange = async (item: Inventory, delta: number) => {
+    const newQuantity = Math.max(1, item.quantity + delta);
+    if (newQuantity === item.quantity) return; // No change
+    
+    try {
+      const data = {
+        category: item.category,
+        item: item.item,
+        quality: item.quality,
+        description: item.description,
+        gold: item.gold,
+        silver: item.silver,
+        copper: item.copper,
+        quantity: newQuantity,
+        addedUpdated: item.addedUpdated,
+        weight: item.weight,
+      };
+      await inventoryService.updateInventory(Number(characterId), item.id, data);
+      loadInventory();
+    } catch (err) {
+      alert('Failed to update quantity');
+    }
+  };
+
   return (
     <div style={{ maxWidth: '1200px', margin: '50px auto', padding: '20px' }}>
       <div style={{ marginBottom: '20px' }}>
@@ -417,8 +441,44 @@ const InventoryPage: React.FC = () => {
                       ? `${item.gold || 0}g ${item.silver || 0}s ${item.copper || 0}c`
                       : '-'}
                   </td>
-                  <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
-                    {item.quantity}
+                  <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
+                    <div style={{ display: 'flex', gap: '5px', alignItems: 'center', justifyContent: 'center' }}>
+                      <button
+                        onClick={() => handleQuantityChange(item, -1)}
+                        style={{ 
+                          padding: '4px 10px', 
+                          backgroundColor: '#dc3545', 
+                          color: 'white', 
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                          borderRadius: '3px'
+                        }}
+                        title="Decrease quantity"
+                      >
+                        −
+                      </button>
+                      <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: 'bold' }}>
+                        {item.quantity}
+                      </span>
+                      <button
+                        onClick={() => handleQuantityChange(item, +1)}
+                        style={{ 
+                          padding: '4px 10px', 
+                          backgroundColor: '#28a745', 
+                          color: 'white', 
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                          borderRadius: '3px'
+                        }}
+                        title="Increase quantity"
+                      >
+                        +
+                      </button>
+                    </div>
                   </td>
                   <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
                     {item.weight ? `${item.weight} kg` : '-'}
