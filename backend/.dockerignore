@@ -29,7 +29,3 @@ Thumbs.db
 # Logs
 *.log
 logs/
-
-# Test files
-src/test/
-*.test.java
