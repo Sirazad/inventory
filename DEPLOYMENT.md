@@ -1,5 +1,7 @@
 # Deployment Guide
 
+> **🔒 For Private Deployments**: If you want to keep your code and deployment completely private (not accessible to others), please refer to [PRIVATE_DEPLOYMENT.md](PRIVATE_DEPLOYMENT.md) for detailed instructions on private repository settings, Docker image authentication, and secure deployment options.
+
 ## GitHub Actions CI/CD
 
 This repository includes automated workflows for continuous integration and deployment:
@@ -18,9 +20,10 @@ This repository includes automated workflows for continuous integration and depl
    - Actions:
      - Builds and publishes Docker images to GitHub Container Registry (ghcr.io)
      - Tags images with multiple strategies (branch name, SHA, version tags)
-     - Images are publicly available at:
+     - Images published to:
        - `ghcr.io/sirazad/inventory/backend:latest`
        - `ghcr.io/sirazad/inventory/frontend:latest`
+     - **Note**: If your repository is private, the Docker images will be private by default and require authentication to pull. See [PRIVATE_DEPLOYMENT.md](PRIVATE_DEPLOYMENT.md) for details.
 
 3. **Docker Compose Validation** (`.github/workflows/docker-compose.yml`)
    - Triggers on: Changes to docker-compose.yml or Dockerfiles
@@ -30,6 +33,8 @@ This repository includes automated workflows for continuous integration and depl
      - Starts the full stack and checks health
 
 ### Using Pre-built Docker Images from GitHub Container Registry
+
+**For Private Deployments**: If you want to keep your code and deployment private, see the [PRIVATE_DEPLOYMENT.md](PRIVATE_DEPLOYMENT.md) guide for complete instructions on authentication and private deployment.
 
 Instead of building locally, you can use the pre-built images:
 

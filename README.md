@@ -135,6 +135,8 @@ The PostgreSQL database is automatically initialized with the required schema th
 
 ## Deployment
 
+> **🔒 Private Deployment?** If you want to keep your deployment completely private and restrict access, see [PRIVATE_DEPLOYMENT.md](PRIVATE_DEPLOYMENT.md) for authentication, firewall configuration, and secure deployment options.
+
 ### Using Pre-built Docker Images
 
 Docker images are automatically built and published to GitHub Container Registry on every push to the main branch.
@@ -142,13 +144,15 @@ Docker images are automatically built and published to GitHub Container Registry
 Pull and run the latest images:
 
 ```bash
-# Pull the images
+# Pull the images (requires authentication if repository is private)
 docker pull ghcr.io/sirazad/inventory/backend:latest
 docker pull ghcr.io/sirazad/inventory/frontend:latest
 
 # Create a custom docker-compose.yml or use the one from the repository
 docker compose up -d
 ```
+
+For detailed deployment options, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ### CI/CD Workflows
 
