@@ -194,14 +194,14 @@ const InventoryPage: React.FC = () => {
       newExpanded.add(itemId);
       setExpandedContainers(newExpanded);
       
-      // Load container contents if not already loaded
-      if (!containerContents.has(itemId)) {
-        try {
-          const contents = await inventoryService.getContainerContents(Number(characterId), itemId);
-          setContainerContents(prev => new Map(prev).set(itemId, contents));
-        } catch (err) {
-          console.error('Failed to load container contents', err);
-        }
+      // Always reload container contents when expanding to get fresh data
+      try {
+        const contents = await inventoryService.getContainerContents(Number(characterId), itemId);
+        console.log('Loaded container contents:', contents);
+        setContainerContents(prev => new Map(prev).set(itemId, contents));
+      } catch (err) {
+        console.error('Failed to load container contents', err);
+        alert('Failed to load container contents. Please try again.');
       }
       
       // Load total weight
@@ -617,7 +617,16 @@ const InventoryPage: React.FC = () => {
                     </td>
                   </tr>
                   {/* Show container contents when expanded */}
-                  {isContainer(item) && expandedContainers.has(item.id) && containerContents.get(item.id)?.map((containedItem) => (
+                  {isContainer(item) && expandedContainers.has(item.id) && (
+                    <>
+                      {containerContents.get(item.id)?.length === 0 && (
+                        <tr key={`empty-${item.id}`} style={{ backgroundColor: '#f5f5f5' }}>
+                          <td colSpan={11} style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center', fontStyle: 'italic', color: '#999' }}>
+                            This container is empty
+                          </td>
+                        </tr>
+                      )}
+                      {containerContents.get(item.id)?.map((containedItem) => (
                     <tr key={`contained-${containedItem.id}`} style={{ backgroundColor: '#f5f5f5' }}>
                       <td style={{ padding: '10px', border: '1px solid #ccc', paddingLeft: '40px' }}>
                         ↳ {containedItem.category}
@@ -695,6 +704,8 @@ const InventoryPage: React.FC = () => {
                       </td>
                     </tr>
                   ))}
+                    </>
+                  )}
                 </React.Fragment>
               ))}
             </tbody>
