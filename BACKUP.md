@@ -141,8 +141,8 @@ curl -X POST http://localhost:8080/api/system/backup \
 # Response:
 # {
 #   "status": "success",
-#   "backupFile": "inventory_backup_2024-01-20_14-30-00.sql",
-#   "backupPath": "/tmp/backups/inventory_backup_2024-01-20_14-30-00.sql"
+#   "backupFile": "inventory_backup_2024-01-20_14-30-00.dump",
+#   "backupPath": "/tmp/backups/inventory_backup_2024-01-20_14-30-00.dump"
 # }
 ```
 
@@ -156,18 +156,18 @@ curl http://localhost:8080/api/system/backup \
 #   "status": "success",
 #   "count": 3,
 #   "backups": [
-#     "inventory_backup_2024-01-20_14-30-00.sql",
-#     "inventory_backup_2024-01-19_10-15-00.sql",
-#     "inventory_backup_2024-01-18_09-00-00.sql"
+#     "inventory_backup_2024-01-20_14-30-00.dump",
+#     "inventory_backup_2024-01-19_10-15-00.dump",
+#     "inventory_backup_2024-01-18_09-00-00.dump"
 #   ]
 # }
 ```
 
 #### Download a Backup
 ```bash
-curl http://localhost:8080/api/system/backup/download/inventory_backup_2024-01-20_14-30-00.sql \
+curl http://localhost:8080/api/system/backup/download/inventory_backup_2024-01-20_14-30-00.dump \
   -H "X-System-Token: your-secret-token-here" \
-  -o backup.sql
+  -o backup.dump
 ```
 
 #### Cleanup Old Backups (Keep 5 Most Recent)
@@ -220,11 +220,12 @@ docker run --rm \
 
 ### Backup File Format
 
-System backups are created in PostgreSQL custom format (`.sql` files using `pg_dump -F c`):
-- ✅ Compressed for smaller file size
+System backups are created in PostgreSQL custom format (`.dump` files using `pg_dump -F c`):
+- ✅ Compressed binary format for smaller file size
 - ✅ Can be restored selectively
 - ✅ Includes full schema and data
 - ✅ Platform-independent
+- ✅ Must be restored with `pg_restore` (not `psql`)
 
 ### Restore from Backup
 
@@ -233,12 +234,12 @@ To restore from a system backup:
 ```bash
 # Using pg_restore
 docker exec -i inventory-postgres pg_restore \
-  -U inventory -d inventory -c /path/to/backup.sql
+  -U inventory -d inventory -c /path/to/backup.dump
 
 # Or via the container
-docker cp backup.sql inventory-postgres:/tmp/
+docker cp backup.dump inventory-postgres:/tmp/
 docker exec inventory-postgres pg_restore \
-  -U inventory -d inventory -c /tmp/backup.sql
+  -U inventory -d inventory -c /tmp/backup.dump
 ```
 
 ---

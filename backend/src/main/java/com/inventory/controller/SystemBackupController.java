@@ -154,10 +154,18 @@ public class SystemBackupController {
      * Validates the system backup token
      */
     private boolean isValidSystemToken(String token) {
+        // If no token is configured, system backups are disabled
         if (systemBackupToken == null || systemBackupToken.isEmpty()) {
-            // If no token is configured, system backups are disabled
             return false;
         }
+        // Token must match exactly
         return systemBackupToken.equals(token);
+    }
+    
+    /**
+     * Check if system backup is configured
+     */
+    private boolean isSystemBackupEnabled() {
+        return systemBackupToken != null && !systemBackupToken.isEmpty();
     }
 }

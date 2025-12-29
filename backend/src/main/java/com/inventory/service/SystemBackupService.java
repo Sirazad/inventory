@@ -46,24 +46,23 @@ public class SystemBackupService {
         
         // Generate backup filename with timestamp
         String timestamp = LocalDateTime.now().format(FILENAME_FORMATTER);
-        String backupFilename = String.format("inventory_backup_%s.sql", timestamp);
+        String backupFilename = String.format("inventory_backup_%s.dump", timestamp);
         Path backupFilePath = backupDir.resolve(backupFilename);
         
-        // Extract database name and host from datasource URL
-        // Format: jdbc:postgresql://host:port/database
-        String dbInfo = extractDatabaseInfo();
+        // Extract database connection info
+        DatabaseInfo dbInfo = extractDatabaseInfo();
         
         // Build pg_dump command
         List<String> command = new ArrayList<>();
         command.add("pg_dump");
         command.add("-h");
-        command.add(dbInfo.split(":")[0]); // host
+        command.add(dbInfo.host);
         command.add("-p");
-        command.add(dbInfo.split(":")[1].split("/")[0]); // port
+        command.add(String.valueOf(dbInfo.port));
         command.add("-U");
         command.add(dbUsername);
         command.add("-d");
-        command.add(dbInfo.split("/")[1]); // database name
+        command.add(dbInfo.database);
         command.add("-F");
         command.add("c"); // custom format
         command.add("-f");
@@ -113,7 +112,7 @@ public class SystemBackupService {
         
         List<Path> backups = new ArrayList<>();
         try (var stream = Files.list(backupDir)) {
-            stream.filter(path -> path.toString().endsWith(".sql"))
+            stream.filter(path -> path.toString().endsWith(".dump"))
                   .forEach(backups::add);
         }
         return backups;
@@ -146,12 +145,47 @@ public class SystemBackupService {
     }
     
     /**
-     * Extracts host:port/database from JDBC URL
-     * @return Database connection info in format "host:port/database"
+     * Extracts host:port/database from JDBC URL with proper error handling
+     * @return DatabaseInfo object with connection details
+     * @throws IllegalArgumentException if URL format is invalid
      */
-    private String extractDatabaseInfo() {
+    private DatabaseInfo extractDatabaseInfo() {
         // Format: jdbc:postgresql://host:port/database
-        String url = datasourceUrl.replace("jdbc:postgresql://", "");
-        return url;
+        if (!datasourceUrl.startsWith("jdbc:postgresql://")) {
+            throw new IllegalArgumentException("Invalid PostgreSQL JDBC URL format");
+        }
+        
+        String connectionString = datasourceUrl.replace("jdbc:postgresql://", "");
+        
+        // Split by / to separate host:port from database
+        String[] parts = connectionString.split("/", 2);
+        if (parts.length != 2) {
+            throw new IllegalArgumentException("Invalid JDBC URL: missing database name");
+        }
+        
+        String hostPort = parts[0];
+        String database = parts[1];
+        
+        // Split host and port
+        String[] hostPortParts = hostPort.split(":", 2);
+        String host = hostPortParts[0];
+        int port = hostPortParts.length > 1 ? Integer.parseInt(hostPortParts[1]) : 5432;
+        
+        return new DatabaseInfo(host, port, database);
+    }
+    
+    /**
+     * Inner class to hold database connection information
+     */
+    private static class DatabaseInfo {
+        final String host;
+        final int port;
+        final String database;
+        
+        DatabaseInfo(String host, int port, String database) {
+            this.host = host;
+            this.port = port;
+            this.database = database;
+        }
     }
 }
