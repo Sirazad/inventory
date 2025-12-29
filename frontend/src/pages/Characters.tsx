@@ -48,8 +48,10 @@ const Characters: React.FC = () => {
 
   const handleIncrementDay = async (id: number) => {
     try {
-      await characterService.incrementDay(id);
-      loadCharacters();
+      const updatedCharacter = await characterService.incrementDay(id);
+      setCharacters(characters.map(char => 
+        char.id === id ? updatedCharacter : char
+      ));
     } catch (err) {
       alert('Failed to increment day');
     }
@@ -57,8 +59,10 @@ const Characters: React.FC = () => {
 
   const handleDecrementDay = async (id: number) => {
     try {
-      await characterService.decrementDay(id);
-      loadCharacters();
+      const updatedCharacter = await characterService.decrementDay(id);
+      setCharacters(characters.map(char => 
+        char.id === id ? updatedCharacter : char
+      ));
     } catch (err) {
       alert('Failed to decrement day');
     }
