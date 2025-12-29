@@ -83,18 +83,25 @@ const InventoryPage: React.FC = () => {
         minPrice,
         maxWeight
       );
+      console.log('Loaded inventory data:', data);
       setInventory(data);
     } catch (err: any) {
       console.error('Failed to load inventory', err);
-      if (err.response?.status === 403) {
-        alert('Session expired or access denied. Please log in again.');
-        // Redirect to login
+      
+      // Clear inventory to show empty state
+      setInventory([]);
+      
+      if (err.response?.status === 403 || err.response?.status === 401) {
+        // Authentication error - redirect to login after a short delay
+        const message = err.response?.status === 403 
+          ? 'Session expired. Redirecting to login...'
+          : 'Not authenticated. Redirecting to login...';
+        alert(message);
         localStorage.removeItem('token');
-        navigate('/login');
-      } else if (err.response?.status === 401) {
-        alert('Not authenticated. Please log in.');
-        localStorage.removeItem('token');
-        navigate('/login');
+        setTimeout(() => navigate('/login'), 1000);
+      } else {
+        // Other errors - show generic message
+        console.error('Unexpected error loading inventory:', err.response || err);
       }
     }
   };
@@ -513,8 +520,18 @@ const InventoryPage: React.FC = () => {
       {/* Inventory List */}
       <div>
         <h3>Inventory Items</h3>
+        {/* Debug info */}
+        {inventory.length > 0 && (
+          <div style={{ fontSize: '12px', color: '#666', marginBottom: '10px' }}>
+            Total items loaded: {inventory.length} | 
+            Top-level items: {inventory.filter(item => !item.containerId).length} | 
+            Items in containers: {inventory.filter(item => item.containerId).length}
+          </div>
+        )}
         {inventory.length === 0 ? (
           <p>No items in inventory. Add some above!</p>
+        ) : inventory.filter(item => !item.containerId).length === 0 ? (
+          <p>All items are inside containers. Expand a container above to see items.</p>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
              <thead>
