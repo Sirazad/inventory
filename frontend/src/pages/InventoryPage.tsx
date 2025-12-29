@@ -52,7 +52,22 @@ const InventoryPage: React.FC = () => {
   const loadCategories = async () => {
     try {
       const data = await categoryService.getCategories();
-      setCategories(data);
+      
+      // Auto-create "container" category if it doesn't exist
+      const hasContainerCategory = data.some(cat => cat.name.toLowerCase() === 'container');
+      if (!hasContainerCategory) {
+        try {
+          await categoryService.createCategory({ name: 'container' });
+          // Reload categories to include the new one
+          const updatedData = await categoryService.getCategories();
+          setCategories(updatedData);
+        } catch (createErr) {
+          // If creation fails (e.g., already exists due to race condition), just use existing data
+          setCategories(data);
+        }
+      } else {
+        setCategories(data);
+      }
     } catch (err) {
       console.error('Failed to load categories', err);
     }
@@ -312,6 +327,9 @@ const InventoryPage: React.FC = () => {
                     </option>
                   ))}
                 </select>
+                <div style={{ fontSize: '12px', color: '#666', marginTop: '3px' }}>
+                  Select "container" to make this item a bag/pouch that can hold other items
+                </div>
               </div>
               <div>
                 <label>Item*:</label>
@@ -439,6 +457,9 @@ const InventoryPage: React.FC = () => {
                     </option>
                   ))}
                 </select>
+                <div style={{ fontSize: '12px', color: '#666', marginTop: '3px' }}>
+                  Put this item inside a bag/pouch (must have category "container")
+                </div>
               </div>
               <div style={{ gridColumn: '1 / -1' }}>
                 <label>Description*:</label>

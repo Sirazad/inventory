@@ -56,18 +56,21 @@ This document describes the implementation of the container feature for the inve
 
 ### Creating a Container
 
-1. Go to the Categories page
-2. Create a category called "container" (if not already exists)
-3. Go to the Inventory page for a character
-4. Click "Add New Item"
-5. Fill in the form:
-   - **Category**: Select "container"
+The "container" category is automatically created when you first visit the inventory page.
+
+1. Go to the Inventory page for a character
+2. Click "Add New Item"
+3. Fill in the form:
+   - **Category**: Select "container" (this makes the item able to hold other items)
    - **Item**: Name of the container (e.g., "Leather Backpack")
    - **Description**: Description of the container
    - **Weight**: The empty container's weight in kg
    - **Quantity**: How many containers (usually 1)
+   - **Container**: Leave as "No container" (unless you want to put this container inside another container)
    - **Other fields**: As desired
-6. Click "Add Item"
+4. Click "Add Item"
+
+Note: The Category dropdown determines what TYPE of item this is. Select "container" to make it a bag/pouch. The Container dropdown determines WHERE to put this item (inside which bag/pouch).
 
 ### Adding Items to a Container
 
