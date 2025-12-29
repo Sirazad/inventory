@@ -21,6 +21,11 @@ Each character has their own inventory with the following features:
 - **Soft delete**: Items are marked as removed and kept in database with removal reason
 - **Filtering**: Filter by category, minimum price (in copper), and maximum weight (kg per item)
 
+### Backup System
+- **User-level backup**: Export your own data as JSON via authenticated API
+- **System-level backup**: Full database backups using PostgreSQL pg_dump (admin only)
+- See [BACKUP.md](BACKUP.md) for detailed documentation
+
 ## Tech Stack
 
 ### Frontend
@@ -110,6 +115,14 @@ docker-compose up --build
 - `POST /api/characters/{characterId}/inventory` - Create inventory item
 - `PUT /api/characters/{characterId}/inventory/{inventoryId}` - Update item
 - `DELETE /api/characters/{characterId}/inventory/{inventoryId}` - Remove item (soft delete)
+
+### Backup
+- `GET /api/backup` - Export user's data as JSON (user-level backup)
+- `POST /api/system/backup` - Create full database backup (requires system token)
+- `GET /api/system/backup` - List all backups (requires system token)
+- `GET /api/system/backup/download/{filename}` - Download backup file (requires system token)
+
+See [BACKUP.md](BACKUP.md) for detailed backup documentation.
 
 ## Development
 

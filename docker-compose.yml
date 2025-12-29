@@ -27,8 +27,11 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/inventory
       SPRING_DATASOURCE_USERNAME: inventory
       SPRING_DATASOURCE_PASSWORD: inventory123
+      SYSTEM_BACKUP_TOKEN: ${SYSTEM_BACKUP_TOKEN:-}
     ports:
       - "8080:8080"
+    volumes:
+      - backup-data:/tmp/backups
     depends_on:
       postgres:
         condition: service_healthy
@@ -53,3 +56,4 @@ networks:
 
 volumes:
   postgres-data:
+  backup-data:
