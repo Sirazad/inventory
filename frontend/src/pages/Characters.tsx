@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { characterService, authService } from '../services/api';
 import { Character } from '../types';
+import { useLanguage } from '../i18n/LanguageContext';
+import LanguageToggle from '../components/LanguageToggle';
 
 // Pyarr calendar months (31 months)
 const CALENDAR_MONTHS = [
@@ -33,6 +35,7 @@ const Characters: React.FC = () => {
   const [deletePassword, setDeletePassword] = useState('');
   const [editingCharacter, setEditingCharacter] = useState<EditingCharacter | null>(null);
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   useEffect(() => {
     loadCharacters();
@@ -60,7 +63,7 @@ const Characters: React.FC = () => {
   };
 
   const handleDeleteCharacter = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this character?')) {
+    if (window.confirm(t.characters.confirmDelete)) {
       try {
         await characterService.deleteCharacter(id);
         loadCharacters();
@@ -137,7 +140,7 @@ const Characters: React.FC = () => {
 
   const handleDeleteAccount = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (window.confirm('Are you sure you want to delete your account? This cannot be undone.')) {
+    if (window.confirm(t.account.confirmDelete)) {
       try {
         await authService.deleteAccount(deletePassword);
         localStorage.clear();
@@ -156,22 +159,25 @@ const Characters: React.FC = () => {
   return (
     <div style={{ maxWidth: '900px', margin: '50px auto', padding: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2>My Characters</h2>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <h1>{t.characters.title}</h1>
+          <LanguageToggle />
+        </div>
         <div>
           <button 
             onClick={() => navigate('/categories')} 
             style={{ padding: '10px 20px', marginRight: '10px', backgroundColor: '#007bff', color: 'white' }}
           >
-            Manage Categories
+            {t.characters.manageCategories}
           </button>
           <button onClick={handleLogout} style={{ padding: '10px 20px', marginRight: '10px' }}>
-            Logout
+            {t.nav.logout}
           </button>
           <button 
             onClick={() => setShowDeleteAccount(!showDeleteAccount)} 
             style={{ padding: '10px 20px', backgroundColor: '#dc3545', color: 'white' }}
           >
-            Delete Account
+            {t.account.deleteAccount}
           </button>
         </div>
       </div>
