@@ -26,6 +26,7 @@ export interface Inventory {
   quantity: number;
   addedUpdated?: string;
   weight?: number;
+  containerId?: number;
   removed: boolean;
   removedText?: string;
   createdAt: string;
@@ -63,6 +64,7 @@ export interface InventoryCreateRequest {
   quantity: number;
   addedUpdated?: string;
   weight?: number;
+  containerId?: number;
 }
 
 export interface InventoryUpdateRequest {
@@ -76,6 +78,7 @@ export interface InventoryUpdateRequest {
   quantity: number;
   addedUpdated?: string;
   weight?: number;
+  containerId?: number;
 }
 
 export interface Category {

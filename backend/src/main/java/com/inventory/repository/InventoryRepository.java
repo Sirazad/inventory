@@ -14,4 +14,5 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long>, Jpa
     List<Inventory> findByCharacterIdAndRemovedFalse(Long characterId);
     Optional<Inventory> findByIdAndCharacterId(Long id, Long characterId);
     long countByCategoryEntity(Category category);
+    List<Inventory> findByContainerIdAndRemovedFalse(Long containerId);
 }

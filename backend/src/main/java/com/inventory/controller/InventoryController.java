@@ -97,4 +97,28 @@ public class InventoryController {
             return ResponseEntity.notFound().build();
         }
     }
+    
+    @GetMapping("/{inventoryId}/contents")
+    public ResponseEntity<List<Inventory>> getContainerContents(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long characterId,
+            @PathVariable Long inventoryId) {
+        try {
+            return ResponseEntity.ok(inventoryService.getItemsInContainer(
+                    userDetails.getUsername(), characterId, inventoryId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    @GetMapping("/{inventoryId}/total-weight")
+    public ResponseEntity<Map<String, Double>> getTotalWeight(
+            @PathVariable Long inventoryId) {
+        try {
+            Double totalWeight = inventoryService.calculateTotalWeight(inventoryId);
+            return ResponseEntity.ok(Map.of("totalWeight", totalWeight));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

@@ -28,6 +28,8 @@ public class InventoryRequest {
 
     private Double weight;
 
+    private Long containerId;
+
     public InventoryRequest() {}
 
     // Getters and Setters
@@ -109,5 +111,13 @@ public class InventoryRequest {
 
     public void setWeight(Double weight) {
         this.weight = weight;
+    }
+
+    public Long getContainerId() {
+        return containerId;
+    }
+
+    public void setContainerId(Long containerId) {
+        this.containerId = containerId;
     }
 }

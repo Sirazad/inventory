@@ -11,6 +11,9 @@ const InventoryPage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [expandedContainers, setExpandedContainers] = useState<Set<number>>(new Set());
+  const [containerContents, setContainerContents] = useState<Map<number, Inventory[]>>(new Map());
+  const [containerWeights, setContainerWeights] = useState<Map<number, number>>(new Map());
   const [filters, setFilters] = useState({
     category: '',
     minPrice: '',
@@ -27,6 +30,7 @@ const InventoryPage: React.FC = () => {
     quantity: '1',
     addedUpdated: '',
     weight: '',
+    containerId: '',
   });
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -87,6 +91,7 @@ const InventoryPage: React.FC = () => {
         copper: formData.copper ? parseInt(formData.copper) : undefined,
         quantity: parseInt(formData.quantity),
         weight: formData.weight ? parseFloat(formData.weight) : undefined,
+        containerId: formData.containerId ? parseInt(formData.containerId) : undefined,
       };
 
       if (editingId) {
@@ -107,6 +112,7 @@ const InventoryPage: React.FC = () => {
         quantity: '1',
         addedUpdated: '',
         weight: '',
+        containerId: '',
       });
       setShowAddForm(false);
       loadInventory();
@@ -127,6 +133,7 @@ const InventoryPage: React.FC = () => {
       quantity: item.quantity.toString(),
       addedUpdated: item.addedUpdated || '',
       weight: item.weight?.toString() || '',
+      containerId: item.containerId?.toString() || '',
     });
     setEditingId(item.id);
     setShowAddForm(true);
@@ -159,6 +166,47 @@ const InventoryPage: React.FC = () => {
     } catch (err) {
       alert('Failed to update quantity');
     }
+  };
+
+  const isContainer = (item: Inventory) => {
+    return item.category.toLowerCase() === 'container';
+  };
+
+  const toggleContainer = async (itemId: number) => {
+    const newExpanded = new Set(expandedContainers);
+    
+    if (newExpanded.has(itemId)) {
+      newExpanded.delete(itemId);
+      setExpandedContainers(newExpanded);
+    } else {
+      newExpanded.add(itemId);
+      setExpandedContainers(newExpanded);
+      
+      // Load container contents if not already loaded
+      if (!containerContents.has(itemId)) {
+        try {
+          const contents = await inventoryService.getContainerContents(Number(characterId), itemId);
+          setContainerContents(new Map(containerContents).set(itemId, contents));
+        } catch (err) {
+          console.error('Failed to load container contents', err);
+        }
+      }
+      
+      // Load total weight
+      try {
+        const totalWeight = await inventoryService.getTotalWeight(itemId);
+        setContainerWeights(new Map(containerWeights).set(itemId, totalWeight));
+      } catch (err) {
+        console.error('Failed to load total weight', err);
+      }
+    }
+  };
+
+  // Get available containers (items with category "container" that are not the current editing item)
+  const getAvailableContainers = () => {
+    return inventory.filter(item => 
+      isContainer(item) && item.id !== editingId
+    );
   };
 
   return (
@@ -238,6 +286,7 @@ const InventoryPage: React.FC = () => {
               quantity: '1',
               addedUpdated: '',
               weight: '',
+              containerId: '',
             });
           }}
           style={{ padding: '10px 20px', backgroundColor: '#28a745', color: 'white' }}
@@ -379,6 +428,21 @@ const InventoryPage: React.FC = () => {
                   style={{ width: '100%', padding: '8px', marginTop: '5px' }}
                 />
               </div>
+              <div>
+                <label>Container (optional):</label>
+                <select
+                  value={formData.containerId}
+                  onChange={(e) => setFormData({ ...formData, containerId: e.target.value })}
+                  style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                >
+                  <option value="">No container</option>
+                  {getAvailableContainers().map((container) => (
+                    <option key={container.id} value={container.id}>
+                      {container.item}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div style={{ gridColumn: '1 / -1' }}>
                 <label>Description*:</label>
                 <textarea
@@ -431,81 +495,189 @@ const InventoryPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {inventory.map((item) => (
-                <tr key={item.id}>
-                  <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.category}</td>
-                  <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.item}</td>
-                  <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.quality || '-'}</td>
-                  <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.description}</td>
-                  <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
-                    {item.gold !== undefined || item.silver !== undefined || item.copper !== undefined
-                      ? `${item.gold || 0}g ${item.silver || 0}s ${item.copper || 0}c`
-                      : '-'}
-                  </td>
-                  <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
-                    <div style={{ display: 'flex', gap: '5px', alignItems: 'center', justifyContent: 'center' }}>
+              {inventory.filter(item => !item.containerId).map((item) => (
+                <React.Fragment key={item.id}>
+                  <tr style={{ backgroundColor: isContainer(item) ? '#e8f5e9' : 'white' }}>
+                    <td style={{ padding: '10px', border: '1px solid #ccc' }}>
+                      {isContainer(item) && (
+                        <button
+                          onClick={() => toggleContainer(item.id)}
+                          style={{
+                            marginRight: '5px',
+                            padding: '2px 8px',
+                            backgroundColor: '#2196F3',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '3px',
+                            cursor: 'pointer',
+                            fontSize: '12px'
+                          }}
+                        >
+                          {expandedContainers.has(item.id) ? '▼' : '▶'}
+                        </button>
+                      )}
+                      {item.category}
+                    </td>
+                    <td style={{ padding: '10px', border: '1px solid #ccc', fontWeight: isContainer(item) ? 'bold' : 'normal' }}>
+                      {item.item}
+                    </td>
+                    <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.quality || '-'}</td>
+                    <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.description}</td>
+                    <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
+                      {item.gold !== undefined || item.silver !== undefined || item.copper !== undefined
+                        ? `${item.gold || 0}g ${item.silver || 0}s ${item.copper || 0}c`
+                        : '-'}
+                    </td>
+                    <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
+                      <div style={{ display: 'flex', gap: '5px', alignItems: 'center', justifyContent: 'center' }}>
+                        <button
+                          onClick={() => handleQuantityChange(item, -1)}
+                          style={{ 
+                            padding: '4px 10px', 
+                            backgroundColor: '#dc3545', 
+                            color: 'white', 
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontWeight: 'bold',
+                            borderRadius: '3px'
+                          }}
+                          title="Decrease quantity"
+                        >
+                          −
+                        </button>
+                        <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: 'bold' }}>
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() => handleQuantityChange(item, +1)}
+                          style={{ 
+                            padding: '4px 10px', 
+                            backgroundColor: '#28a745', 
+                            color: 'white', 
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontWeight: 'bold',
+                            borderRadius: '3px'
+                          }}
+                          title="Increase quantity"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </td>
+                    <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
+                      {isContainer(item) && containerWeights.has(item.id) ? (
+                        <strong>{containerWeights.get(item.id)?.toFixed(2)} kg (total)</strong>
+                      ) : item.weight ? (
+                        `${item.weight} kg`
+                      ) : (
+                        '-'
+                      )}
+                    </td>
+                    <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
+                      {item.formattedAddedDate || '-'}
+                    </td>
+                    <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
+                      {item.formattedModifiedDate || '-'}
+                    </td>
+                    <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.addedUpdated || '-'}</td>
+                    <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
                       <button
-                        onClick={() => handleQuantityChange(item, -1)}
-                        style={{ 
-                          padding: '4px 10px', 
-                          backgroundColor: '#dc3545', 
-                          color: 'white', 
-                          border: 'none',
-                          cursor: 'pointer',
-                          fontSize: '14px',
-                          fontWeight: 'bold',
-                          borderRadius: '3px'
-                        }}
-                        title="Decrease quantity"
+                        onClick={() => handleEdit(item)}
+                        style={{ padding: '5px 10px', marginRight: '5px' }}
                       >
-                        −
+                        Edit
                       </button>
-                      <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: 'bold' }}>
-                        {item.quantity}
-                      </span>
                       <button
-                        onClick={() => handleQuantityChange(item, +1)}
-                        style={{ 
-                          padding: '4px 10px', 
-                          backgroundColor: '#28a745', 
-                          color: 'white', 
-                          border: 'none',
-                          cursor: 'pointer',
-                          fontSize: '14px',
-                          fontWeight: 'bold',
-                          borderRadius: '3px'
-                        }}
-                        title="Increase quantity"
+                        onClick={() => handleRemove(item.id)}
+                        style={{ padding: '5px 10px', backgroundColor: '#dc3545', color: 'white' }}
                       >
-                        +
+                        Remove
                       </button>
-                    </div>
-                  </td>
-                  <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
-                    {item.weight ? `${item.weight} kg` : '-'}
-                  </td>
-                  <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
-                    {item.formattedAddedDate || '-'}
-                  </td>
-                  <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
-                    {item.formattedModifiedDate || '-'}
-                  </td>
-                  <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.addedUpdated || '-'}</td>
-                  <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
-                    <button
-                      onClick={() => handleEdit(item)}
-                      style={{ padding: '5px 10px', marginRight: '5px' }}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleRemove(item.id)}
-                      style={{ padding: '5px 10px', backgroundColor: '#dc3545', color: 'white' }}
-                    >
-                      Remove
-                    </button>
-                  </td>
-                </tr>
+                    </td>
+                  </tr>
+                  {/* Show container contents when expanded */}
+                  {isContainer(item) && expandedContainers.has(item.id) && containerContents.get(item.id)?.map((containedItem) => (
+                    <tr key={`contained-${containedItem.id}`} style={{ backgroundColor: '#f5f5f5' }}>
+                      <td style={{ padding: '10px', border: '1px solid #ccc', paddingLeft: '40px' }}>
+                        ↳ {containedItem.category}
+                      </td>
+                      <td style={{ padding: '10px', border: '1px solid #ccc' }}>{containedItem.item}</td>
+                      <td style={{ padding: '10px', border: '1px solid #ccc' }}>{containedItem.quality || '-'}</td>
+                      <td style={{ padding: '10px', border: '1px solid #ccc' }}>{containedItem.description}</td>
+                      <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
+                        {containedItem.gold !== undefined || containedItem.silver !== undefined || containedItem.copper !== undefined
+                          ? `${containedItem.gold || 0}g ${containedItem.silver || 0}s ${containedItem.copper || 0}c`
+                          : '-'}
+                      </td>
+                      <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', gap: '5px', alignItems: 'center', justifyContent: 'center' }}>
+                          <button
+                            onClick={() => handleQuantityChange(containedItem, -1)}
+                            style={{ 
+                              padding: '4px 10px', 
+                              backgroundColor: '#dc3545', 
+                              color: 'white', 
+                              border: 'none',
+                              cursor: 'pointer',
+                              fontSize: '14px',
+                              fontWeight: 'bold',
+                              borderRadius: '3px'
+                            }}
+                            title="Decrease quantity"
+                          >
+                            −
+                          </button>
+                          <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: 'bold' }}>
+                            {containedItem.quantity}
+                          </span>
+                          <button
+                            onClick={() => handleQuantityChange(containedItem, +1)}
+                            style={{ 
+                              padding: '4px 10px', 
+                              backgroundColor: '#28a745', 
+                              color: 'white', 
+                              border: 'none',
+                              cursor: 'pointer',
+                              fontSize: '14px',
+                              fontWeight: 'bold',
+                              borderRadius: '3px'
+                            }}
+                            title="Increase quantity"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </td>
+                      <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
+                        {containedItem.weight ? `${containedItem.weight} kg` : '-'}
+                      </td>
+                      <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
+                        {containedItem.formattedAddedDate || '-'}
+                      </td>
+                      <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
+                        {containedItem.formattedModifiedDate || '-'}
+                      </td>
+                      <td style={{ padding: '10px', border: '1px solid #ccc' }}>{containedItem.addedUpdated || '-'}</td>
+                      <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
+                        <button
+                          onClick={() => handleEdit(containedItem)}
+                          style={{ padding: '5px 10px', marginRight: '5px' }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleRemove(containedItem.id)}
+                          style={{ padding: '5px 10px', backgroundColor: '#dc3545', color: 'white' }}
+                        >
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </React.Fragment>
               ))}
             </tbody>
           </table>

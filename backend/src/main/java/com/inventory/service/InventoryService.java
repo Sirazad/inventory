@@ -116,6 +116,13 @@ public class InventoryService {
         inventory.setWeight(request.getWeight());
         inventory.setCharacter(character);
         
+        // Set container if provided
+        if (request.getContainerId() != null) {
+            Inventory containerItem = inventoryRepository.findByIdAndCharacterId(request.getContainerId(), characterId)
+                    .orElseThrow(() -> new RuntimeException("Container not found"));
+            inventory.setContainer(containerItem);
+        }
+        
         // Set added date from character's current date
         inventory.setAddedYear(character.getCurrentYear());
         inventory.setAddedDay(character.getCurrentDay());
@@ -150,6 +157,15 @@ public class InventoryService {
         inventory.setQuantity(request.getQuantity());
         inventory.setAddedUpdated(request.getAddedUpdated());
         inventory.setWeight(request.getWeight());
+
+        // Update container if provided
+        if (request.getContainerId() != null) {
+            Inventory containerItem = inventoryRepository.findByIdAndCharacterId(request.getContainerId(), characterId)
+                    .orElseThrow(() -> new RuntimeException("Container not found"));
+            inventory.setContainer(containerItem);
+        } else {
+            inventory.setContainer(null);
+        }
 
         Inventory saved = inventoryRepository.save(inventory);
         injectCalendarService(saved);
@@ -235,5 +251,44 @@ public class InventoryService {
         
         // No change
         return inventory;
+    }
+    
+    public List<Inventory> getItemsInContainer(String username, Long characterId, Long containerId) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Character character = characterRepository.findByIdAndUserId(characterId, user.getId())
+                .orElseThrow(() -> new RuntimeException("Character not found"));
+        
+        // Verify container belongs to this character
+        inventoryRepository.findByIdAndCharacterId(containerId, characterId)
+                .orElseThrow(() -> new RuntimeException("Container not found"));
+
+        List<Inventory> items = inventoryRepository.findByContainerIdAndRemovedFalse(containerId);
+        injectCalendarService(items);
+        return items;
+    }
+    
+    public Double calculateTotalWeight(Long inventoryId) {
+        Inventory item = inventoryRepository.findById(inventoryId)
+                .orElseThrow(() -> new RuntimeException("Inventory item not found"));
+        
+        return calculateTotalWeightRecursive(item);
+    }
+    
+    private Double calculateTotalWeightRecursive(Inventory item) {
+        // Base weight of the item itself (weight per item * quantity)
+        Double totalWeight = 0.0;
+        if (item.getWeight() != null && item.getQuantity() != null) {
+            totalWeight = item.getWeight() * item.getQuantity();
+        }
+        
+        // Add weight of all items in this container
+        List<Inventory> containedItems = inventoryRepository.findByContainerIdAndRemovedFalse(item.getId());
+        for (Inventory containedItem : containedItems) {
+            totalWeight += calculateTotalWeightRecursive(containedItem);
+        }
+        
+        return totalWeight;
     }
 }
