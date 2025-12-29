@@ -87,18 +87,20 @@ const InventoryPage: React.FC = () => {
       setInventory(data);
     } catch (err: any) {
       console.error('Failed to load inventory', err);
+      console.error('Error details:', {
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        data: err.response?.data,
+        headers: err.response?.headers
+      });
       
       // Clear inventory to show empty state
       setInventory([]);
       
       if (err.response?.status === 403 || err.response?.status === 401) {
-        // Authentication error - redirect to login after a short delay
-        const message = err.response?.status === 403 
-          ? 'Session expired. Redirecting to login...'
-          : 'Not authenticated. Redirecting to login...';
-        alert(message);
-        localStorage.removeItem('token');
-        setTimeout(() => navigate('/login'), 1000);
+        // Only redirect if this is genuinely an auth error for ALL characters
+        // For now, just show an error message without redirecting
+        alert(`Error ${err.response?.status}: Cannot load inventory for this character. This may be a permissions issue. Please check the browser console for details and report this to support.`);
       } else {
         // Other errors - show generic message
         console.error('Unexpected error loading inventory:', err.response || err);
