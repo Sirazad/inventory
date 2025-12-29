@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { inventoryService, categoryService } from '../services/api';
 import { Inventory, Category } from '../types';
-import { useLanguage } from '../i18n/LanguageContext';
-import LanguageToggle from '../components/LanguageToggle';
 
 const InventoryPage: React.FC = () => {
   const { characterId } = useParams<{ characterId: string }>();
@@ -33,7 +31,6 @@ const InventoryPage: React.FC = () => {
     containerId: '',
   });
   const navigate = useNavigate();
-  const { t } = useLanguage();
 
   useEffect(() => {
     loadCategories();

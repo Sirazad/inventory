@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { categoryService } from '../services/api';
 import { Category } from '../types';
-import { useLanguage } from '../i18n/LanguageContext';
-import LanguageToggle from '../components/LanguageToggle';
 
 const Categories: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -12,7 +10,6 @@ const Categories: React.FC = () => {
   const [formData, setFormData] = useState({ name: '' });
   const [error, setError] = useState<string>('');
   const navigate = useNavigate();
-  const { t } = useLanguage();
 
   useEffect(() => {
     loadCategories();
