@@ -15,6 +15,9 @@ on:
       - 'backend/Dockerfile'
       - 'frontend/Dockerfile'
 
+permissions:
+  contents: read
+
 jobs:
   validate-docker-compose:
     name: Validate Docker Compose Stack
