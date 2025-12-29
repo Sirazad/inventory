@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/api';
 import { LoginRequest } from '../types';
+import { useLanguage } from '../i18n/LanguageContext';
+import LanguageToggle from '../components/LanguageToggle';
 
 const Login: React.FC = () => {
   const [formData, setFormData] = useState<LoginRequest>({
@@ -10,6 +12,7 @@ const Login: React.FC = () => {
   });
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,11 +30,14 @@ const Login: React.FC = () => {
 
   return (
     <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px' }}>
-      <h2>Login</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h2>{t.login.title}</h2>
+        <LanguageToggle />
+      </div>
       {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '15px' }}>
-          <label>Username:</label>
+          <label>{t.login.username}:</label>
           <input
             type="text"
             value={formData.username}
@@ -41,7 +47,7 @@ const Login: React.FC = () => {
           />
         </div>
         <div style={{ marginBottom: '15px' }}>
-          <label>Password:</label>
+          <label>{t.login.password}:</label>
           <input
             type="password"
             value={formData.password}
@@ -51,14 +57,14 @@ const Login: React.FC = () => {
           />
         </div>
         <button type="submit" style={{ padding: '10px 20px', marginRight: '10px' }}>
-          Login
+          {t.login.loginButton}
         </button>
         <button
           type="button"
           onClick={() => navigate('/register')}
           style={{ padding: '10px 20px' }}
         >
-          Register
+          {t.login.registerLink}
         </button>
       </form>
     </div>

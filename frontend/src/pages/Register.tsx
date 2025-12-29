@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/api';
 import { RegisterRequest } from '../types';
+import { useLanguage } from '../i18n/LanguageContext';
+import LanguageToggle from '../components/LanguageToggle';
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState<RegisterRequest>({
@@ -11,6 +13,7 @@ const Register: React.FC = () => {
   });
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,11 +31,14 @@ const Register: React.FC = () => {
 
   return (
     <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px' }}>
-      <h2>Register</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h2>{t.register.title}</h2>
+        <LanguageToggle />
+      </div>
       {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '15px' }}>
-          <label>Username:</label>
+          <label>{t.register.username}:</label>
           <input
             type="text"
             value={formData.username}
@@ -53,7 +59,7 @@ const Register: React.FC = () => {
           />
         </div>
         <div style={{ marginBottom: '15px' }}>
-          <label>Password:</label>
+          <label>{t.register.password}:</label>
           <input
             type="password"
             value={formData.password}
@@ -64,14 +70,14 @@ const Register: React.FC = () => {
           />
         </div>
         <button type="submit" style={{ padding: '10px 20px', marginRight: '10px' }}>
-          Register
+          {t.register.registerButton}
         </button>
         <button
           type="button"
           onClick={() => navigate('/login')}
           style={{ padding: '10px 20px' }}
         >
-          Back to Login
+          {t.register.loginLink}
         </button>
       </form>
     </div>
