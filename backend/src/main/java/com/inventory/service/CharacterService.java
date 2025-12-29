@@ -97,4 +97,35 @@ public class CharacterService {
         Character saved = characterRepository.save(character);
         return new CharacterResponse(saved, calendarService);
     }
+
+    public CharacterResponse updateCharacter(String username, Long characterId, CharacterRequest request) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Character character = characterRepository.findByIdAndUserId(characterId, user.getId())
+                .orElseThrow(() -> new RuntimeException("Character not found"));
+
+        // Check if name is being changed to an existing name
+        if (!character.getName().equals(request.getName()) && 
+            characterRepository.existsByNameAndUserId(request.getName(), user.getId())) {
+            throw new RuntimeException("Character name already exists");
+        }
+
+        character.setName(request.getName());
+        
+        // Update date if provided
+        if (request.getCurrentYear() != null) {
+            character.setCurrentYear(request.getCurrentYear());
+        }
+        if (request.getCurrentDay() != null) {
+            // Validate day is between 1-620
+            if (request.getCurrentDay() < 1 || request.getCurrentDay() > 620) {
+                throw new RuntimeException("Day must be between 1 and 620");
+            }
+            character.setCurrentDay(request.getCurrentDay());
+        }
+
+        Character saved = characterRepository.save(character);
+        return new CharacterResponse(saved, calendarService);
+    }
 }

@@ -42,6 +42,15 @@ export const characterService = {
     return response.data;
   },
 
+  updateCharacter: async (id: number, name: string, currentYear?: number, currentDay?: number) => {
+    const response = await axiosInstance.put(`/characters/${id}`, { 
+      name,
+      currentYear,
+      currentDay
+    });
+    return response.data;
+  },
+
   deleteCharacter: async (id: number) => {
     await axiosInstance.delete(`/characters/${id}`);
   },

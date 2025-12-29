@@ -3,11 +3,35 @@ import { useNavigate } from 'react-router-dom';
 import { characterService, authService } from '../services/api';
 import { Character } from '../types';
 
+// Pyarr calendar months (31 months)
+const CALENDAR_MONTHS = [
+  { number: 1, name: 'Szándék' }, { number: 2, name: 'Akarat' }, { number: 3, name: 'Harag' },
+  { number: 4, name: 'Végítélet' }, { number: 5, name: 'Sikolyok' }, { number: 6, name: 'Csend' },
+  { number: 7, name: 'Kacaj' }, { number: 8, name: 'Pengék' }, { number: 9, name: 'Csontok' },
+  { number: 10, name: 'Hamvak' }, { number: 11, name: 'Lant' }, { number: 12, name: 'Álmok' },
+  { number: 13, name: 'Ébredés' }, { number: 14, name: 'Áldozat' }, { number: 15, name: 'Engesztelés' },
+  { number: 16, name: 'Lángok' }, { number: 17, name: 'Feloldozás' }, { number: 18, name: 'Ifjak' },
+  { number: 19, name: 'Bölcsek' }, { number: 20, name: 'Beavatottak' }, { number: 21, name: 'Felemelkedők' },
+  { number: 22, name: 'Fogadalmak' }, { number: 23, name: 'Esküvések' }, { number: 24, name: 'Fohászok' },
+  { number: 25, name: 'Hullámok' }, { number: 26, name: 'Áradás' }, { number: 27, name: 'Tengercsend' },
+  { number: 28, name: 'Zivatar' }, { number: 29, name: 'Kék Acél' }, { number: 30, name: 'Sólyomszárny' },
+  { number: 31, name: 'Holdak és vándorok' }
+];
+
+interface EditingCharacter {
+  id: number;
+  name: string;
+  year: number;
+  month: number;
+  day: number;
+}
+
 const Characters: React.FC = () => {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [newCharacterName, setNewCharacterName] = useState('');
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
+  const [editingCharacter, setEditingCharacter] = useState<EditingCharacter | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -66,6 +90,49 @@ const Characters: React.FC = () => {
     } catch (err) {
       alert('Failed to decrement day');
     }
+  };
+
+  const handleEditCharacter = (character: Character) => {
+    // Calculate month and day from currentDay
+    const monthNumber = Math.floor((character.currentDay - 1) / 20) + 1;
+    const dayInMonth = ((character.currentDay - 1) % 20) + 1;
+    
+    setEditingCharacter({
+      id: character.id,
+      name: character.name,
+      year: character.currentYear,
+      month: monthNumber,
+      day: dayInMonth
+    });
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCharacter) return;
+
+    try {
+      // Convert month and day to day-of-year (1-620)
+      const dayOfYear = (editingCharacter.month - 1) * 20 + editingCharacter.day;
+      
+      const updatedCharacter = await characterService.updateCharacter(
+        editingCharacter.id,
+        editingCharacter.name,
+        editingCharacter.year,
+        dayOfYear
+      );
+      
+      setCharacters(characters.map(char => 
+        char.id === editingCharacter.id ? updatedCharacter : char
+      ));
+      setEditingCharacter(null);
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.error || 'Failed to update character';
+      alert(errorMessage);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCharacter(null);
   };
 
   const handleDeleteAccount = async (e: React.FormEvent) => {
@@ -127,6 +194,78 @@ const Characters: React.FC = () => {
               Confirm Delete
             </button>
             <button type="button" onClick={() => setShowDeleteAccount(false)} style={{ padding: '10px 20px' }}>
+              Cancel
+            </button>
+          </form>
+        </div>
+      )}
+
+      {editingCharacter && (
+        <div style={{ padding: '20px', border: '2px solid #007bff', marginBottom: '20px', backgroundColor: '#e7f3ff' }}>
+          <h3>Edit Character</h3>
+          <form onSubmit={handleSaveEdit}>
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Character Name:</label>
+              <input
+                type="text"
+                value={editingCharacter.name}
+                onChange={(e) => setEditingCharacter({ ...editingCharacter, name: e.target.value })}
+                required
+                style={{ width: '100%', padding: '8px' }}
+              />
+            </div>
+            
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Pyarr Calendar Date:</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', marginBottom: '3px' }}>Year:</label>
+                  <input
+                    type="number"
+                    value={editingCharacter.year}
+                    onChange={(e) => setEditingCharacter({ ...editingCharacter, year: parseInt(e.target.value) || 0 })}
+                    required
+                    min="1"
+                    style={{ width: '100%', padding: '8px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', marginBottom: '3px' }}>Month:</label>
+                  <select
+                    value={editingCharacter.month}
+                    onChange={(e) => setEditingCharacter({ ...editingCharacter, month: parseInt(e.target.value) })}
+                    required
+                    style={{ width: '100%', padding: '8px' }}
+                  >
+                    {CALENDAR_MONTHS.map(month => (
+                      <option key={month.number} value={month.number}>
+                        {month.number}. {month.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', marginBottom: '3px' }}>Day:</label>
+                  <input
+                    type="number"
+                    value={editingCharacter.day}
+                    onChange={(e) => setEditingCharacter({ ...editingCharacter, day: parseInt(e.target.value) || 1 })}
+                    required
+                    min="1"
+                    max="20"
+                    style={{ width: '100%', padding: '8px' }}
+                  />
+                </div>
+              </div>
+              <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
+                Each month has 20 days (Day 1-20)
+              </div>
+            </div>
+
+            <button type="submit" style={{ padding: '10px 20px', backgroundColor: '#007bff', color: 'white', marginRight: '10px' }}>
+              Save Changes
+            </button>
+            <button type="button" onClick={handleCancelEdit} style={{ padding: '10px 20px' }}>
               Cancel
             </button>
           </form>
@@ -210,6 +349,12 @@ const Characters: React.FC = () => {
                       style={{ padding: '5px 15px', marginRight: '5px' }}
                     >
                       View Inventory
+                    </button>
+                    <button
+                      onClick={() => handleEditCharacter(character)}
+                      style={{ padding: '5px 15px', marginRight: '5px', backgroundColor: '#ffc107', color: 'black' }}
+                    >
+                      Edit
                     </button>
                     <button
                       onClick={() => handleDeleteCharacter(character.id)}

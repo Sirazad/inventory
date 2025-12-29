@@ -70,4 +70,16 @@ public class CharacterController {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
         }
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateCharacter(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long id,
+            @Valid @RequestBody CharacterRequest request) {
+        try {
+            return ResponseEntity.ok(characterService.updateCharacter(userDetails.getUsername(), id, request));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
+        }
+    }
 }
