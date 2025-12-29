@@ -412,7 +412,7 @@ const InventoryPage: React.FC = () => {
           <p>No items in inventory. Add some above!</p>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
+             <thead>
               <tr style={{ backgroundColor: '#f0f0f0' }}>
                 <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Category</th>
                 <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Item</th>
@@ -421,6 +421,8 @@ const InventoryPage: React.FC = () => {
                 <th style={{ padding: '10px', textAlign: 'right', border: '1px solid #ccc' }}>Price</th>
                 <th style={{ padding: '10px', textAlign: 'right', border: '1px solid #ccc' }}>Qty</th>
                 <th style={{ padding: '10px', textAlign: 'right', border: '1px solid #ccc' }}>Weight (kg)</th>
+                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Added</th>
+                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Modified</th>
                 <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Notes</th>
                 <th style={{ padding: '10px', textAlign: 'center', border: '1px solid #ccc' }}>Actions</th>
               </tr>
@@ -478,6 +480,12 @@ const InventoryPage: React.FC = () => {
                   </td>
                   <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
                     {item.weight ? `${item.weight} kg` : '-'}
+                  </td>
+                  <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
+                    {item.formattedAddedDate || '-'}
+                  </td>
+                  <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
+                    {item.formattedModifiedDate || '-'}
                   </td>
                   <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.addedUpdated || '-'}</td>
                   <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>

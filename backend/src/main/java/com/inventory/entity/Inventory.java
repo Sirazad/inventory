@@ -1,12 +1,16 @@
 package com.inventory.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.inventory.service.PyarrCalendarService;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "inventory")
 public class Inventory {
+    
+    @Transient
+    private PyarrCalendarService pyarrCalendarService;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -282,5 +286,43 @@ public class Inventory {
 
     public void setRemovedDay(Integer removedDay) {
         this.removedDay = removedDay;
+    }
+    
+    public void setPyarrCalendarService(PyarrCalendarService service) {
+        this.pyarrCalendarService = service;
+    }
+    
+    // Formatted date getters for JSON serialization
+    public String getFormattedAddedDate() {
+        if (addedYear != null && addedDay != null && pyarrCalendarService != null) {
+            try {
+                return pyarrCalendarService.formatDate(addedYear, addedDay);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        return null;
+    }
+    
+    public String getFormattedModifiedDate() {
+        if (modifiedYear != null && modifiedDay != null && pyarrCalendarService != null) {
+            try {
+                return pyarrCalendarService.formatDate(modifiedYear, modifiedDay);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        return null;
+    }
+    
+    public String getFormattedRemovedDate() {
+        if (removedYear != null && removedDay != null && pyarrCalendarService != null) {
+            try {
+                return pyarrCalendarService.formatDate(removedYear, removedDay);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        return null;
     }
 }

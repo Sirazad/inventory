@@ -26,17 +26,28 @@ public class InventoryService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final InventoryHistoryRepository inventoryHistoryRepository;
+    private final PyarrCalendarService pyarrCalendarService;
 
     public InventoryService(InventoryRepository inventoryRepository, 
                           CharacterRepository characterRepository,
                           UserRepository userRepository,
                           CategoryRepository categoryRepository,
-                          InventoryHistoryRepository inventoryHistoryRepository) {
+                          InventoryHistoryRepository inventoryHistoryRepository,
+                          PyarrCalendarService pyarrCalendarService) {
         this.inventoryRepository = inventoryRepository;
         this.characterRepository = characterRepository;
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
         this.inventoryHistoryRepository = inventoryHistoryRepository;
+        this.pyarrCalendarService = pyarrCalendarService;
+    }
+    
+    private void injectCalendarService(Inventory inventory) {
+        inventory.setPyarrCalendarService(pyarrCalendarService);
+    }
+    
+    private void injectCalendarService(List<Inventory> inventories) {
+        inventories.forEach(this::injectCalendarService);
     }
 
     public List<Inventory> getInventoryByCharacter(String username, Long characterId, 
@@ -75,7 +86,9 @@ public class InventoryService {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
 
-        return inventoryRepository.findAll(spec);
+        List<Inventory> inventories = inventoryRepository.findAll(spec);
+        injectCalendarService(inventories);
+        return inventories;
     }
 
     public Inventory createInventory(String username, Long characterId, InventoryRequest request) {
@@ -107,7 +120,9 @@ public class InventoryService {
         inventory.setAddedYear(character.getCurrentYear());
         inventory.setAddedDay(character.getCurrentDay());
 
-        return inventoryRepository.save(inventory);
+        Inventory saved = inventoryRepository.save(inventory);
+        injectCalendarService(saved);
+        return saved;
     }
 
     public Inventory updateInventory(String username, Long characterId, Long inventoryId, InventoryRequest request) {
@@ -136,7 +151,9 @@ public class InventoryService {
         inventory.setAddedUpdated(request.getAddedUpdated());
         inventory.setWeight(request.getWeight());
 
-        return inventoryRepository.save(inventory);
+        Inventory saved = inventoryRepository.save(inventory);
+        injectCalendarService(saved);
+        return saved;
     }
 
     public void removeInventory(String username, Long characterId, Long inventoryId, String removalText) {
@@ -172,7 +189,9 @@ public class InventoryService {
             inventory.setQuantity(newQuantity);
             inventory.setModifiedYear(character.getCurrentYear());
             inventory.setModifiedDay(character.getCurrentDay());
-            return inventoryRepository.save(inventory);
+            Inventory saved = inventoryRepository.save(inventory);
+            injectCalendarService(saved);
+            return saved;
         } else if (quantityChange < 0) {
             // Quantity decrease - create history record and update/remove item
             int decreaseAmount = Math.abs(quantityChange);
@@ -197,7 +216,9 @@ public class InventoryService {
                 inventory.setQuantity(newQuantity);
                 inventory.setModifiedYear(character.getCurrentYear());
                 inventory.setModifiedDay(character.getCurrentDay());
-                return inventoryRepository.save(inventory);
+                Inventory saved = inventoryRepository.save(inventory);
+                injectCalendarService(saved);
+                return saved;
             } else {
                 // No items left - mark as removed
                 inventory.setQuantity(0);
@@ -206,7 +227,9 @@ public class InventoryService {
                 inventory.setRemovedDay(character.getCurrentDay());
                 inventory.setModifiedYear(character.getCurrentYear());
                 inventory.setModifiedDay(character.getCurrentDay());
-                return inventoryRepository.save(inventory);
+                Inventory saved = inventoryRepository.save(inventory);
+                injectCalendarService(saved);
+                return saved;
             }
         }
         

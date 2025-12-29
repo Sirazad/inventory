@@ -30,6 +30,9 @@ export interface Inventory {
   removedText?: string;
   createdAt: string;
   updatedAt: string;
+  formattedAddedDate?: string;
+  formattedModifiedDate?: string;
+  formattedRemovedDate?: string;
 }
 
 export interface LoginRequest {
