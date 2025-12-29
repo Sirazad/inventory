@@ -1,5 +1,9 @@
 # Inventory Management System
 
+[![CI](https://github.com/Sirazad/inventory/actions/workflows/ci.yml/badge.svg)](https://github.com/Sirazad/inventory/actions/workflows/ci.yml)
+[![CD - Publish Docker Images](https://github.com/Sirazad/inventory/actions/workflows/cd.yml/badge.svg)](https://github.com/Sirazad/inventory/actions/workflows/cd.yml)
+[![Docker Compose Validation](https://github.com/Sirazad/inventory/actions/workflows/docker-compose.yml/badge.svg)](https://github.com/Sirazad/inventory/actions/workflows/docker-compose.yml)
+
 A full-stack inventory management application with TypeScript React frontend and Java Spring Boot backend, all containerized with Docker.
 
 ## Features
@@ -128,6 +132,31 @@ npm start
 
 ### Database
 The PostgreSQL database is automatically initialized with the required schema through Spring Data JPA.
+
+## Deployment
+
+### Using Pre-built Docker Images
+
+Docker images are automatically built and published to GitHub Container Registry on every push to the main branch.
+
+Pull and run the latest images:
+
+```bash
+# Pull the images
+docker pull ghcr.io/sirazad/inventory/backend:latest
+docker pull ghcr.io/sirazad/inventory/frontend:latest
+
+# Create a custom docker-compose.yml or use the one from the repository
+docker compose up -d
+```
+
+### CI/CD Workflows
+
+This repository includes GitHub Actions workflows for:
+
+- **CI**: Builds and tests both frontend and backend on every pull request
+- **CD**: Publishes Docker images to GitHub Container Registry on pushes to main branch
+- **Docker Compose Validation**: Validates the full stack deployment
 
 ## Security
 - Passwords are encrypted using BCrypt
