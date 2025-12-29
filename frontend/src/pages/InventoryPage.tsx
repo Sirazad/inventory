@@ -128,8 +128,18 @@ const InventoryPage: React.FC = () => {
       });
       setShowAddForm(false);
       loadInventory();
-    } catch (err) {
-      alert('Failed to save inventory item');
+    } catch (err: any) {
+      // Display better error messages
+      if (err.response?.data?.error) {
+        alert('Error: ' + err.response.data.error);
+      } else if (err.response?.status === 400) {
+        alert('Invalid request. Please check your input.');
+      } else if (err.response?.status === 403) {
+        alert('Access denied. Please log in again.');
+      } else {
+        alert('Failed to save inventory item');
+      }
+      console.error('Failed to save inventory item', err);
     }
   };
 
