@@ -1,0 +1,37 @@
+# Git files
+.git
+.gitignore
+.github
+
+# Documentation
+README.md
+DEPLOYMENT.md
+IMPLEMENTATION.md
+SECURITY.md
+
+# Build artifacts
+target/
+*.jar
+!target/*.jar
+
+# IDE files
+.idea
+.vscode
+*.iml
+*.iws
+*.ipr
+.settings
+.project
+.classpath
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Test files
+src/test/
+*.test.java

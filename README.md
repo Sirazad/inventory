@@ -164,5 +164,11 @@ This repository includes GitHub Actions workflows for:
 - CORS configured for frontend-backend communication
 - All authenticated endpoints require valid JWT token
 
+## Contributing
+
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our development workflow, coding standards, and how to submit pull requests.
+
+For information about GitHub Actions workflows, see [.github/WORKFLOWS.md](.github/WORKFLOWS.md).
+
 ## License
 This project is open source and available under the MIT License.
