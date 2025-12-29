@@ -60,6 +60,7 @@ jobs:
       - name: Run tests
         run: |
           cd frontend
+          # Note: Using --passWithNoTests for now. Add tests as the project grows.
           npm test -- --watchAll=false --passWithNoTests
 
   docker-build:

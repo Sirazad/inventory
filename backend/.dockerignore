@@ -9,10 +9,8 @@ DEPLOYMENT.md
 IMPLEMENTATION.md
 SECURITY.md
 
-# Build artifacts
-target/
-*.jar
-!target/*.jar
+# Build artifacts (Maven builds inside Docker, so we don't need to exclude target/)
+# Everything is copied to the build stage and built there
 
 # IDE files
 .idea

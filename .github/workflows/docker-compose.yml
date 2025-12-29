@@ -39,7 +39,7 @@ jobs:
           timeout 60 bash -c 'until docker compose exec -T postgres pg_isready -U inventory; do sleep 2; done'
           
           echo "Waiting for backend to be ready..."
-          timeout 60 bash -c 'until curl -f http://localhost:8080/actuator/health 2>/dev/null || curl -f http://localhost:8080/ 2>/dev/null; do sleep 2; done' || true
+          timeout 90 bash -c 'until curl -f http://localhost:8080/ 2>/dev/null; do sleep 2; done'
           
           echo "Waiting for frontend to be ready..."
           timeout 60 bash -c 'until curl -f http://localhost:3000/ 2>/dev/null; do sleep 2; done'
