@@ -84,8 +84,18 @@ const InventoryPage: React.FC = () => {
         maxWeight
       );
       setInventory(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load inventory', err);
+      if (err.response?.status === 403) {
+        alert('Session expired or access denied. Please log in again.');
+        // Redirect to login
+        localStorage.removeItem('token');
+        navigate('/login');
+      } else if (err.response?.status === 401) {
+        alert('Not authenticated. Please log in.');
+        localStorage.removeItem('token');
+        navigate('/login');
+      }
     }
   };
 
