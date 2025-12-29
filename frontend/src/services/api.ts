@@ -130,9 +130,9 @@ export const inventoryService = {
     return response.data;
   },
 
-  getTotalWeight: async (inventoryId: number) => {
+  getTotalWeight: async (characterId: number, inventoryId: number) => {
     const response = await axiosInstance.get(
-      `/characters/0/inventory/${inventoryId}/total-weight`
+      `/characters/${characterId}/inventory/${inventoryId}/total-weight`
     );
     return response.data.totalWeight;
   },

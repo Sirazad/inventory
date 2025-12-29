@@ -303,7 +303,6 @@ public class Inventory {
 
     public void setContainer(Inventory container) {
         this.container = container;
-        this.containerId = (container != null) ? container.getId() : null;
     }
 
     public Long getContainerId() {

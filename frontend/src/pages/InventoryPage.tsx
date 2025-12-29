@@ -183,7 +183,7 @@ const InventoryPage: React.FC = () => {
       if (!containerContents.has(itemId)) {
         try {
           const contents = await inventoryService.getContainerContents(Number(characterId), itemId);
-          setContainerContents(new Map(containerContents).set(itemId, contents));
+          setContainerContents(prev => new Map(prev).set(itemId, contents));
         } catch (err) {
           console.error('Failed to load container contents', err);
         }
@@ -191,8 +191,8 @@ const InventoryPage: React.FC = () => {
       
       // Load total weight
       try {
-        const totalWeight = await inventoryService.getTotalWeight(itemId);
-        setContainerWeights(new Map(containerWeights).set(itemId, totalWeight));
+        const totalWeight = await inventoryService.getTotalWeight(Number(characterId), itemId);
+        setContainerWeights(prev => new Map(prev).set(itemId, totalWeight));
       } catch (err) {
         console.error('Failed to load total weight', err);
       }
