@@ -83,27 +83,13 @@ const InventoryPage: React.FC = () => {
         minPrice,
         maxWeight
       );
-      console.log('Loaded inventory data:', data);
       setInventory(data);
     } catch (err: any) {
       console.error('Failed to load inventory', err);
-      console.error('Error details:', {
-        status: err.response?.status,
-        statusText: err.response?.statusText,
-        data: err.response?.data,
-        headers: err.response?.headers
-      });
-      
-      // Clear inventory to show empty state
       setInventory([]);
       
       if (err.response?.status === 403 || err.response?.status === 401) {
-        // Only redirect if this is genuinely an auth error for ALL characters
-        // For now, just show an error message without redirecting
-        alert(`Error ${err.response?.status}: Cannot load inventory for this character. This may be a permissions issue. Please check the browser console for details and report this to support.`);
-      } else {
-        // Other errors - show generic message
-        console.error('Unexpected error loading inventory:', err.response || err);
+        alert(`Cannot load inventory. Please check that you have permission to access this character.`);
       }
     }
   };
@@ -522,14 +508,6 @@ const InventoryPage: React.FC = () => {
       {/* Inventory List */}
       <div>
         <h3>Inventory Items</h3>
-        {/* Debug info */}
-        {inventory.length > 0 && (
-          <div style={{ fontSize: '12px', color: '#666', marginBottom: '10px' }}>
-            Total items loaded: {inventory.length} | 
-            Top-level items: {inventory.filter(item => !item.containerId).length} | 
-            Items in containers: {inventory.filter(item => item.containerId).length}
-          </div>
-        )}
         {inventory.length === 0 ? (
           <p>No items in inventory. Add some above!</p>
         ) : inventory.filter(item => !item.containerId).length === 0 ? (
@@ -666,10 +644,28 @@ const InventoryPage: React.FC = () => {
                         </tr>
                       )}
                       {containerContents.get(item.id)?.map((containedItem) => (
-                    <tr key={`contained-${containedItem.id}`} style={{ backgroundColor: '#f5f5f5' }}>
-                      <td style={{ padding: '10px', border: '1px solid #ccc', paddingLeft: '40px' }}>
-                        ↳ {containedItem.category}
-                      </td>
+                    <React.Fragment key={`contained-${containedItem.id}`}>
+                      <tr style={{ backgroundColor: '#f5f5f5' }}>
+                        <td style={{ padding: '10px', border: '1px solid #ccc', paddingLeft: '40px' }}>
+                          {isContainer(containedItem) && (
+                            <button
+                              onClick={() => toggleContainer(containedItem.id)}
+                              style={{
+                                marginRight: '5px',
+                                padding: '2px 8px',
+                                backgroundColor: '#2196F3',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '3px',
+                                cursor: 'pointer',
+                                fontSize: '12px'
+                              }}
+                            >
+                              {expandedContainers.has(containedItem.id) ? '▼' : '▶'}
+                            </button>
+                          )}
+                          ↳ {containedItem.category}
+                        </td>
                       <td style={{ padding: '10px', border: '1px solid #ccc' }}>{containedItem.item}</td>
                       <td style={{ padding: '10px', border: '1px solid #ccc' }}>{containedItem.quality || '-'}</td>
                       <td style={{ padding: '10px', border: '1px solid #ccc' }}>{containedItem.description}</td>
@@ -742,6 +738,86 @@ const InventoryPage: React.FC = () => {
                         </button>
                       </td>
                     </tr>
+                    {/* Show nested container contents when expanded */}
+                    {isContainer(containedItem) && expandedContainers.has(containedItem.id) && containerContents.get(containedItem.id)?.map((nestedItem) => (
+                      <tr key={`nested-${nestedItem.id}`} style={{ backgroundColor: '#e8e8e8' }}>
+                        <td style={{ padding: '10px', border: '1px solid #ccc', paddingLeft: '60px' }}>
+                          ↳↳ {nestedItem.category}
+                        </td>
+                        <td style={{ padding: '10px', border: '1px solid #ccc' }}>{nestedItem.item}</td>
+                        <td style={{ padding: '10px', border: '1px solid #ccc' }}>{nestedItem.quality || '-'}</td>
+                        <td style={{ padding: '10px', border: '1px solid #ccc' }}>{nestedItem.description}</td>
+                        <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
+                          {nestedItem.gold !== undefined || nestedItem.silver !== undefined || nestedItem.copper !== undefined
+                            ? `${nestedItem.gold || 0}g ${nestedItem.silver || 0}s ${nestedItem.copper || 0}c`
+                            : '-'}
+                        </td>
+                        <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
+                          <div style={{ display: 'flex', gap: '5px', alignItems: 'center', justifyContent: 'center' }}>
+                            <button
+                              onClick={() => handleQuantityChange(nestedItem, -1)}
+                              style={{ 
+                                padding: '4px 10px', 
+                                backgroundColor: '#dc3545', 
+                                color: 'white', 
+                                border: 'none',
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                fontWeight: 'bold',
+                                borderRadius: '3px'
+                              }}
+                              title="Decrease quantity"
+                            >
+                              −
+                            </button>
+                            <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: 'bold' }}>
+                              {nestedItem.quantity}
+                            </span>
+                            <button
+                              onClick={() => handleQuantityChange(nestedItem, +1)}
+                              style={{ 
+                                padding: '4px 10px', 
+                                backgroundColor: '#28a745', 
+                                color: 'white', 
+                                border: 'none',
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                fontWeight: 'bold',
+                                borderRadius: '3px'
+                              }}
+                              title="Increase quantity"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </td>
+                        <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
+                          {nestedItem.weight ? `${nestedItem.weight} kg` : '-'}
+                        </td>
+                        <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
+                          {nestedItem.formattedAddedDate || '-'}
+                        </td>
+                        <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
+                          {nestedItem.formattedModifiedDate || '-'}
+                        </td>
+                        <td style={{ padding: '10px', border: '1px solid #ccc' }}>{nestedItem.addedUpdated || '-'}</td>
+                        <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
+                          <button
+                            onClick={() => handleEdit(nestedItem)}
+                            style={{ padding: '5px 10px', marginRight: '5px' }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleRemove(nestedItem.id)}
+                            style={{ padding: '5px 10px', backgroundColor: '#dc3545', color: 'white' }}
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    </React.Fragment>
                   ))}
                     </>
                   )}
