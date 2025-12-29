@@ -3,8 +3,11 @@
 [![CI](https://github.com/Sirazad/inventory/actions/workflows/ci.yml/badge.svg)](https://github.com/Sirazad/inventory/actions/workflows/ci.yml)
 [![CD - Publish Docker Images](https://github.com/Sirazad/inventory/actions/workflows/cd.yml/badge.svg)](https://github.com/Sirazad/inventory/actions/workflows/cd.yml)
 [![Docker Compose Validation](https://github.com/Sirazad/inventory/actions/workflows/docker-compose.yml/badge.svg)](https://github.com/Sirazad/inventory/actions/workflows/docker-compose.yml)
+[![Deploy to GitHub Pages](https://github.com/Sirazad/inventory/actions/workflows/github-pages.yml/badge.svg)](https://github.com/Sirazad/inventory/actions/workflows/github-pages.yml)
 
 A full-stack inventory management application with TypeScript React frontend and Java Spring Boot backend, all containerized with Docker.
+
+> **🚀 Want to deploy on GitHub?** See [GITHUB_PAGES.md](GITHUB_PAGES.md) for deployment options. Note: GitHub Pages can only host the frontend UI (demo mode). For a fully working application, see the free full-stack hosting options in the guide.
 
 ## Features
 
@@ -135,7 +138,19 @@ The PostgreSQL database is automatically initialized with the required schema th
 
 ## Deployment
 
+> **🚀 Deploy on GitHub?** GitHub Pages can host the frontend UI (demo only, no backend functionality). For a **fully working app**, see [GITHUB_PAGES.md](GITHUB_PAGES.md) for free full-stack hosting options (Railway, Render, Fly.io).
+
 > **🔒 Private Deployment?** If you want to keep your deployment completely private and restrict access, see [PRIVATE_DEPLOYMENT.md](PRIVATE_DEPLOYMENT.md) for authentication, firewall configuration, and secure deployment options.
+
+### GitHub Pages (Frontend Demo Only)
+
+The frontend can be deployed to GitHub Pages as a UI demo (without backend functionality):
+
+1. Enable GitHub Pages in repository settings → Pages → Source: "GitHub Actions"
+2. Merge this PR - the workflow will auto-deploy
+3. Access at: `https://sirazad.github.io/inventory/`
+
+**Note**: This only shows the UI. No login, data, or features will work without the backend. See [GITHUB_PAGES.md](GITHUB_PAGES.md) for full-stack deployment options.
 
 ### Using Pre-built Docker Images
 
@@ -161,6 +176,7 @@ This repository includes GitHub Actions workflows for:
 - **CI**: Builds and tests both frontend and backend on every pull request
 - **CD**: Publishes Docker images to GitHub Container Registry on pushes to main branch
 - **Docker Compose Validation**: Validates the full stack deployment
+- **GitHub Pages**: Deploys frontend UI to GitHub Pages (demo mode, no backend)
 
 ## Security
 - Passwords are encrypted using BCrypt

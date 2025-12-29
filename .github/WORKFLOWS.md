@@ -114,6 +114,47 @@ docker pull ghcr.io/sirazad/inventory/frontend:v1.0.0
 
 ---
 
+### 4. GitHub Pages Deployment (`github-pages.yml`)
+
+**Purpose**: Deploys the frontend React app to GitHub Pages as a static site demo.
+
+**Triggers**:
+- Pushes to `main` or `master` branches
+- Manual trigger via `workflow_dispatch`
+
+**Important Limitations**:
+- **Only deploys the frontend UI** (HTML, CSS, JavaScript)
+- **Backend API and database do NOT run** on GitHub Pages
+- The deployed site will show the UI but won't have any working functionality (no login, no data, no API calls)
+- This is useful as a **demo/preview** of the user interface only
+
+**Jobs**:
+
+1. **build**
+   - Checks out code
+   - Sets up Node.js 18
+   - Installs npm dependencies
+   - Builds the React app with `PUBLIC_URL=/inventory` for GitHub Pages subdirectory
+   - Uploads build artifacts for deployment
+
+2. **deploy**
+   - Deploys the built frontend to GitHub Pages
+   - Site will be available at: `https://sirazad.github.io/inventory/`
+
+**Prerequisites**:
+- Enable GitHub Pages in repository settings
+- Go to Settings → Pages → Source: Select "GitHub Actions"
+
+**What to watch for**:
+- Build failures indicate frontend compilation issues
+- Deployment failures may indicate Pages configuration issues
+- The deployed site will load but API calls will fail (expected - no backend)
+
+**For Full-Stack Deployment**:
+GitHub Pages cannot run backend services or databases. For a fully working application, see [GITHUB_PAGES.md](../GITHUB_PAGES.md) for free alternatives like Railway, Render, or Fly.io.
+
+---
+
 ## Working with Workflows
 
 ### Viewing Workflow Runs
@@ -198,6 +239,7 @@ Add these badges to your README to show workflow status:
 [![CI](https://github.com/Sirazad/inventory/actions/workflows/ci.yml/badge.svg)](https://github.com/Sirazad/inventory/actions/workflows/ci.yml)
 [![CD](https://github.com/Sirazad/inventory/actions/workflows/cd.yml/badge.svg)](https://github.com/Sirazad/inventory/actions/workflows/cd.yml)
 [![Docker Compose](https://github.com/Sirazad/inventory/actions/workflows/docker-compose.yml/badge.svg)](https://github.com/Sirazad/inventory/actions/workflows/docker-compose.yml)
+[![GitHub Pages](https://github.com/Sirazad/inventory/actions/workflows/github-pages.yml/badge.svg)](https://github.com/Sirazad/inventory/actions/workflows/github-pages.yml)
 ```
 
 ### Email Notifications
