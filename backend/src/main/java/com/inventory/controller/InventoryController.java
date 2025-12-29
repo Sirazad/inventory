@@ -113,9 +113,12 @@ public class InventoryController {
     
     @GetMapping("/{inventoryId}/total-weight")
     public ResponseEntity<Map<String, Double>> getTotalWeight(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long characterId,
             @PathVariable Long inventoryId) {
         try {
-            Double totalWeight = inventoryService.calculateTotalWeight(inventoryId);
+            Double totalWeight = inventoryService.calculateTotalWeight(
+                    userDetails.getUsername(), characterId, inventoryId);
             return ResponseEntity.ok(Map.of("totalWeight", totalWeight));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();

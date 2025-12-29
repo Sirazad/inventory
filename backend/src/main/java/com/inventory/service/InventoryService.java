@@ -269,14 +269,25 @@ public class InventoryService {
         return items;
     }
     
-    public Double calculateTotalWeight(Long inventoryId) {
-        Inventory item = inventoryRepository.findById(inventoryId)
+    public Double calculateTotalWeight(String username, Long characterId, Long inventoryId) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Character character = characterRepository.findByIdAndUserId(characterId, user.getId())
+                .orElseThrow(() -> new RuntimeException("Character not found"));
+
+        Inventory item = inventoryRepository.findByIdAndCharacterId(inventoryId, characterId)
                 .orElseThrow(() -> new RuntimeException("Inventory item not found"));
         
-        return calculateTotalWeightRecursive(item);
+        return calculateTotalWeightRecursive(item, 0);
     }
     
-    private Double calculateTotalWeightRecursive(Inventory item) {
+    private Double calculateTotalWeightRecursive(Inventory item, int depth) {
+        // Prevent infinite recursion - max depth of 10 levels
+        if (depth > 10) {
+            throw new RuntimeException("Container nesting too deep (max 10 levels)");
+        }
+        
         // Base weight of the item itself (weight per item * quantity)
         Double totalWeight = 0.0;
         if (item.getWeight() != null && item.getQuantity() != null) {
@@ -286,7 +297,7 @@ public class InventoryService {
         // Add weight of all items in this container
         List<Inventory> containedItems = inventoryRepository.findByContainerIdAndRemovedFalse(item.getId());
         for (Inventory containedItem : containedItems) {
-            totalWeight += calculateTotalWeightRecursive(containedItem);
+            totalWeight += calculateTotalWeightRecursive(containedItem, depth + 1);
         }
         
         return totalWeight;
