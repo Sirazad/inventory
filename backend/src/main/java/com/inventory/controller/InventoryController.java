@@ -79,4 +79,22 @@ public class InventoryController {
             return ResponseEntity.notFound().build();
         }
     }
+    
+    @PatchMapping("/{inventoryId}/quantity")
+    public ResponseEntity<Inventory> updateQuantity(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long characterId,
+            @PathVariable Long inventoryId,
+            @RequestBody Map<String, Integer> request) {
+        try {
+            Integer quantityChange = request.get("quantityChange");
+            if (quantityChange == null) {
+                return ResponseEntity.badRequest().build();
+            }
+            return ResponseEntity.ok(inventoryService.updateQuantity(
+                    userDetails.getUsername(), characterId, inventoryId, quantityChange));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

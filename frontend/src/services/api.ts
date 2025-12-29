@@ -101,6 +101,18 @@ export const inventoryService = {
       { data: { removalText } }
     );
   },
+
+  updateQuantity: async (
+    characterId: number,
+    inventoryId: number,
+    quantityChange: number
+  ) => {
+    const response = await axiosInstance.patch(
+      `/characters/${characterId}/inventory/${inventoryId}/quantity`,
+      { quantityChange }
+    );
+    return response.data;
+  },
 };
 
 export const categoryService = {

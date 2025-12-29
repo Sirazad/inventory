@@ -4,9 +4,11 @@ import com.inventory.dto.InventoryRequest;
 import com.inventory.entity.Category;
 import com.inventory.entity.Character;
 import com.inventory.entity.Inventory;
+import com.inventory.entity.InventoryHistory;
 import com.inventory.entity.User;
 import com.inventory.repository.CategoryRepository;
 import com.inventory.repository.CharacterRepository;
+import com.inventory.repository.InventoryHistoryRepository;
 import com.inventory.repository.InventoryRepository;
 import com.inventory.repository.UserRepository;
 import jakarta.persistence.criteria.Predicate;
@@ -23,15 +25,18 @@ public class InventoryService {
     private final CharacterRepository characterRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+    private final InventoryHistoryRepository inventoryHistoryRepository;
 
     public InventoryService(InventoryRepository inventoryRepository, 
                           CharacterRepository characterRepository,
                           UserRepository userRepository,
-                          CategoryRepository categoryRepository) {
+                          CategoryRepository categoryRepository,
+                          InventoryHistoryRepository inventoryHistoryRepository) {
         this.inventoryRepository = inventoryRepository;
         this.characterRepository = characterRepository;
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
+        this.inventoryHistoryRepository = inventoryHistoryRepository;
     }
 
     public List<Inventory> getInventoryByCharacter(String username, Long characterId, 
@@ -97,6 +102,10 @@ public class InventoryService {
         inventory.setAddedUpdated(request.getAddedUpdated());
         inventory.setWeight(request.getWeight());
         inventory.setCharacter(character);
+        
+        // Set added date from character's current date
+        inventory.setAddedYear(character.getCurrentYear());
+        inventory.setAddedDay(character.getCurrentDay());
 
         return inventoryRepository.save(inventory);
     }
@@ -143,5 +152,65 @@ public class InventoryService {
         inventory.setRemoved(true);
         inventory.setRemovedText(removalText);
         inventoryRepository.save(inventory);
+    }
+    
+    public Inventory updateQuantity(String username, Long characterId, Long inventoryId, int quantityChange) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Character character = characterRepository.findByIdAndUserId(characterId, user.getId())
+                .orElseThrow(() -> new RuntimeException("Character not found"));
+
+        Inventory inventory = inventoryRepository.findByIdAndCharacterId(inventoryId, characterId)
+                .orElseThrow(() -> new RuntimeException("Inventory not found"));
+
+        int currentQuantity = inventory.getQuantity();
+        int newQuantity = currentQuantity + quantityChange;
+
+        if (quantityChange > 0) {
+            // Quantity increase - just update modified date
+            inventory.setQuantity(newQuantity);
+            inventory.setModifiedYear(character.getCurrentYear());
+            inventory.setModifiedDay(character.getCurrentDay());
+            return inventoryRepository.save(inventory);
+        } else if (quantityChange < 0) {
+            // Quantity decrease - create history record and update/remove item
+            int decreaseAmount = Math.abs(quantityChange);
+            
+            // Create history record for the removed item(s)
+            InventoryHistory history = new InventoryHistory();
+            history.setInventory(inventory);
+            history.setCharacter(character);
+            history.setCategory(inventory.getCategory());
+            history.setItem(inventory.getItem());
+            history.setQuality(inventory.getQuality());
+            history.setDescription(inventory.getDescription());
+            history.setPriceInCopper(inventory.getPriceInCopper());
+            history.setQuantity(decreaseAmount);
+            history.setWeight(inventory.getWeight());
+            history.setRemovedYear(character.getCurrentYear());
+            history.setRemovedDay(character.getCurrentDay());
+            inventoryHistoryRepository.save(history);
+
+            if (newQuantity > 0) {
+                // Still have items left - update quantity and modified date
+                inventory.setQuantity(newQuantity);
+                inventory.setModifiedYear(character.getCurrentYear());
+                inventory.setModifiedDay(character.getCurrentDay());
+                return inventoryRepository.save(inventory);
+            } else {
+                // No items left - mark as removed
+                inventory.setQuantity(0);
+                inventory.setRemoved(true);
+                inventory.setRemovedYear(character.getCurrentYear());
+                inventory.setRemovedDay(character.getCurrentDay());
+                inventory.setModifiedYear(character.getCurrentYear());
+                inventory.setModifiedDay(character.getCurrentDay());
+                return inventoryRepository.save(inventory);
+            }
+        }
+        
+        // No change
+        return inventory;
     }
 }

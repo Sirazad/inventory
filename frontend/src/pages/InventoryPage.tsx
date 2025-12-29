@@ -146,20 +146,13 @@ const InventoryPage: React.FC = () => {
     if (newQuantity === item.quantity) return; // No change
     
     try {
-      const data = {
-        category: item.category,
-        item: item.item,
-        quality: item.quality,
-        description: item.description,
-        gold: item.gold,
-        silver: item.silver,
-        copper: item.copper,
-        quantity: newQuantity,
-        addedUpdated: item.addedUpdated,
-        weight: item.weight,
-      };
-      await inventoryService.updateInventory(Number(characterId), item.id, data);
-      loadInventory();
+      const updatedItem = await inventoryService.updateQuantity(
+        Number(characterId),
+        item.id,
+        delta
+      );
+      // Update the item in state with the returned data
+      setInventory(inventory.map(i => i.id === item.id ? updatedItem : i).filter(i => !i.removed));
     } catch (err) {
       alert('Failed to update quantity');
     }
