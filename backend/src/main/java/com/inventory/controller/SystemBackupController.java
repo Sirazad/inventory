@@ -161,11 +161,4 @@ public class SystemBackupController {
         // Token must match exactly
         return systemBackupToken.equals(token);
     }
-    
-    /**
-     * Check if system backup is configured
-     */
-    private boolean isSystemBackupEnabled() {
-        return systemBackupToken != null && !systemBackupToken.isEmpty();
-    }
 }

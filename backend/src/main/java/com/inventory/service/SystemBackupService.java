@@ -150,26 +150,37 @@ public class SystemBackupService {
      * @throws IllegalArgumentException if URL format is invalid
      */
     private DatabaseInfo extractDatabaseInfo() {
-        // Format: jdbc:postgresql://host:port/database
+        // Format: jdbc:postgresql://host:port/database or jdbc:postgresql://host:port/database?params
         if (!datasourceUrl.startsWith("jdbc:postgresql://")) {
             throw new IllegalArgumentException("Invalid PostgreSQL JDBC URL format");
         }
         
         String connectionString = datasourceUrl.replace("jdbc:postgresql://", "");
         
-        // Split by / to separate host:port from database
+        // Split by / to separate host:port from database (and potential query params)
         String[] parts = connectionString.split("/", 2);
         if (parts.length != 2) {
             throw new IllegalArgumentException("Invalid JDBC URL: missing database name");
         }
         
         String hostPort = parts[0];
-        String database = parts[1];
+        String databaseWithParams = parts[1];
+        
+        // Remove query parameters if present (e.g., ?ssl=true)
+        String database = databaseWithParams.split("\\?")[0];
         
         // Split host and port
         String[] hostPortParts = hostPort.split(":", 2);
         String host = hostPortParts[0];
-        int port = hostPortParts.length > 1 ? Integer.parseInt(hostPortParts[1]) : 5432;
+        int port = 5432; // default PostgreSQL port
+        
+        if (hostPortParts.length > 1) {
+            try {
+                port = Integer.parseInt(hostPortParts[1]);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Invalid port number in JDBC URL: " + hostPortParts[1], e);
+            }
+        }
         
         return new DatabaseInfo(host, port, database);
     }
