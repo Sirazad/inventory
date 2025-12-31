@@ -1,7 +1,8 @@
 /* Color Palette */
 :root {
-  --primary-color: #7AB8C0;
-  --primary-color-rgb: 122, 184, 192;
+  --primary-color: #0dcaf0;
+  --primary-color-saturated: #0bb5d6;
+  --primary-color-rgb: 13, 202, 240;
   --background-color: white;
   --text-color: #333;
   --border-color: #ccc;
@@ -16,6 +17,11 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Headers */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--primary-color-saturated);
 }
 
 /* Buttons */
@@ -135,7 +141,8 @@ body {
 }
 
 .data-table thead tr {
-  background-color: var(--background-color);
+  background-color: var(--primary-color-saturated);
+  color: white;
   font-weight: bold;
 }
 
