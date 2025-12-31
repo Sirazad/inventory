@@ -4,8 +4,12 @@ import com.inventory.dto.CharacterRequest;
 import com.inventory.dto.CharacterResponse;
 import com.inventory.entity.Character;
 import com.inventory.entity.User;
+import com.inventory.exception.DuplicateResourceException;
+import com.inventory.exception.InvalidOperationException;
+import com.inventory.exception.ResourceNotFoundException;
 import com.inventory.repository.CharacterRepository;
 import com.inventory.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,6 +17,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class CharacterService {
 
     private final CharacterRepository characterRepository;
@@ -29,7 +34,7 @@ public class CharacterService {
 
     public List<CharacterResponse> getCharactersByUser(String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         List<Character> characters = characterRepository.findByUserId(user.getId());
         return characters.stream()
                 .map(c -> new CharacterResponse(c, calendarService))
@@ -37,11 +42,14 @@ public class CharacterService {
     }
 
     public CharacterResponse createCharacter(String username, CharacterRequest request) {
+        log.debug("Creating character '{}' for user '{}'", request.getName(), username);
+        
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (characterRepository.existsByNameAndUserId(request.getName(), user.getId())) {
-            throw new RuntimeException("Character name already exists");
+            log.warn("Character creation failed: name already exists - {}", request.getName());
+            throw new DuplicateResourceException("Character name already exists");
         }
 
         Character character = new Character();
@@ -49,25 +57,30 @@ public class CharacterService {
         character.setUser(user);
 
         Character saved = characterRepository.save(character);
+        log.info("Character created successfully: {} (ID: {})", saved.getName(), saved.getId());
+        
         return new CharacterResponse(saved, calendarService);
     }
 
     public void deleteCharacter(String username, Long characterId) {
+        log.info("Deleting character ID {} for user '{}'", characterId, username);
+        
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Character character = characterRepository.findByIdAndUserId(characterId, user.getId())
-                .orElseThrow(() -> new RuntimeException("Character not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Character not found"));
 
         characterRepository.delete(character);
+        log.info("Character deleted successfully: {} (ID: {})", character.getName(), characterId);
     }
 
     public CharacterResponse incrementDay(String username, Long characterId) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Character character = characterRepository.findByIdAndUserId(characterId, user.getId())
-                .orElseThrow(() -> new RuntimeException("Character not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Character not found"));
 
         Map<String, Integer> newDate = calendarService.incrementDay(
                 character.getCurrentYear(), 
@@ -82,10 +95,10 @@ public class CharacterService {
 
     public CharacterResponse decrementDay(String username, Long characterId) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Character character = characterRepository.findByIdAndUserId(characterId, user.getId())
-                .orElseThrow(() -> new RuntimeException("Character not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Character not found"));
 
         Map<String, Integer> newDate = calendarService.decrementDay(
                 character.getCurrentYear(), 
@@ -100,15 +113,15 @@ public class CharacterService {
 
     public CharacterResponse updateCharacter(String username, Long characterId, CharacterRequest request) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Character character = characterRepository.findByIdAndUserId(characterId, user.getId())
-                .orElseThrow(() -> new RuntimeException("Character not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Character not found"));
 
         // Check if name is being changed to an existing name
         if (!character.getName().equals(request.getName()) && 
             characterRepository.existsByNameAndUserId(request.getName(), user.getId())) {
-            throw new RuntimeException("Character name already exists");
+            throw new DuplicateResourceException("Character name already exists");
         }
 
         character.setName(request.getName());
@@ -120,7 +133,7 @@ public class CharacterService {
         if (request.getCurrentDay() != null) {
             // Validate day is between 1-620
             if (request.getCurrentDay() < 1 || request.getCurrentDay() > 620) {
-                throw new RuntimeException("Day must be between 1 and 620");
+                throw new InvalidOperationException("Day must be between 1 and 620");
             }
             character.setCurrentDay(request.getCurrentDay());
         }

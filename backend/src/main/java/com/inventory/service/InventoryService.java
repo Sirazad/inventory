@@ -1,24 +1,31 @@
 package com.inventory.service;
 
 import com.inventory.dto.InventoryRequest;
+import com.inventory.dto.InventoryResponse;
 import com.inventory.entity.Category;
 import com.inventory.entity.Character;
 import com.inventory.entity.Inventory;
 import com.inventory.entity.InventoryHistory;
 import com.inventory.entity.User;
+import com.inventory.exception.InvalidOperationException;
+import com.inventory.exception.ResourceNotFoundException;
 import com.inventory.repository.CategoryRepository;
 import com.inventory.repository.CharacterRepository;
 import com.inventory.repository.InventoryHistoryRepository;
 import com.inventory.repository.InventoryRepository;
 import com.inventory.repository.UserRepository;
+import com.inventory.util.ValidationUtil;
 import jakarta.persistence.criteria.Predicate;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class InventoryService {
 
     private final InventoryRepository inventoryRepository;
@@ -41,22 +48,14 @@ public class InventoryService {
         this.inventoryHistoryRepository = inventoryHistoryRepository;
         this.pyarrCalendarService = pyarrCalendarService;
     }
-    
-    private void injectCalendarService(Inventory inventory) {
-        inventory.setPyarrCalendarService(pyarrCalendarService);
-    }
-    
-    private void injectCalendarService(List<Inventory> inventories) {
-        inventories.forEach(this::injectCalendarService);
-    }
 
-    public List<Inventory> getInventoryByCharacter(String username, Long characterId, 
+    public List<InventoryResponse> getInventoryByCharacter(String username, Long characterId, 
                                                    String category, Double minPrice, Double maxWeight) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Character character = characterRepository.findByIdAndUserId(characterId, user.getId())
-                .orElseThrow(() -> new RuntimeException("Character not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Character not found"));
 
         Specification<Inventory> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -87,16 +86,19 @@ public class InventoryService {
         };
 
         List<Inventory> inventories = inventoryRepository.findAll(spec);
-        injectCalendarService(inventories);
-        return inventories;
+        return inventories.stream()
+                .map(inv -> new InventoryResponse(inv, pyarrCalendarService))
+                .collect(Collectors.toList());
     }
 
-    public Inventory createInventory(String username, Long characterId, InventoryRequest request) {
+    public InventoryResponse createInventory(String username, Long characterId, InventoryRequest request) {
+        log.debug("Creating inventory item '{}' for character ID {}", request.getItem(), characterId);
+        
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Character character = characterRepository.findByIdAndUserId(characterId, user.getId())
-                .orElseThrow(() -> new RuntimeException("Character not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Character not found"));
 
         Inventory inventory = new Inventory();
         inventory.setCategory(request.getCategory());
@@ -119,7 +121,7 @@ public class InventoryService {
         // Set container if provided
         if (request.getContainerId() != null) {
             Inventory containerItem = inventoryRepository.findByIdAndCharacterId(request.getContainerId(), characterId)
-                    .orElseThrow(() -> new RuntimeException("Container not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Container not found"));
             inventory.setContainer(containerItem);
         }
         
@@ -128,19 +130,21 @@ public class InventoryService {
         inventory.setAddedDay(character.getCurrentDay());
 
         Inventory saved = inventoryRepository.save(inventory);
-        injectCalendarService(saved);
-        return saved;
+        log.info("Inventory item created: {} (ID: {}) for character ID {}", 
+                saved.getItem(), saved.getId(), characterId);
+        
+        return new InventoryResponse(saved, pyarrCalendarService);
     }
 
-    public Inventory updateInventory(String username, Long characterId, Long inventoryId, InventoryRequest request) {
+    public InventoryResponse updateInventory(String username, Long characterId, Long inventoryId, InventoryRequest request) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Character character = characterRepository.findByIdAndUserId(characterId, user.getId())
-                .orElseThrow(() -> new RuntimeException("Character not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Character not found"));
 
         Inventory inventory = inventoryRepository.findByIdAndCharacterId(inventoryId, characterId)
-                .orElseThrow(() -> new RuntimeException("Inventory not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Inventory not found"));
 
         inventory.setCategory(request.getCategory());
         
@@ -163,50 +167,58 @@ public class InventoryService {
             // Prevent circular references: check if the container we're trying to put this item into
             // is not the item itself or any of its descendants
             if (request.getContainerId().equals(inventoryId)) {
-                throw new IllegalArgumentException("Cannot put an item inside itself");
+                throw new InvalidOperationException("Cannot put an item inside itself");
             }
             
             // Check for circular reference by ensuring the target container is not inside this item
             if (wouldCreateCircularReference(inventoryId, request.getContainerId())) {
-                throw new IllegalArgumentException("Cannot create circular container reference - the target container is inside this item");
+                log.warn("Circular reference detected when updating inventory ID {}", inventoryId);
+                throw new InvalidOperationException("Cannot create circular container reference - the target container is inside this item");
             }
             
             Inventory containerItem = inventoryRepository.findByIdAndCharacterId(request.getContainerId(), characterId)
-                    .orElseThrow(() -> new RuntimeException("Container not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Container not found"));
             inventory.setContainer(containerItem);
         } else {
             inventory.setContainer(null);
         }
 
         Inventory saved = inventoryRepository.save(inventory);
-        injectCalendarService(saved);
-        return saved;
+        return new InventoryResponse(saved, pyarrCalendarService);
     }
 
     public void removeInventory(String username, Long characterId, Long inventoryId, String removalText) {
+        log.info("Removing inventory item ID {} for character ID {}", inventoryId, characterId);
+        
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Character character = characterRepository.findByIdAndUserId(characterId, user.getId())
-                .orElseThrow(() -> new RuntimeException("Character not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Character not found"));
 
         Inventory inventory = inventoryRepository.findByIdAndCharacterId(inventoryId, characterId)
-                .orElseThrow(() -> new RuntimeException("Inventory not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Inventory not found"));
+
+        // Validate removal text is provided
+        ValidationUtil.requireNonEmpty(removalText, "Removal reason");
 
         inventory.setRemoved(true);
         inventory.setRemovedText(removalText);
         inventoryRepository.save(inventory);
+        
+        log.info("Inventory item removed: {} (ID: {}), reason: {}", 
+                inventory.getItem(), inventoryId, removalText);
     }
     
-    public Inventory updateQuantity(String username, Long characterId, Long inventoryId, int quantityChange) {
+    public InventoryResponse updateQuantity(String username, Long characterId, Long inventoryId, int quantityChange) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Character character = characterRepository.findByIdAndUserId(characterId, user.getId())
-                .orElseThrow(() -> new RuntimeException("Character not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Character not found"));
 
         Inventory inventory = inventoryRepository.findByIdAndCharacterId(inventoryId, characterId)
-                .orElseThrow(() -> new RuntimeException("Inventory not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Inventory not found"));
 
         int currentQuantity = inventory.getQuantity();
         int newQuantity = currentQuantity + quantityChange;
@@ -217,8 +229,7 @@ public class InventoryService {
             inventory.setModifiedYear(character.getCurrentYear());
             inventory.setModifiedDay(character.getCurrentDay());
             Inventory saved = inventoryRepository.save(inventory);
-            injectCalendarService(saved);
-            return saved;
+            return new InventoryResponse(saved, pyarrCalendarService);
         } else if (quantityChange < 0) {
             // Quantity decrease - create history record and update/remove item
             int decreaseAmount = Math.abs(quantityChange);
@@ -244,8 +255,7 @@ public class InventoryService {
                 inventory.setModifiedYear(character.getCurrentYear());
                 inventory.setModifiedDay(character.getCurrentDay());
                 Inventory saved = inventoryRepository.save(inventory);
-                injectCalendarService(saved);
-                return saved;
+                return new InventoryResponse(saved, pyarrCalendarService);
             } else {
                 // No items left - mark as removed
                 inventory.setQuantity(0);
@@ -255,40 +265,40 @@ public class InventoryService {
                 inventory.setModifiedYear(character.getCurrentYear());
                 inventory.setModifiedDay(character.getCurrentDay());
                 Inventory saved = inventoryRepository.save(inventory);
-                injectCalendarService(saved);
-                return saved;
+                return new InventoryResponse(saved, pyarrCalendarService);
             }
         }
         
-        // No change
-        return inventory;
+        // No change - return as is without saving
+        return new InventoryResponse(inventory, pyarrCalendarService);
     }
     
-    public List<Inventory> getItemsInContainer(String username, Long characterId, Long containerId) {
+    public List<InventoryResponse> getItemsInContainer(String username, Long characterId, Long containerId) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Character character = characterRepository.findByIdAndUserId(characterId, user.getId())
-                .orElseThrow(() -> new RuntimeException("Character not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Character not found"));
         
         // Verify container belongs to this character
         inventoryRepository.findByIdAndCharacterId(containerId, characterId)
-                .orElseThrow(() -> new RuntimeException("Container not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Container not found"));
 
         List<Inventory> items = inventoryRepository.findByContainerIdAndRemovedFalse(containerId);
-        injectCalendarService(items);
-        return items;
+        return items.stream()
+                .map(item -> new InventoryResponse(item, pyarrCalendarService))
+                .collect(Collectors.toList());
     }
     
     public Double calculateTotalWeight(String username, Long characterId, Long inventoryId) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Character character = characterRepository.findByIdAndUserId(characterId, user.getId())
-                .orElseThrow(() -> new RuntimeException("Character not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Character not found"));
 
         Inventory item = inventoryRepository.findByIdAndCharacterId(inventoryId, characterId)
-                .orElseThrow(() -> new RuntimeException("Inventory item not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Inventory item not found"));
         
         return calculateTotalWeightRecursive(item, 0);
     }
@@ -296,7 +306,7 @@ public class InventoryService {
     private Double calculateTotalWeightRecursive(Inventory item, int depth) {
         // Prevent infinite recursion - max depth of 10 levels
         if (depth > 10) {
-            throw new RuntimeException("Container nesting too deep (max 10 levels)");
+            throw new InvalidOperationException("Container nesting too deep (max 10 levels)");
         }
         
         // Base weight of the item itself (weight per item * quantity)

@@ -27,59 +27,39 @@ public class CharacterController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createCharacter(
+    public ResponseEntity<CharacterResponse> createCharacter(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody CharacterRequest request) {
-        try {
-            return ResponseEntity.ok(characterService.createCharacter(userDetails.getUsername(), request));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
-        }
+        return ResponseEntity.ok(characterService.createCharacter(userDetails.getUsername(), request));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCharacter(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long id) {
-        try {
-            characterService.deleteCharacter(userDetails.getUsername(), id);
-            return ResponseEntity.ok().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        characterService.deleteCharacter(userDetails.getUsername(), id);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{id}/increment-day")
-    public ResponseEntity<?> incrementDay(
+    public ResponseEntity<CharacterResponse> incrementDay(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long id) {
-        try {
-            return ResponseEntity.ok(characterService.incrementDay(userDetails.getUsername(), id));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
-        }
+        return ResponseEntity.ok(characterService.incrementDay(userDetails.getUsername(), id));
     }
 
     @PostMapping("/{id}/decrement-day")
-    public ResponseEntity<?> decrementDay(
+    public ResponseEntity<CharacterResponse> decrementDay(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long id) {
-        try {
-            return ResponseEntity.ok(characterService.decrementDay(userDetails.getUsername(), id));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
-        }
+        return ResponseEntity.ok(characterService.decrementDay(userDetails.getUsername(), id));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateCharacter(
+    public ResponseEntity<CharacterResponse> updateCharacter(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long id,
             @Valid @RequestBody CharacterRequest request) {
-        try {
-            return ResponseEntity.ok(characterService.updateCharacter(userDetails.getUsername(), id, request));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
-        }
+        return ResponseEntity.ok(characterService.updateCharacter(userDetails.getUsername(), id, request));
     }
 }
