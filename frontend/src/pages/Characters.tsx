@@ -364,7 +364,7 @@ const Characters: React.FC = () => {
                     </button>
                     <button
                       onClick={() => handleDeleteCharacter(character.id)}
-                      style={{ padding: '5px 15px', backgroundColor: '#7AB8C0', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+                      className="btn-delete"
                     >
                       Delete
                     </button>

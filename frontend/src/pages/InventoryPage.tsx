@@ -627,7 +627,7 @@ const InventoryPage: React.FC = () => {
                       </button>
                       <button
                         onClick={() => handleRemove(item.id)}
-                        style={{ padding: '5px 10px', backgroundColor: '#7AB8C0', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+                        className="btn-delete"
                       >
                         Remove
                       </button>
@@ -732,7 +732,7 @@ const InventoryPage: React.FC = () => {
                         </button>
                         <button
                           onClick={() => handleRemove(containedItem.id)}
-                          style={{ padding: '5px 10px', backgroundColor: '#7AB8C0', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+                          className="btn-delete"
                         >
                           Remove
                         </button>
@@ -810,7 +810,7 @@ const InventoryPage: React.FC = () => {
                           </button>
                           <button
                             onClick={() => handleRemove(nestedItem.id)}
-                            style={{ padding: '5px 10px', backgroundColor: '#7AB8C0', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+                            className="btn-delete"
                           >
                             Remove
                           </button>

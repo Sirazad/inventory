@@ -3,6 +3,7 @@
   --primary-color: #0dcaf0;
   --primary-color-saturated: #0bb5d6;
   --primary-color-rgb: 13, 202, 240;
+  --delete-color: #f8a5aa;
   --background-color: white;
   --text-color: #333;
   --border-color: #ccc;
@@ -21,7 +22,11 @@ body {
 
 /* Headers */
 h1, h2, h3, h4, h5, h6 {
-  color: var(--primary-color-saturated);
+  background-color: var(--primary-color-saturated);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
 }
 
 /* Buttons */
@@ -98,6 +103,36 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-form-quantity:hover {
+  opacity: 0.9;
+}
+
+.btn-delete {
+  padding: 5px 10px;
+  background-color: var(--delete-color);
+  color: var(--text-color);
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: opacity 0.2s;
+}
+
+.btn-delete:hover {
+  opacity: 0.9;
+}
+
+.btn-delete-tiny {
+  padding: 2px 8px;
+  background-color: var(--delete-color);
+  color: var(--text-color);
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: opacity 0.2s;
+}
+
+.btn-delete-tiny:hover {
   opacity: 0.9;
 }
 

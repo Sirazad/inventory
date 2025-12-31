@@ -146,7 +146,7 @@ const Categories: React.FC = () => {
                     </button>
                     <button
                       onClick={() => handleDelete(category.id)}
-                      style={{ padding: '5px 10px', backgroundColor: '#7AB8C0', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+                      className="btn-delete"
                     >
                       Delete
                     </button>
