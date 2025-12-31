@@ -1,7 +1,7 @@
 package com.inventory.controller;
 
 import com.inventory.dto.InventoryRequest;
-import com.inventory.entity.Inventory;
+import com.inventory.dto.InventoryResponse;
 import com.inventory.exception.InvalidOperationException;
 import com.inventory.service.InventoryService;
 import jakarta.validation.Valid;
@@ -24,7 +24,7 @@ public class InventoryController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Inventory>> getInventory(
+    public ResponseEntity<List<InventoryResponse>> getInventory(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long characterId,
             @RequestParam(required = false) String category,
@@ -35,7 +35,7 @@ public class InventoryController {
     }
 
     @PostMapping
-    public ResponseEntity<Inventory> createInventory(
+    public ResponseEntity<InventoryResponse> createInventory(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long characterId,
             @Valid @RequestBody InventoryRequest request) {
@@ -44,7 +44,7 @@ public class InventoryController {
     }
 
     @PutMapping("/{inventoryId}")
-    public ResponseEntity<Inventory> updateInventory(
+    public ResponseEntity<InventoryResponse> updateInventory(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long characterId,
             @PathVariable Long inventoryId,
@@ -66,7 +66,7 @@ public class InventoryController {
     }
     
     @PatchMapping("/{inventoryId}/quantity")
-    public ResponseEntity<Inventory> updateQuantity(
+    public ResponseEntity<InventoryResponse> updateQuantity(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long characterId,
             @PathVariable Long inventoryId,
@@ -80,7 +80,7 @@ public class InventoryController {
     }
     
     @GetMapping("/{inventoryId}/contents")
-    public ResponseEntity<List<Inventory>> getContainerContents(
+    public ResponseEntity<List<InventoryResponse>> getContainerContents(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long characterId,
             @PathVariable Long inventoryId) {

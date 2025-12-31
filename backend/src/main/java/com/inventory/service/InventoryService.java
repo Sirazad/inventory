@@ -1,6 +1,7 @@
 package com.inventory.service;
 
 import com.inventory.dto.InventoryRequest;
+import com.inventory.dto.InventoryResponse;
 import com.inventory.entity.Category;
 import com.inventory.entity.Character;
 import com.inventory.entity.Inventory;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -46,16 +48,8 @@ public class InventoryService {
         this.inventoryHistoryRepository = inventoryHistoryRepository;
         this.pyarrCalendarService = pyarrCalendarService;
     }
-    
-    private void injectCalendarService(Inventory inventory) {
-        inventory.setPyarrCalendarService(pyarrCalendarService);
-    }
-    
-    private void injectCalendarService(List<Inventory> inventories) {
-        inventories.forEach(this::injectCalendarService);
-    }
 
-    public List<Inventory> getInventoryByCharacter(String username, Long characterId, 
+    public List<InventoryResponse> getInventoryByCharacter(String username, Long characterId, 
                                                    String category, Double minPrice, Double maxWeight) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -92,11 +86,12 @@ public class InventoryService {
         };
 
         List<Inventory> inventories = inventoryRepository.findAll(spec);
-        injectCalendarService(inventories);
-        return inventories;
+        return inventories.stream()
+                .map(inv -> new InventoryResponse(inv, pyarrCalendarService))
+                .collect(Collectors.toList());
     }
 
-    public Inventory createInventory(String username, Long characterId, InventoryRequest request) {
+    public InventoryResponse createInventory(String username, Long characterId, InventoryRequest request) {
         log.debug("Creating inventory item '{}' for character ID {}", request.getItem(), characterId);
         
         User user = userRepository.findByUsername(username)
@@ -135,11 +130,13 @@ public class InventoryService {
         inventory.setAddedDay(character.getCurrentDay());
 
         Inventory saved = inventoryRepository.save(inventory);
-        injectCalendarService(saved);
-        return saved;
+        log.info("Inventory item created: {} (ID: {}) for character ID {}", 
+                saved.getItem(), saved.getId(), characterId);
+        
+        return new InventoryResponse(saved, pyarrCalendarService);
     }
 
-    public Inventory updateInventory(String username, Long characterId, Long inventoryId, InventoryRequest request) {
+    public InventoryResponse updateInventory(String username, Long characterId, Long inventoryId, InventoryRequest request) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -187,8 +184,7 @@ public class InventoryService {
         }
 
         Inventory saved = inventoryRepository.save(inventory);
-        injectCalendarService(saved);
-        return saved;
+        return new InventoryResponse(saved, pyarrCalendarService);
     }
 
     public void removeInventory(String username, Long characterId, Long inventoryId, String removalText) {
@@ -214,7 +210,7 @@ public class InventoryService {
                 inventory.getItem(), inventoryId, removalText);
     }
     
-    public Inventory updateQuantity(String username, Long characterId, Long inventoryId, int quantityChange) {
+    public InventoryResponse updateQuantity(String username, Long characterId, Long inventoryId, int quantityChange) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -233,8 +229,7 @@ public class InventoryService {
             inventory.setModifiedYear(character.getCurrentYear());
             inventory.setModifiedDay(character.getCurrentDay());
             Inventory saved = inventoryRepository.save(inventory);
-            injectCalendarService(saved);
-            return saved;
+            return new InventoryResponse(saved, pyarrCalendarService);
         } else if (quantityChange < 0) {
             // Quantity decrease - create history record and update/remove item
             int decreaseAmount = Math.abs(quantityChange);
@@ -260,8 +255,7 @@ public class InventoryService {
                 inventory.setModifiedYear(character.getCurrentYear());
                 inventory.setModifiedDay(character.getCurrentDay());
                 Inventory saved = inventoryRepository.save(inventory);
-                injectCalendarService(saved);
-                return saved;
+                return new InventoryResponse(saved, pyarrCalendarService);
             } else {
                 // No items left - mark as removed
                 inventory.setQuantity(0);
@@ -271,16 +265,16 @@ public class InventoryService {
                 inventory.setModifiedYear(character.getCurrentYear());
                 inventory.setModifiedDay(character.getCurrentDay());
                 Inventory saved = inventoryRepository.save(inventory);
-                injectCalendarService(saved);
-                return saved;
+                return new InventoryResponse(saved, pyarrCalendarService);
             }
         }
         
         // No change
-        return inventory;
+        Inventory saved = inventoryRepository.save(inventory);
+        return new InventoryResponse(saved, pyarrCalendarService);
     }
     
-    public List<Inventory> getItemsInContainer(String username, Long characterId, Long containerId) {
+    public List<InventoryResponse> getItemsInContainer(String username, Long characterId, Long containerId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -292,8 +286,9 @@ public class InventoryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Container not found"));
 
         List<Inventory> items = inventoryRepository.findByContainerIdAndRemovedFalse(containerId);
-        injectCalendarService(items);
-        return items;
+        return items.stream()
+                .map(item -> new InventoryResponse(item, pyarrCalendarService))
+                .collect(Collectors.toList());
     }
     
     public Double calculateTotalWeight(String username, Long characterId, Long inventoryId) {
