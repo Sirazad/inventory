@@ -157,9 +157,9 @@ const Characters: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '900px', margin: '50px auto', padding: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+    <div className="page-container">
+      <div className="flex-row justify-space-between align-center mb-20">
+        <div className="flex-row align-center">
           <h1>{t.characters.title}</h1>
           <LanguageToggle />
         </div>
@@ -183,65 +183,67 @@ const Characters: React.FC = () => {
       </div>
 
       {showDeleteAccount && (
-        <div style={{ padding: '15px', border: '2px solid #7AB8C0', marginBottom: '20px', backgroundColor: 'white' }}>
+        <div className="form-border mb-20">
           <h3>Delete Account</h3>
           <form onSubmit={handleDeleteAccount}>
-            <div style={{ marginBottom: '10px' }}>
-              <label>Confirm with password:</label>
+            <div className="form-group">
+              <label className="form-label-block">Confirm with password:</label>
               <input
                 type="password"
                 value={deletePassword}
                 onChange={(e) => setDeletePassword(e.target.value)}
                 required
-                style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                className="form-input-full"
               />
             </div>
-            <button type="submit" className="btn-delete mr-10">
-              Confirm Delete
-            </button>
-            <button type="button" onClick={() => setShowDeleteAccount(false)} style={{ padding: '10px 20px' }}>
-              Cancel
-            </button>
+            <div className="form-actions">
+              <button type="submit" className="btn-delete mr-10">
+                Confirm Delete
+              </button>
+              <button type="button" onClick={() => setShowDeleteAccount(false)} className="btn-primary">
+                Cancel
+              </button>
+            </div>
           </form>
         </div>
       )}
 
       {editingCharacter && (
-        <div style={{ padding: '20px', border: '2px solid #7AB8C0', marginBottom: '20px', backgroundColor: 'white' }}>
+        <div className="form-border mb-20">
           <h3>Edit Character</h3>
           <form onSubmit={handleSaveEdit}>
-            <div style={{ marginBottom: '15px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Character Name:</label>
+            <div className="form-group">
+              <label className="form-label-block">Character Name:</label>
               <input
                 type="text"
                 value={editingCharacter.name}
                 onChange={(e) => setEditingCharacter({ ...editingCharacter, name: e.target.value })}
                 required
-                style={{ width: '100%', padding: '8px' }}
+                className="form-input-full"
               />
             </div>
             
-            <div style={{ marginBottom: '15px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Pyarr Calendar Date:</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: '10px' }}>
+            <div className="form-group">
+              <label className="form-label-block">Pyarr Calendar Date:</label>
+              <div className="grid-3-col">
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', marginBottom: '3px' }}>Year:</label>
+                  <label className="form-help-text">Year:</label>
                   <input
                     type="number"
                     value={editingCharacter.year}
                     onChange={(e) => setEditingCharacter({ ...editingCharacter, year: parseInt(e.target.value) || 0 })}
                     required
                     min="1"
-                    style={{ width: '100%', padding: '8px' }}
+                    className="form-input-full"
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', marginBottom: '3px' }}>Month:</label>
+                  <label className="form-help-text">Month:</label>
                   <select
                     value={editingCharacter.month}
                     onChange={(e) => setEditingCharacter({ ...editingCharacter, month: parseInt(e.target.value) })}
                     required
-                    style={{ width: '100%', padding: '8px' }}
+                    className="form-input-full"
                   >
                     {CALENDAR_MONTHS.map(month => (
                       <option key={month.number} value={month.number}>
@@ -251,7 +253,7 @@ const Characters: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', marginBottom: '3px' }}>Day:</label>
+                  <label className="form-help-text">Day:</label>
                   <input
                     type="number"
                     value={editingCharacter.day}
@@ -259,37 +261,39 @@ const Characters: React.FC = () => {
                     required
                     min="1"
                     max="20"
-                    style={{ width: '100%', padding: '8px' }}
+                    className="form-input-full"
                   />
                 </div>
               </div>
-              <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
+              <div className="form-help-text mt-5">
                 Each month has 20 days (Day 1-20)
               </div>
             </div>
 
-            <button type="submit" className="btn-primary mr-10">
-              Save Changes
-            </button>
-            <button type="button" onClick={handleCancelEdit} style={{ padding: '10px 20px' }}>
-              Cancel
-            </button>
+            <div className="form-actions">
+              <button type="submit" className="btn-primary mr-10">
+                Save Changes
+              </button>
+              <button type="button" onClick={handleCancelEdit} className="btn-primary">
+                Cancel
+              </button>
+            </div>
           </form>
         </div>
       )}
 
-      <div style={{ marginBottom: '30px', padding: '20px', border: '1px solid #ccc' }}>
+      <div className="filter-container mb-20">
         <h3>Add New Character</h3>
-        <form onSubmit={handleCreateCharacter}>
+        <form onSubmit={handleCreateCharacter} className="flex-row flex-gap-10">
           <input
             type="text"
             value={newCharacterName}
             onChange={(e) => setNewCharacterName(e.target.value)}
             placeholder="Character name"
             required
-            style={{ padding: '8px', marginRight: '10px', width: '300px' }}
+            className="form-input-medium"
           />
-          <button type="submit" style={{ padding: '8px 20px' }}>
+          <button type="submit" className="btn-primary">
             Add Character
           </button>
         </form>
@@ -300,23 +304,23 @@ const Characters: React.FC = () => {
         {characters.length === 0 ? (
           <p>No characters yet. Create your first character above!</p>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table className="data-table">
             <thead>
-              <tr style={{ backgroundColor: 'white' }}>
-                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Name</th>
-                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Current Date</th>
-                <th style={{ padding: '10px', textAlign: 'center', border: '1px solid #ccc' }}>Date Controls</th>
-                <th style={{ padding: '10px', textAlign: 'center', border: '1px solid #ccc' }}>Actions</th>
+              <tr>
+                <th className="table-cell">Name</th>
+                <th className="table-cell">Current Date</th>
+                <th className="table-cell-center">Date Controls</th>
+                <th className="table-cell-center">Actions</th>
               </tr>
             </thead>
             <tbody>
               {characters.map((character) => (
                 <tr key={character.id}>
-                  <td style={{ padding: '10px', border: '1px solid #ccc' }}>{character.name}</td>
-                  <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '14px' }}>
+                  <td className="table-cell">{character.name}</td>
+                  <td className="table-cell">
                     {character.formattedDate || `Year ${character.currentYear}, Day ${character.currentDay}`}
                   </td>
-                  <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
+                  <td className="table-cell-center">
                     <button
                       onClick={() => handleDecrementDay(character.id)}
                       className="btn-quantity mr-5"
@@ -332,7 +336,7 @@ const Characters: React.FC = () => {
                       +
                     </button>
                   </td>
-                  <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
+                  <td className="table-cell-center">
                     <button
                       onClick={() => navigate(`/characters/${character.id}/inventory`)}
                       className="btn-small mr-5"

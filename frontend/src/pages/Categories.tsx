@@ -64,9 +64,9 @@ const Categories: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '50px auto', padding: '20px' }}>
-      <div style={{ marginBottom: '20px' }}>
-        <button onClick={() => navigate('/characters')} style={{ padding: '10px 20px' }}>
+    <div className="page-container max-width-1000">
+      <div className="mb-20">
+        <button onClick={() => navigate('/characters')} className="btn-primary">
           Back to Characters
         </button>
       </div>
@@ -74,7 +74,7 @@ const Categories: React.FC = () => {
       <h2>Category Management</h2>
 
       {/* Add/Edit Form */}
-      <div style={{ marginBottom: '20px' }}>
+      <div className="mb-20">
         <button
           onClick={() => {
             setShowAddForm(!showAddForm);
@@ -89,25 +89,21 @@ const Categories: React.FC = () => {
       </div>
 
       {showAddForm && (
-        <div style={{ marginBottom: '20px', padding: '20px', border: '2px solid #7AB8C0', backgroundColor: 'white' }}>
+        <div className="form-border mb-20">
           <h3>{editingId ? 'Edit Category' : 'Add New Category'}</h3>
-          {error && (
-            <div style={{ color: 'red', marginBottom: '10px', padding: '10px', backgroundColor: '#ffeeee' }}>
-              {error}
-            </div>
-          )}
+          {error && <div className="error-message">{error}</div>}
           <form onSubmit={handleSubmit}>
-            <div>
-              <label>Category Name*:</label>
+            <div className="form-group">
+              <label className="form-label-block">Category Name*:</label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ name: e.target.value })}
                 required
-                style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                className="form-input-full"
               />
             </div>
-            <div style={{ marginTop: '15px' }}>
+            <div className="form-actions">
               <button type="submit" className="btn-primary">
                 {editingId ? 'Update Category' : 'Add Category'}
               </button>
@@ -122,25 +118,25 @@ const Categories: React.FC = () => {
         {categories.length === 0 ? (
           <p>No categories found. Add some above!</p>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table className="data-table">
             <thead>
-              <tr style={{ backgroundColor: 'white' }}>
-                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Name</th>
-                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Created</th>
-                <th style={{ padding: '10px', textAlign: 'center', border: '1px solid #ccc' }}>Actions</th>
+              <tr>
+                <th className="table-cell">Name</th>
+                <th className="table-cell">Created</th>
+                <th className="table-cell-center">Actions</th>
               </tr>
             </thead>
             <tbody>
               {categories.map((category) => (
                 <tr key={category.id}>
-                  <td style={{ padding: '10px', border: '1px solid #ccc' }}>{category.name}</td>
-                  <td style={{ padding: '10px', border: '1px solid #ccc' }}>
+                  <td className="table-cell">{category.name}</td>
+                  <td className="table-cell">
                     {new Date(category.createdAt).toLocaleDateString()}
                   </td>
-                  <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
+                  <td className="table-cell-center">
                     <button
                       onClick={() => handleEdit(category)}
-                      style={{ padding: '5px 10px', marginRight: '5px' }}
+                      className="btn-small mr-5"
                     >
                       Edit
                     </button>

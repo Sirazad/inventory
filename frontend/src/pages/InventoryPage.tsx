@@ -237,9 +237,9 @@ const InventoryPage: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '50px auto', padding: '20px' }}>
-      <div style={{ marginBottom: '20px' }}>
-        <button onClick={() => navigate('/characters')} style={{ padding: '10px 20px' }}>
+    <div className="page-container max-width-1200">
+      <div className="mb-20">
+        <button onClick={() => navigate('/characters')} className="btn-primary">
           Back to Characters
         </button>
       </div>
@@ -247,16 +247,16 @@ const InventoryPage: React.FC = () => {
       <h2>Inventory Management</h2>
 
       {/* Filters */}
-      <div style={{ marginBottom: '20px', padding: '15px', border: '1px solid #d0d0d0', backgroundColor: 'white' }}>
+      <div className="filter-container mb-20">
         <h3>Filters</h3>
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+        <div className="flex-row flex-gap-10" style={{ flexWrap: 'wrap' }}>
           <div>
             <label>Category: </label>
             <input
               type="text"
               value={filters.category}
               onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-              style={{ padding: '5px' }}
+              className="form-input-small"
             />
           </div>
           <div>
@@ -266,7 +266,7 @@ const InventoryPage: React.FC = () => {
               min="0"
               value={filters.minPrice}
               onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })}
-              style={{ padding: '5px', width: '100px' }}
+              className="form-input-small"
               placeholder="Total copper"
             />
           </div>
@@ -278,18 +278,18 @@ const InventoryPage: React.FC = () => {
               min="0"
               value={filters.maxWeight}
               onChange={(e) => setFilters({ ...filters, maxWeight: e.target.value })}
-              style={{ padding: '5px', width: '100px' }}
+              className="form-input-small"
               placeholder="Per item"
             />
           </div>
-          <button onClick={handleApplyFilters} style={{ padding: '5px 15px' }}>
+          <button onClick={handleApplyFilters} className="btn-small">
             Apply Filters
           </button>
           <button
             onClick={() => {
               setFilters({ category: '', minPrice: '', maxWeight: '' });
             }}
-            style={{ padding: '5px 15px' }}
+            className="btn-small"
           >
             Clear Filters
           </button>
@@ -297,7 +297,7 @@ const InventoryPage: React.FC = () => {
       </div>
 
       {/* Add/Edit Form */}
-      <div style={{ marginBottom: '20px' }}>
+      <div className="mb-20">
         <button
           onClick={() => {
             setShowAddForm(!showAddForm);

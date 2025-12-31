@@ -262,8 +262,24 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 10px;
 }
 
+.mb-15 {
+  margin-bottom: 15px;
+}
+
 .mb-20 {
   margin-bottom: 20px;
+}
+
+.mt-5 {
+  margin-top: 5px;
+}
+
+.mt-10 {
+  margin-top: 10px;
+}
+
+.mt-20 {
+  margin-top: 20px;
 }
 
 .text-center {
@@ -276,4 +292,254 @@ h1, h2, h3, h4, h5, h6 {
 
 .font-bold {
   font-weight: bold;
+}
+
+/* Layout & Structure */
+.flex-container {
+  display: flex;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.flex-gap-5 {
+  gap: 5px;
+}
+
+.flex-gap-10 {
+  gap: 10px;
+}
+
+.flex-gap-20 {
+  gap: 20px;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-space-between {
+  justify-content: space-between;
+}
+
+.align-center {
+  align-items: center;
+}
+
+.align-start {
+  align-items: flex-start;
+}
+
+.max-width-600 {
+  max-width: 600px;
+}
+
+.max-width-800 {
+  max-width: 800px;
+}
+
+.max-width-1000 {
+  max-width: 1000px;
+}
+
+.width-100 {
+  width: 100%;
+}
+
+.min-width-100 {
+  min-width: 100px;
+}
+
+.margin-auto {
+  margin: 0 auto;
+}
+
+.padding-15 {
+  padding: 15px;
+}
+
+.padding-20 {
+  padding: 20px;
+}
+
+/* Grid Layouts */
+.grid-2-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.grid-3-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+.grid-4-col {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.grid-auto-fit {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+/* Table Specific Classes */
+.table-cell {
+  padding: 10px;
+  border: 1px solid var(--border-color);
+}
+
+.table-cell-center {
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  text-align: center;
+}
+
+.table-cell-right {
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  text-align: right;
+}
+
+.table-cell-nowrap {
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+/* Form Specific Classes */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-input-full {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  box-sizing: border-box;
+}
+
+.form-input-medium {
+  width: 300px;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+}
+
+.form-input-small {
+  width: 150px;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+}
+
+.form-label-block {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.form-help-text {
+  font-size: 12px;
+  color: #666;
+  margin-top: 2px;
+  font-style: italic;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.form-border {
+  border: 2px solid var(--primary-color);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+/* Container & Nested Items */
+.container-row {
+  background-color: #E8F5EE;
+  border: 1px solid var(--border-color);
+}
+
+.contained-item-row {
+  background-color: #F8F8F8;
+  border: 1px solid var(--border-color);
+}
+
+.nested-item-row {
+  background-color: #ECECEC;
+  border: 1px solid var(--border-color);
+}
+
+/* Authentication Pages */
+.auth-container {
+  max-width: 400px;
+  margin: 100px auto;
+  padding: 30px;
+  border: 2px solid var(--primary-color);
+  background-color: var(--background-color);
+  border-radius: 8px;
+}
+
+.auth-title {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-input {
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.auth-button {
+  padding: 12px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.auth-button:hover {
+  opacity: 0.9;
+}
+
+.auth-link {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.auth-link a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.auth-link a:hover {
+  text-decoration: underline;
 }
