@@ -30,55 +30,57 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+    <div className="auth-container">
+      <div className="flex-row justify-space-between align-center mb-20">
         <h2>{t.register.title}</h2>
         <LanguageToggle />
       </div>
-      {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '15px' }}>
-          <label>{t.register.username}:</label>
+      {error && <div className="error-message">{error}</div>}
+      <form onSubmit={handleSubmit} className="auth-form">
+        <div className="form-group">
+          <label className="form-label-block">{t.register.username}:</label>
           <input
             type="text"
             value={formData.username}
             onChange={(e) => setFormData({ ...formData, username: e.target.value })}
             required
             minLength={3}
-            style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+            className="auth-input"
           />
         </div>
-        <div style={{ marginBottom: '15px' }}>
-          <label>Email:</label>
+        <div className="form-group">
+          <label className="form-label-block">Email:</label>
           <input
             type="email"
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             required
-            style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+            className="auth-input"
           />
         </div>
-        <div style={{ marginBottom: '15px' }}>
-          <label>{t.register.password}:</label>
+        <div className="form-group">
+          <label className="form-label-block">{t.register.password}:</label>
           <input
             type="password"
             value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             required
             minLength={6}
-            style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+            className="auth-input"
           />
         </div>
-        <button type="submit" style={{ padding: '10px 20px', marginRight: '10px' }}>
-          {t.register.registerButton}
-        </button>
-        <button
-          type="button"
-          onClick={() => navigate('/login')}
-          style={{ padding: '10px 20px' }}
-        >
-          {t.register.loginLink}
-        </button>
+        <div className="form-actions">
+          <button type="submit" className="btn-primary">
+            {t.register.registerButton}
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/login')}
+            className="btn-primary"
+          >
+            {t.register.loginLink}
+          </button>
+        </div>
       </form>
     </div>
   );

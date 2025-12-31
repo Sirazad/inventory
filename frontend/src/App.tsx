@@ -14,7 +14,7 @@ const PrivateRoute: React.FC<{ children: React.ReactElement }> = ({ children }) 
 const App: React.FC = () => {
   return (
     <BrowserRouter>
-      <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: 'white' }}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

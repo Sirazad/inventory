@@ -43,6 +43,15 @@ public class Inventory {
     // Weight in kilograms per single item
     private Double weight;
 
+    // Container support: reference to parent container
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "container_id")
+    @JsonIgnore
+    private Inventory container;
+
+    @Column(name = "container_id", insertable = false, updatable = false)
+    private Long containerId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "character_id", nullable = false)
     @JsonIgnore
@@ -286,6 +295,22 @@ public class Inventory {
 
     public void setRemovedDay(Integer removedDay) {
         this.removedDay = removedDay;
+    }
+    
+    public Inventory getContainer() {
+        return container;
+    }
+
+    public void setContainer(Inventory container) {
+        this.container = container;
+    }
+
+    public Long getContainerId() {
+        return containerId;
+    }
+
+    public void setContainerId(Long containerId) {
+        this.containerId = containerId;
     }
     
     public void setPyarrCalendarService(PyarrCalendarService service) {

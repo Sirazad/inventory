@@ -51,7 +51,7 @@ public class InventoryController {
     }
 
     @PutMapping("/{inventoryId}")
-    public ResponseEntity<Inventory> updateInventory(
+    public ResponseEntity<?> updateInventory(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long characterId,
             @PathVariable Long inventoryId,
@@ -59,6 +59,9 @@ public class InventoryController {
         try {
             return ResponseEntity.ok(inventoryService.updateInventory(
                     userDetails.getUsername(), characterId, inventoryId, request));
+        } catch (IllegalArgumentException e) {
+            // Return 400 Bad Request for validation errors like circular references
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -93,6 +96,33 @@ public class InventoryController {
             }
             return ResponseEntity.ok(inventoryService.updateQuantity(
                     userDetails.getUsername(), characterId, inventoryId, quantityChange));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    @GetMapping("/{inventoryId}/contents")
+    public ResponseEntity<List<Inventory>> getContainerContents(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long characterId,
+            @PathVariable Long inventoryId) {
+        try {
+            return ResponseEntity.ok(inventoryService.getItemsInContainer(
+                    userDetails.getUsername(), characterId, inventoryId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    @GetMapping("/{inventoryId}/total-weight")
+    public ResponseEntity<Map<String, Double>> getTotalWeight(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long characterId,
+            @PathVariable Long inventoryId) {
+        try {
+            Double totalWeight = inventoryService.calculateTotalWeight(
+                    userDetails.getUsername(), characterId, inventoryId);
+            return ResponseEntity.ok(Map.of("totalWeight", totalWeight));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

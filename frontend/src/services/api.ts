@@ -122,6 +122,20 @@ export const inventoryService = {
     );
     return response.data;
   },
+
+  getContainerContents: async (characterId: number, inventoryId: number) => {
+    const response = await axiosInstance.get(
+      `/characters/${characterId}/inventory/${inventoryId}/contents`
+    );
+    return response.data;
+  },
+
+  getTotalWeight: async (characterId: number, inventoryId: number) => {
+    const response = await axiosInstance.get(
+      `/characters/${characterId}/inventory/${inventoryId}/total-weight`
+    );
+    return response.data.totalWeight;
+  },
 };
 
 export const categoryService = {
