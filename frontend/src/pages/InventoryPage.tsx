@@ -394,8 +394,6 @@ const InventoryPage: React.FC = () => {
                     }}
                     className="btn-form-quantity"
                   >
-                    }}
-                  >
                     +
                   </button>
                 </div>
