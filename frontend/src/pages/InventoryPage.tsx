@@ -247,7 +247,7 @@ const InventoryPage: React.FC = () => {
       <h2>Inventory Management</h2>
 
       {/* Filters */}
-      <div style={{ marginBottom: '20px', padding: '15px', border: '1px solid #ccc', backgroundColor: '#f9f9f9' }}>
+      <div style={{ marginBottom: '20px', padding: '15px', border: '1px solid #d0d0d0', backgroundColor: 'white' }}>
         <h3>Filters</h3>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <div>
@@ -316,14 +316,14 @@ const InventoryPage: React.FC = () => {
               containerId: '',
             });
           }}
-          style={{ padding: '10px 20px', backgroundColor: '#28a745', color: 'white' }}
+          style={{ padding: '10px 20px', backgroundColor: '#B8D4D4', color: '#333', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
         >
           {showAddForm ? 'Cancel' : 'Add New Item'}
         </button>
       </div>
 
       {showAddForm && (
-        <div style={{ marginBottom: '20px', padding: '20px', border: '2px solid #28a745', backgroundColor: '#f0fff0' }}>
+        <div style={{ marginBottom: '20px', padding: '20px', border: '2px solid #B8D4D4', backgroundColor: 'white' }}>
           <h3>{editingId ? 'Edit Item' : 'Add New Item'}</h3>
           <form onSubmit={handleSubmit}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
@@ -376,8 +376,8 @@ const InventoryPage: React.FC = () => {
                     }}
                     style={{ 
                       padding: '8px 15px', 
-                      backgroundColor: '#dc3545', 
-                      color: 'white', 
+                      backgroundColor: '#E8B4B8', 
+                      color: '#333', 
                       border: 'none',
                       cursor: 'pointer',
                       fontSize: '16px',
@@ -402,8 +402,8 @@ const InventoryPage: React.FC = () => {
                     }}
                     style={{ 
                       padding: '8px 15px', 
-                      backgroundColor: '#28a745', 
-                      color: 'white', 
+                      backgroundColor: '#F5EAB0', 
+                      color: '#333', 
                       border: 'none',
                       cursor: 'pointer',
                       fontSize: '16px',
@@ -497,7 +497,7 @@ const InventoryPage: React.FC = () => {
               </div>
             </div>
             <div style={{ marginTop: '15px' }}>
-              <button type="submit" style={{ padding: '10px 20px', backgroundColor: '#28a745', color: 'white' }}>
+              <button type="submit" style={{ padding: '10px 20px', backgroundColor: '#F5EAB0', color: '#333', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                 {editingId ? 'Update Item' : 'Add Item'}
               </button>
             </div>
@@ -515,7 +515,7 @@ const InventoryPage: React.FC = () => {
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
              <thead>
-              <tr style={{ backgroundColor: '#f0f0f0' }}>
+              <tr style={{ backgroundColor: 'white' }}>
                 <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Category</th>
                 <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Item</th>
                 <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Quality</th>
@@ -532,7 +532,7 @@ const InventoryPage: React.FC = () => {
             <tbody>
               {inventory.filter(item => !item.containerId).map((item) => (
                 <React.Fragment key={item.id}>
-                  <tr style={{ backgroundColor: isContainer(item) ? '#e8f5e9' : 'white' }}>
+                  <tr style={{ backgroundColor: isContainer(item) ? '#E8F5EE' : 'white' }}>
                     <td style={{ padding: '10px', border: '1px solid #ccc' }}>
                       {isContainer(item) && (
                         <button
@@ -540,8 +540,8 @@ const InventoryPage: React.FC = () => {
                           style={{
                             marginRight: '5px',
                             padding: '2px 8px',
-                            backgroundColor: '#2196F3',
-                            color: 'white',
+                            backgroundColor: '#B8D4D4',
+                            color: '#333',
                             border: 'none',
                             borderRadius: '3px',
                             cursor: 'pointer',
@@ -569,8 +569,8 @@ const InventoryPage: React.FC = () => {
                           onClick={() => handleQuantityChange(item, -1)}
                           style={{ 
                             padding: '4px 10px', 
-                            backgroundColor: '#dc3545', 
-                            color: 'white', 
+                            backgroundColor: '#E8B4B8', 
+                            color: '#333', 
                             border: 'none',
                             cursor: 'pointer',
                             fontSize: '14px',
@@ -588,8 +588,8 @@ const InventoryPage: React.FC = () => {
                           onClick={() => handleQuantityChange(item, +1)}
                           style={{ 
                             padding: '4px 10px', 
-                            backgroundColor: '#28a745', 
-                            color: 'white', 
+                            backgroundColor: '#F5EAB0', 
+                            color: '#333', 
                             border: 'none',
                             cursor: 'pointer',
                             fontSize: '14px',
@@ -621,13 +621,13 @@ const InventoryPage: React.FC = () => {
                     <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
                       <button
                         onClick={() => handleEdit(item)}
-                        style={{ padding: '5px 10px', marginRight: '5px' }}
+                        style={{ padding: '5px 10px', marginRight: '5px', backgroundColor: '#B8D4D4', color: '#333', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleRemove(item.id)}
-                        style={{ padding: '5px 10px', backgroundColor: '#dc3545', color: 'white' }}
+                        style={{ padding: '5px 10px', backgroundColor: '#E8B4B8', color: '#333', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
                       >
                         Remove
                       </button>
@@ -637,7 +637,7 @@ const InventoryPage: React.FC = () => {
                   {isContainer(item) && expandedContainers.has(item.id) && (
                     <>
                       {containerContents.get(item.id)?.length === 0 && (
-                        <tr key={`empty-${item.id}`} style={{ backgroundColor: '#f5f5f5' }}>
+                        <tr key={`empty-${item.id}`} style={{ backgroundColor: '#F8F8F8' }}>
                           <td colSpan={11} style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center', fontStyle: 'italic', color: '#999' }}>
                             This container is empty
                           </td>
@@ -645,7 +645,7 @@ const InventoryPage: React.FC = () => {
                       )}
                       {containerContents.get(item.id)?.map((containedItem) => (
                     <React.Fragment key={`contained-${containedItem.id}`}>
-                      <tr style={{ backgroundColor: '#f5f5f5' }}>
+                      <tr style={{ backgroundColor: '#F8F8F8' }}>
                         <td style={{ padding: '10px', border: '1px solid #ccc', paddingLeft: '40px' }}>
                           {isContainer(containedItem) && (
                             <button
@@ -653,8 +653,8 @@ const InventoryPage: React.FC = () => {
                               style={{
                                 marginRight: '5px',
                                 padding: '2px 8px',
-                                backgroundColor: '#2196F3',
-                                color: 'white',
+                                backgroundColor: '#B8D4D4',
+                                color: '#333',
                                 border: 'none',
                                 borderRadius: '3px',
                                 cursor: 'pointer',
@@ -680,8 +680,8 @@ const InventoryPage: React.FC = () => {
                             onClick={() => handleQuantityChange(containedItem, -1)}
                             style={{ 
                               padding: '4px 10px', 
-                              backgroundColor: '#dc3545', 
-                              color: 'white', 
+                              backgroundColor: '#E8B4B8', 
+                              color: '#333', 
                               border: 'none',
                               cursor: 'pointer',
                               fontSize: '14px',
@@ -699,8 +699,8 @@ const InventoryPage: React.FC = () => {
                             onClick={() => handleQuantityChange(containedItem, +1)}
                             style={{ 
                               padding: '4px 10px', 
-                              backgroundColor: '#28a745', 
-                              color: 'white', 
+                              backgroundColor: '#F5EAB0', 
+                              color: '#333', 
                               border: 'none',
                               cursor: 'pointer',
                               fontSize: '14px',
@@ -726,13 +726,13 @@ const InventoryPage: React.FC = () => {
                       <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
                         <button
                           onClick={() => handleEdit(containedItem)}
-                          style={{ padding: '5px 10px', marginRight: '5px' }}
+                          style={{ padding: '5px 10px', marginRight: '5px', backgroundColor: '#B8D4D4', color: '#333', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
                         >
                           Edit
                         </button>
                         <button
                           onClick={() => handleRemove(containedItem.id)}
-                          style={{ padding: '5px 10px', backgroundColor: '#dc3545', color: 'white' }}
+                          style={{ padding: '5px 10px', backgroundColor: '#E8B4B8', color: '#333', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
                         >
                           Remove
                         </button>
@@ -740,7 +740,7 @@ const InventoryPage: React.FC = () => {
                     </tr>
                     {/* Show nested container contents when expanded */}
                     {isContainer(containedItem) && expandedContainers.has(containedItem.id) && containerContents.get(containedItem.id)?.map((nestedItem) => (
-                      <tr key={`nested-${nestedItem.id}`} style={{ backgroundColor: '#e8e8e8' }}>
+                      <tr key={`nested-${nestedItem.id}`} style={{ backgroundColor: '#ECECEC' }}>
                         <td style={{ padding: '10px', border: '1px solid #ccc', paddingLeft: '60px' }}>
                           ↳↳ {nestedItem.category}
                         </td>
@@ -758,8 +758,8 @@ const InventoryPage: React.FC = () => {
                               onClick={() => handleQuantityChange(nestedItem, -1)}
                               style={{ 
                                 padding: '4px 10px', 
-                                backgroundColor: '#dc3545', 
-                                color: 'white', 
+                                backgroundColor: '#E8B4B8', 
+                                color: '#333', 
                                 border: 'none',
                                 cursor: 'pointer',
                                 fontSize: '14px',
@@ -777,8 +777,8 @@ const InventoryPage: React.FC = () => {
                               onClick={() => handleQuantityChange(nestedItem, +1)}
                               style={{ 
                                 padding: '4px 10px', 
-                                backgroundColor: '#28a745', 
-                                color: 'white', 
+                                backgroundColor: '#F5EAB0', 
+                                color: '#333', 
                                 border: 'none',
                                 cursor: 'pointer',
                                 fontSize: '14px',
@@ -804,13 +804,13 @@ const InventoryPage: React.FC = () => {
                         <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
                           <button
                             onClick={() => handleEdit(nestedItem)}
-                            style={{ padding: '5px 10px', marginRight: '5px' }}
+                            style={{ padding: '5px 10px', marginRight: '5px', backgroundColor: '#B8D4D4', color: '#333', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => handleRemove(nestedItem.id)}
-                            style={{ padding: '5px 10px', backgroundColor: '#dc3545', color: 'white' }}
+                            style={{ padding: '5px 10px', backgroundColor: '#E8B4B8', color: '#333', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
                           >
                             Remove
                           </button>
