@@ -4,9 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.inventory.service.PyarrCalendarService;
 import com.inventory.util.CurrencyUtil;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
@@ -30,6 +32,7 @@ public class Inventory {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     @JsonIgnore
+    @Setter(AccessLevel.NONE) // Custom setter below maintains bidirectional relationship
     private Category categoryEntity;
 
     @Column(nullable = false)
@@ -128,6 +131,7 @@ public class Inventory {
         this.priceInCopper = CurrencyUtil.toCopperValue(gold, silver, copper);
     }
 
+    // Custom setter to maintain bidirectional relationship with category
     public void setCategoryEntity(Category categoryEntity) {
         this.categoryEntity = categoryEntity;
         if (categoryEntity != null) {
