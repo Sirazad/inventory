@@ -15,6 +15,7 @@ import com.inventory.repository.InventoryRepository;
 import com.inventory.repository.UserRepository;
 import com.inventory.util.ValidationUtil;
 import jakarta.persistence.criteria.Predicate;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Slf4j
 public class InventoryService {
 
     private final InventoryRepository inventoryRepository;
@@ -95,6 +97,8 @@ public class InventoryService {
     }
 
     public Inventory createInventory(String username, Long characterId, InventoryRequest request) {
+        log.debug("Creating inventory item '{}' for character ID {}", request.getItem(), characterId);
+        
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -171,6 +175,7 @@ public class InventoryService {
             
             // Check for circular reference by ensuring the target container is not inside this item
             if (wouldCreateCircularReference(inventoryId, request.getContainerId())) {
+                log.warn("Circular reference detected when updating inventory ID {}", inventoryId);
                 throw new InvalidOperationException("Cannot create circular container reference - the target container is inside this item");
             }
             
@@ -187,6 +192,8 @@ public class InventoryService {
     }
 
     public void removeInventory(String username, Long characterId, Long inventoryId, String removalText) {
+        log.info("Removing inventory item ID {} for character ID {}", inventoryId, characterId);
+        
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -202,6 +209,9 @@ public class InventoryService {
         inventory.setRemoved(true);
         inventory.setRemovedText(removalText);
         inventoryRepository.save(inventory);
+        
+        log.info("Inventory item removed: {} (ID: {}), reason: {}", 
+                inventory.getItem(), inventoryId, removalText);
     }
     
     public Inventory updateQuantity(String username, Long characterId, Long inventoryId, int quantityChange) {

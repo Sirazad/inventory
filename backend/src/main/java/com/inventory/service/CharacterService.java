@@ -9,6 +9,7 @@ import com.inventory.exception.InvalidOperationException;
 import com.inventory.exception.ResourceNotFoundException;
 import com.inventory.repository.CharacterRepository;
 import com.inventory.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,6 +17,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class CharacterService {
 
     private final CharacterRepository characterRepository;
@@ -40,10 +42,13 @@ public class CharacterService {
     }
 
     public CharacterResponse createCharacter(String username, CharacterRequest request) {
+        log.debug("Creating character '{}' for user '{}'", request.getName(), username);
+        
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (characterRepository.existsByNameAndUserId(request.getName(), user.getId())) {
+            log.warn("Character creation failed: name already exists - {}", request.getName());
             throw new DuplicateResourceException("Character name already exists");
         }
 
@@ -52,10 +57,14 @@ public class CharacterService {
         character.setUser(user);
 
         Character saved = characterRepository.save(character);
+        log.info("Character created successfully: {} (ID: {})", saved.getName(), saved.getId());
+        
         return new CharacterResponse(saved, calendarService);
     }
 
     public void deleteCharacter(String username, Long characterId) {
+        log.info("Deleting character ID {} for user '{}'", characterId, username);
+        
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -63,6 +72,7 @@ public class CharacterService {
                 .orElseThrow(() -> new ResourceNotFoundException("Character not found"));
 
         characterRepository.delete(character);
+        log.info("Character deleted successfully: {} (ID: {})", character.getName(), characterId);
     }
 
     public CharacterResponse incrementDay(String username, Long characterId) {

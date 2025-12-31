@@ -4,14 +4,22 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.inventory.service.PyarrCalendarService;
 import com.inventory.util.CurrencyUtil;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "inventory")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Inventory {
     
     @Transient
     private PyarrCalendarService pyarrCalendarService;
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -103,68 +111,6 @@ public class Inventory {
         updatedAt = LocalDateTime.now();
     }
 
-    public Inventory() {}
-
-    // Getters and Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public Category getCategoryEntity() {
-        return categoryEntity;
-    }
-
-    public void setCategoryEntity(Category categoryEntity) {
-        this.categoryEntity = categoryEntity;
-        if (categoryEntity != null) {
-            this.category = categoryEntity.getName();
-        }
-    }
-
-    public String getItem() {
-        return item;
-    }
-
-    public void setItem(String item) {
-        this.item = item;
-    }
-
-    public String getQuality() {
-        return quality;
-    }
-
-    public void setQuality(String quality) {
-        this.quality = quality;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Long getPriceInCopper() {
-        return priceInCopper;
-    }
-
-    public void setPriceInCopper(Long priceInCopper) {
-        this.priceInCopper = priceInCopper;
-    }
-
     // Helper methods for currency conversion
     public Long getGold() {
         return CurrencyUtil.getGold(priceInCopper);
@@ -182,136 +128,11 @@ public class Inventory {
         this.priceInCopper = CurrencyUtil.toCopperValue(gold, silver, copper);
     }
 
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
-    }
-
-    public String getAddedUpdated() {
-        return addedUpdated;
-    }
-
-    public void setAddedUpdated(String addedUpdated) {
-        this.addedUpdated = addedUpdated;
-    }
-
-    public Double getWeight() {
-        return weight;
-    }
-
-    public void setWeight(Double weight) {
-        this.weight = weight;
-    }
-
-    public Character getCharacter() {
-        return character;
-    }
-
-    public void setCharacter(Character character) {
-        this.character = character;
-    }
-
-    public Boolean getRemoved() {
-        return removed;
-    }
-
-    public void setRemoved(Boolean removed) {
-        this.removed = removed;
-    }
-
-    public String getRemovedText() {
-        return removedText;
-    }
-
-    public void setRemovedText(String removedText) {
-        this.removedText = removedText;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public Integer getAddedYear() {
-        return addedYear;
-    }
-
-    public void setAddedYear(Integer addedYear) {
-        this.addedYear = addedYear;
-    }
-
-    public Integer getAddedDay() {
-        return addedDay;
-    }
-
-    public void setAddedDay(Integer addedDay) {
-        this.addedDay = addedDay;
-    }
-
-    public Integer getModifiedYear() {
-        return modifiedYear;
-    }
-
-    public void setModifiedYear(Integer modifiedYear) {
-        this.modifiedYear = modifiedYear;
-    }
-
-    public Integer getModifiedDay() {
-        return modifiedDay;
-    }
-
-    public void setModifiedDay(Integer modifiedDay) {
-        this.modifiedDay = modifiedDay;
-    }
-
-    public Integer getRemovedYear() {
-        return removedYear;
-    }
-
-    public void setRemovedYear(Integer removedYear) {
-        this.removedYear = removedYear;
-    }
-
-    public Integer getRemovedDay() {
-        return removedDay;
-    }
-
-    public void setRemovedDay(Integer removedDay) {
-        this.removedDay = removedDay;
-    }
-    
-    public Inventory getContainer() {
-        return container;
-    }
-
-    public void setContainer(Inventory container) {
-        this.container = container;
-    }
-
-    public Long getContainerId() {
-        return containerId;
-    }
-
-    public void setContainerId(Long containerId) {
-        this.containerId = containerId;
-    }
-    
-    public void setPyarrCalendarService(PyarrCalendarService service) {
-        this.pyarrCalendarService = service;
+    public void setCategoryEntity(Category categoryEntity) {
+        this.categoryEntity = categoryEntity;
+        if (categoryEntity != null) {
+            this.category = categoryEntity.getName();
+        }
     }
     
     // Formatted date getters for JSON serialization

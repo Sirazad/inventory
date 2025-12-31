@@ -2,6 +2,7 @@ package com.inventory.controller;
 
 import com.inventory.dto.InventoryRequest;
 import com.inventory.entity.Inventory;
+import com.inventory.exception.InvalidOperationException;
 import com.inventory.service.InventoryService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -29,12 +30,8 @@ public class InventoryController {
             @RequestParam(required = false) String category,
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxWeight) {
-        try {
-            return ResponseEntity.ok(inventoryService.getInventoryByCharacter(
-                    userDetails.getUsername(), characterId, category, minPrice, maxWeight));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(inventoryService.getInventoryByCharacter(
+                userDetails.getUsername(), characterId, category, minPrice, maxWeight));
     }
 
     @PostMapping
@@ -42,27 +39,18 @@ public class InventoryController {
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long characterId,
             @Valid @RequestBody InventoryRequest request) {
-        try {
-            return ResponseEntity.ok(inventoryService.createInventory(
-                    userDetails.getUsername(), characterId, request));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        return ResponseEntity.ok(inventoryService.createInventory(
+                userDetails.getUsername(), characterId, request));
     }
 
     @PutMapping("/{inventoryId}")
-    public ResponseEntity<?> updateInventory(
+    public ResponseEntity<Inventory> updateInventory(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long characterId,
             @PathVariable Long inventoryId,
             @Valid @RequestBody InventoryRequest request) {
-        try {
-            return ResponseEntity.ok(inventoryService.updateInventory(
-                    userDetails.getUsername(), characterId, inventoryId, request));
-        } catch (RuntimeException e) {
-            // Return 400 Bad Request for validation errors like circular references
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
+        return ResponseEntity.ok(inventoryService.updateInventory(
+                userDetails.getUsername(), characterId, inventoryId, request));
     }
 
     @DeleteMapping("/{inventoryId}")
@@ -71,14 +59,10 @@ public class InventoryController {
             @PathVariable Long characterId,
             @PathVariable Long inventoryId,
             @RequestBody Map<String, String> request) {
-        try {
-            inventoryService.removeInventory(
-                    userDetails.getUsername(), characterId, inventoryId, 
-                    request.get("removalText"));
-            return ResponseEntity.ok().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        inventoryService.removeInventory(
+                userDetails.getUsername(), characterId, inventoryId, 
+                request.get("removalText"));
+        return ResponseEntity.ok().build();
     }
     
     @PatchMapping("/{inventoryId}/quantity")
@@ -87,16 +71,12 @@ public class InventoryController {
             @PathVariable Long characterId,
             @PathVariable Long inventoryId,
             @RequestBody Map<String, Integer> request) {
-        try {
-            Integer quantityChange = request.get("quantityChange");
-            if (quantityChange == null) {
-                return ResponseEntity.badRequest().build();
-            }
-            return ResponseEntity.ok(inventoryService.updateQuantity(
-                    userDetails.getUsername(), characterId, inventoryId, quantityChange));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+        Integer quantityChange = request.get("quantityChange");
+        if (quantityChange == null) {
+            throw new InvalidOperationException("Quantity change is required");
         }
+        return ResponseEntity.ok(inventoryService.updateQuantity(
+                userDetails.getUsername(), characterId, inventoryId, quantityChange));
     }
     
     @GetMapping("/{inventoryId}/contents")
@@ -104,12 +84,8 @@ public class InventoryController {
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long characterId,
             @PathVariable Long inventoryId) {
-        try {
-            return ResponseEntity.ok(inventoryService.getItemsInContainer(
-                    userDetails.getUsername(), characterId, inventoryId));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(inventoryService.getItemsInContainer(
+                userDetails.getUsername(), characterId, inventoryId));
     }
     
     @GetMapping("/{inventoryId}/total-weight")
@@ -117,12 +93,8 @@ public class InventoryController {
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long characterId,
             @PathVariable Long inventoryId) {
-        try {
-            Double totalWeight = inventoryService.calculateTotalWeight(
-                    userDetails.getUsername(), characterId, inventoryId);
-            return ResponseEntity.ok(Map.of("totalWeight", totalWeight));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        Double totalWeight = inventoryService.calculateTotalWeight(
+                userDetails.getUsername(), characterId, inventoryId);
+        return ResponseEntity.ok(Map.of("totalWeight", totalWeight));
     }
 }
