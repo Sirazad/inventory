@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { inventoryService, categoryService } from '../services/api';
 import { Inventory, Category } from '../types';
+import { useLanguage } from '../i18n/LanguageContext';
 
 const InventoryPage: React.FC = () => {
   const { characterId } = useParams<{ characterId: string }>();
@@ -31,6 +32,7 @@ const InventoryPage: React.FC = () => {
     containerId: '',
   });
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   useEffect(() => {
     loadCategories();
@@ -89,7 +91,7 @@ const InventoryPage: React.FC = () => {
       setInventory([]);
       
       if (err.response?.status === 403 || err.response?.status === 401) {
-        alert(`Cannot load inventory. Please check that you have permission to access this character.`);
+        alert(t.inventory.cannotLoad);
       }
     }
   };
@@ -136,13 +138,13 @@ const InventoryPage: React.FC = () => {
     } catch (err: any) {
       // Display better error messages
       if (err.response?.data?.error) {
-        alert('Error: ' + err.response.data.error);
+        alert(t.inventory.errorPrefix + err.response.data.error);
       } else if (err.response?.status === 400) {
-        alert('Invalid request. Please check your input.');
+        alert(t.inventory.invalidRequest);
       } else if (err.response?.status === 403) {
-        alert('Access denied. Please log in again.');
+        alert(t.inventory.accessDenied);
       } else {
-        alert('Failed to save inventory item');
+        alert(t.inventory.failedSave);
       }
       console.error('Failed to save inventory item', err);
     }
@@ -167,13 +169,13 @@ const InventoryPage: React.FC = () => {
   };
 
   const handleRemove = async (id: number) => {
-    const removalText = prompt('Enter removal reason:');
+    const removalText = prompt(t.inventory.enterRemovalReason);
     if (removalText !== null) {
       try {
         await inventoryService.removeInventory(Number(characterId), id, removalText);
         loadInventory();
       } catch (err) {
-        alert('Failed to remove item');
+        alert(t.inventory.failedRemove);
       }
     }
   };
@@ -191,7 +193,7 @@ const InventoryPage: React.FC = () => {
       // Update the item in state with the returned data
       setInventory(inventory.map(i => i.id === item.id ? updatedItem : i).filter(i => !i.removed));
     } catch (err) {
-      alert('Failed to update quantity');
+      alert(t.inventory.failedUpdateQuantity);
     }
   };
 
@@ -216,7 +218,7 @@ const InventoryPage: React.FC = () => {
         setContainerContents(prev => new Map(prev).set(itemId, contents));
       } catch (err) {
         console.error('Failed to load container contents', err);
-        alert('Failed to load container contents. Please try again.');
+        alert(t.inventory.failedLoadContainer);
       }
       
       // Load total weight
@@ -240,18 +242,18 @@ const InventoryPage: React.FC = () => {
     <div className="page-container max-width-1200">
       <div className="mb-20">
         <button onClick={() => navigate('/characters')} className="btn-primary">
-          Back to Characters
+          {t.inventory.backToCharacters}
         </button>
       </div>
 
-      <h2>Inventory Management</h2>
+      <h2>{t.inventory.inventoryManagement}</h2>
 
       {/* Filters */}
       <div className="filter-container mb-20">
-        <h3>Filters</h3>
+        <h3>{t.inventory.filters}</h3>
         <div className="flex-row flex-gap-10" style={{ flexWrap: 'wrap' }}>
           <div>
-            <label>Category: </label>
+            <label>{t.inventory.categoryLabel} </label>
             <input
               type="text"
               value={filters.category}
@@ -260,18 +262,18 @@ const InventoryPage: React.FC = () => {
             />
           </div>
           <div>
-            <label>Min Price (copper): </label>
+            <label>{t.inventory.minPriceLabel} </label>
             <input
               type="number"
               min="0"
               value={filters.minPrice}
               onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })}
               className="form-input-small"
-              placeholder="Total copper"
+              placeholder={t.inventory.totalCopperPlaceholder}
             />
           </div>
           <div>
-            <label>Max Weight (kg): </label>
+            <label>{t.inventory.maxWeightLabel} </label>
             <input
               type="number"
               step="0.01"
@@ -279,11 +281,11 @@ const InventoryPage: React.FC = () => {
               value={filters.maxWeight}
               onChange={(e) => setFilters({ ...filters, maxWeight: e.target.value })}
               className="form-input-small"
-              placeholder="Per item"
+              placeholder={t.inventory.perItemPlaceholder}
             />
           </div>
           <button onClick={handleApplyFilters} className="btn-small">
-            Apply Filters
+            {t.inventory.applyFilters}
           </button>
           <button
             onClick={() => {
@@ -291,7 +293,7 @@ const InventoryPage: React.FC = () => {
             }}
             className="btn-small"
           >
-            Clear Filters
+            {t.inventory.clearFilters}
           </button>
         </div>
       </div>
@@ -318,24 +320,24 @@ const InventoryPage: React.FC = () => {
           }}
           className="btn-primary"
         >
-          {showAddForm ? 'Cancel' : 'Add New Item'}
+          {showAddForm ? t.inventory.cancel : t.inventory.addNewItem}
         </button>
       </div>
 
       {showAddForm && (
         <div style={{ marginBottom: '20px', padding: '20px', border: '2px solid #7AB8C0', backgroundColor: 'white' }}>
-          <h3>{editingId ? 'Edit Item' : 'Add New Item'}</h3>
+          <h3>{editingId ? t.inventory.editItem : t.inventory.addNewItem}</h3>
           <form onSubmit={handleSubmit}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
               <div>
-                <label>Category*:</label>
+                <label>{t.inventory.categoryRequired}</label>
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   required
                   style={{ width: '100%', padding: '8px', marginTop: '5px' }}
                 >
-                  <option value="">Select a category</option>
+                  <option value="">{t.inventory.selectCategory}</option>
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.name}>
                       {cat.name}
@@ -343,11 +345,11 @@ const InventoryPage: React.FC = () => {
                   ))}
                 </select>
                 <div style={{ fontSize: '12px', color: '#666', marginTop: '3px' }}>
-                  Select "container" to make this item a bag/pouch that can hold other items
+                  {t.inventory.containerHelp}
                 </div>
               </div>
               <div>
-                <label>Item*:</label>
+                <label>{t.inventory.itemRequired}</label>
                 <input
                   type="text"
                   value={formData.item}
@@ -357,7 +359,7 @@ const InventoryPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label>Quality:</label>
+                <label>{t.inventory.qualityLabel}</label>
                 <input
                   type="text"
                   value={formData.quality}
@@ -366,7 +368,7 @@ const InventoryPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label>Quantity*:</label>
+                <label>{t.inventory.quantityRequired}</label>
                 <div style={{ display: 'flex', gap: '5px', marginTop: '5px' }}>
                   <button
                     type="button"
@@ -399,12 +401,12 @@ const InventoryPage: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label>Price:</label>
+                <label>{t.inventory.priceLabel}</label>
                 <div style={{ display: 'flex', gap: '5px', marginTop: '5px' }}>
                   <input
                     type="number"
                     min="0"
-                    placeholder="Gold"
+                    placeholder={t.inventory.gold}
                     value={formData.gold}
                     onChange={(e) => setFormData({ ...formData, gold: e.target.value })}
                     style={{ width: '30%', padding: '8px' }}
@@ -413,7 +415,7 @@ const InventoryPage: React.FC = () => {
                   <input
                     type="number"
                     min="0"
-                    placeholder="Silver"
+                    placeholder={t.inventory.silver}
                     value={formData.silver}
                     onChange={(e) => setFormData({ ...formData, silver: e.target.value })}
                     style={{ width: '30%', padding: '8px' }}
@@ -422,7 +424,7 @@ const InventoryPage: React.FC = () => {
                   <input
                     type="number"
                     min="0"
-                    placeholder="Copper"
+                    placeholder={t.inventory.copper}
                     value={formData.copper}
                     onChange={(e) => setFormData({ ...formData, copper: e.target.value })}
                     style={{ width: '30%', padding: '8px' }}
@@ -431,25 +433,25 @@ const InventoryPage: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label>Weight (kg per item):</label>
+                <label>{t.inventory.weightLabel}</label>
                 <input
                   type="number"
                   step="0.01"
                   min="0"
-                  placeholder="Kilograms"
+                  placeholder={t.inventory.kilograms}
                   value={formData.weight}
                   onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
                   style={{ width: '100%', padding: '8px', marginTop: '5px' }}
                 />
               </div>
               <div>
-                <label>Container (optional):</label>
+                <label>{t.inventory.containerOptional}</label>
                 <select
                   value={formData.containerId}
                   onChange={(e) => setFormData({ ...formData, containerId: e.target.value })}
                   style={{ width: '100%', padding: '8px', marginTop: '5px' }}
                 >
-                  <option value="">No container</option>
+                  <option value="">{t.inventory.noContainer}</option>
                   {getAvailableContainers().map((container) => (
                     <option key={container.id} value={container.id}>
                       {container.item}
@@ -457,11 +459,11 @@ const InventoryPage: React.FC = () => {
                   ))}
                 </select>
                 <div style={{ fontSize: '12px', color: '#666', marginTop: '3px' }}>
-                  Put this item inside a bag/pouch (must have category "container")
+                  {t.inventory.containerItemHelp}
                 </div>
               </div>
               <div style={{ gridColumn: '1 / -1' }}>
-                <label>Description*:</label>
+                <label>{t.inventory.descriptionRequired}</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -471,7 +473,7 @@ const InventoryPage: React.FC = () => {
                 />
               </div>
               <div style={{ gridColumn: '1 / -1' }}>
-                <label>Added/Updated Notes:</label>
+                <label>{t.inventory.notesLabel}</label>
                 <input
                   type="text"
                   value={formData.addedUpdated}
@@ -482,7 +484,7 @@ const InventoryPage: React.FC = () => {
             </div>
             <div style={{ marginTop: '15px' }}>
               <button type="submit" className="btn-primary">
-                {editingId ? 'Update Item' : 'Add Item'}
+                {editingId ? t.inventory.updateItem : t.inventory.addItem}
               </button>
             </div>
           </form>
@@ -491,26 +493,26 @@ const InventoryPage: React.FC = () => {
 
       {/* Inventory List */}
       <div>
-        <h3>Inventory Items</h3>
+        <h3>{t.inventory.inventoryItems}</h3>
         {inventory.length === 0 ? (
-          <p>No items in inventory. Add some above!</p>
+          <p>{t.inventory.noItems}</p>
         ) : inventory.filter(item => !item.containerId).length === 0 ? (
-          <p>All items are inside containers. Expand a container above to see items.</p>
+          <p>{t.inventory.allInContainers}</p>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
              <thead>
               <tr style={{ backgroundColor: 'white' }}>
-                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Category</th>
-                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Item</th>
-                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Quality</th>
-                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Description</th>
-                <th style={{ padding: '10px', textAlign: 'right', border: '1px solid #ccc' }}>Price</th>
-                <th style={{ padding: '10px', textAlign: 'right', border: '1px solid #ccc' }}>Qty</th>
-                <th style={{ padding: '10px', textAlign: 'right', border: '1px solid #ccc' }}>Weight (kg)</th>
-                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Added</th>
-                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Modified</th>
-                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Notes</th>
-                <th style={{ padding: '10px', textAlign: 'center', border: '1px solid #ccc' }}>Actions</th>
+                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>{t.inventory.category}</th>
+                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>{t.inventory.item}</th>
+                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>{t.inventory.quality}</th>
+                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>{t.inventory.description}</th>
+                <th style={{ padding: '10px', textAlign: 'right', border: '1px solid #ccc' }}>{t.inventory.price}</th>
+                <th style={{ padding: '10px', textAlign: 'right', border: '1px solid #ccc' }}>{t.inventory.quantity}</th>
+                <th style={{ padding: '10px', textAlign: 'right', border: '1px solid #ccc' }}>{t.inventory.weightKg}</th>
+                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>{t.inventory.added}</th>
+                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>{t.inventory.modified}</th>
+                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>{t.inventory.addedUpdated}</th>
+                <th style={{ padding: '10px', textAlign: 'center', border: '1px solid #ccc' }}>{t.inventory.actions}</th>
               </tr>
             </thead>
             <tbody>
@@ -543,7 +545,7 @@ const InventoryPage: React.FC = () => {
                         <button
                           onClick={() => handleQuantityChange(item, -1)}
                           className="btn-quantity"
-                          title="Decrease quantity"
+                          title={t.inventory.decreaseQuantity}
                         >
                           −
                         </button>
@@ -553,7 +555,7 @@ const InventoryPage: React.FC = () => {
                         <button
                           onClick={() => handleQuantityChange(item, +1)}
                           className="btn-quantity"
-                          title="Increase quantity"
+                          title={t.inventory.increaseQuantity}
                         >
                           +
                         </button>
@@ -561,9 +563,9 @@ const InventoryPage: React.FC = () => {
                     </td>
                     <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
                       {isContainer(item) && containerWeights.has(item.id) ? (
-                        <strong>{containerWeights.get(item.id)?.toFixed(2)} kg (total)</strong>
+                        <strong>{containerWeights.get(item.id)?.toFixed(2)} {t.inventory.kgTotal}</strong>
                       ) : item.weight ? (
-                        `${item.weight} kg`
+                        `${item.weight} ${t.inventory.kg}`
                       ) : (
                         '-'
                       )}
@@ -580,13 +582,13 @@ const InventoryPage: React.FC = () => {
                         onClick={() => handleEdit(item)}
                         className="btn-small mr-5"
                       >
-                        Edit
+                        {t.inventory.edit}
                       </button>
                       <button
                         onClick={() => handleRemove(item.id)}
                         className="btn-delete"
                       >
-                        Remove
+                        {t.inventory.remove}
                       </button>
                     </td>
                   </tr>
@@ -596,7 +598,7 @@ const InventoryPage: React.FC = () => {
                       {containerContents.get(item.id)?.length === 0 && (
                         <tr key={`empty-${item.id}`} style={{ backgroundColor: 'white' }}>
                           <td colSpan={11} style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center', fontStyle: 'italic', color: '#999' }}>
-                            This container is empty
+                            {t.inventory.containerEmpty}
                           </td>
                         </tr>
                       )}
@@ -627,7 +629,7 @@ const InventoryPage: React.FC = () => {
                           <button
                             onClick={() => handleQuantityChange(containedItem, -1)}
                             className="btn-quantity"
-                            title="Decrease quantity"
+                            title={t.inventory.decreaseQuantity}
                           >
                             −
                           </button>
@@ -637,14 +639,14 @@ const InventoryPage: React.FC = () => {
                           <button
                             onClick={() => handleQuantityChange(containedItem, +1)}
                             className="btn-quantity"
-                            title="Increase quantity"
+                            title={t.inventory.increaseQuantity}
                           >
                             +
                           </button>
                         </div>
                       </td>
                       <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
-                        {containedItem.weight ? `${containedItem.weight} kg` : '-'}
+                        {containedItem.weight ? `${containedItem.weight} ${t.inventory.kg}` : '-'}
                       </td>
                       <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
                         {containedItem.formattedAddedDate || '-'}
@@ -658,13 +660,13 @@ const InventoryPage: React.FC = () => {
                           onClick={() => handleEdit(containedItem)}
                           className="btn-small mr-5"
                         >
-                          Edit
+                          {t.inventory.edit}
                         </button>
                         <button
                           onClick={() => handleRemove(containedItem.id)}
                           className="btn-delete"
                         >
-                          Remove
+                          {t.inventory.remove}
                         </button>
                       </td>
                     </tr>
@@ -687,7 +689,7 @@ const InventoryPage: React.FC = () => {
                             <button
                               onClick={() => handleQuantityChange(nestedItem, -1)}
                               className="btn-quantity"
-                              title="Decrease quantity"
+                              title={t.inventory.decreaseQuantity}
                             >
                               −
                             </button>
@@ -697,14 +699,14 @@ const InventoryPage: React.FC = () => {
                             <button
                               onClick={() => handleQuantityChange(nestedItem, +1)}
                               className="btn-quantity"
-                              title="Increase quantity"
+                              title={t.inventory.increaseQuantity}
                             >
                               +
                             </button>
                           </div>
                         </td>
                         <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
-                          {nestedItem.weight ? `${nestedItem.weight} kg` : '-'}
+                          {nestedItem.weight ? `${nestedItem.weight} ${t.inventory.kg}` : '-'}
                         </td>
                         <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
                           {nestedItem.formattedAddedDate || '-'}
@@ -718,13 +720,13 @@ const InventoryPage: React.FC = () => {
                             onClick={() => handleEdit(nestedItem)}
                             className="btn-small mr-5"
                           >
-                            Edit
+                            {t.inventory.edit}
                           </button>
                           <button
                             onClick={() => handleRemove(nestedItem.id)}
                             className="btn-delete"
                           >
-                            Remove
+                            {t.inventory.remove}
                           </button>
                         </td>
                       </tr>

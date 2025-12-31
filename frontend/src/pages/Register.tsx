@@ -24,7 +24,7 @@ const Register: React.FC = () => {
       localStorage.setItem('username', response.username);
       navigate('/characters');
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error || 'Registration failed. Please try again.';
+      const errorMessage = err.response?.data?.error || t.register.errorGeneric;
       setError(errorMessage);
     }
   };
@@ -49,7 +49,7 @@ const Register: React.FC = () => {
           />
         </div>
         <div className="form-group">
-          <label className="form-label-block">Email:</label>
+          <label className="form-label-block">{t.register.email}:</label>
           <input
             type="email"
             value={formData.email}

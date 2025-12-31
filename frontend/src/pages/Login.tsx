@@ -23,7 +23,7 @@ const Login: React.FC = () => {
       localStorage.setItem('username', response.username);
       navigate('/characters');
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error || 'Invalid username or password';
+      const errorMessage = err.response?.data?.error || t.login.invalidCredentials;
       setError(errorMessage);
     }
   };
