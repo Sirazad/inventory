@@ -13,6 +13,7 @@ import com.inventory.repository.CharacterRepository;
 import com.inventory.repository.InventoryHistoryRepository;
 import com.inventory.repository.InventoryRepository;
 import com.inventory.repository.UserRepository;
+import com.inventory.util.ValidationUtil;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -194,6 +195,9 @@ public class InventoryService {
 
         Inventory inventory = inventoryRepository.findByIdAndCharacterId(inventoryId, characterId)
                 .orElseThrow(() -> new ResourceNotFoundException("Inventory not found"));
+
+        // Validate removal text is provided
+        ValidationUtil.requireNonEmpty(removalText, "Removal reason");
 
         inventory.setRemoved(true);
         inventory.setRemovedText(removalText);

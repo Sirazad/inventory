@@ -1,6 +1,7 @@
 package com.inventory.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.inventory.util.CurrencyUtil;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -174,14 +175,14 @@ public class InventoryHistory {
 
     // Helper methods for currency conversion
     public Long getGold() {
-        return priceInCopper != null ? priceInCopper / 1000 : 0;
+        return CurrencyUtil.getGold(priceInCopper);
     }
 
     public Long getSilver() {
-        return priceInCopper != null ? (priceInCopper % 1000) / 100 : 0;
+        return CurrencyUtil.getSilver(priceInCopper);
     }
 
     public Long getCopper() {
-        return priceInCopper != null ? priceInCopper % 100 : 0;
+        return CurrencyUtil.getCopper(priceInCopper);
     }
 }

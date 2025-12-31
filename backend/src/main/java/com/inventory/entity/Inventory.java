@@ -2,6 +2,7 @@ package com.inventory.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.inventory.service.PyarrCalendarService;
+import com.inventory.util.CurrencyUtil;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -166,23 +167,19 @@ public class Inventory {
 
     // Helper methods for currency conversion
     public Long getGold() {
-        return priceInCopper != null ? priceInCopper / 1000 : 0;
+        return CurrencyUtil.getGold(priceInCopper);
     }
 
     public Long getSilver() {
-        return priceInCopper != null ? (priceInCopper % 1000) / 100 : 0;
+        return CurrencyUtil.getSilver(priceInCopper);
     }
 
     public Long getCopper() {
-        return priceInCopper != null ? priceInCopper % 100 : 0;
+        return CurrencyUtil.getCopper(priceInCopper);
     }
 
     public void setPriceFromCurrency(Long gold, Long silver, Long copper) {
-        long totalCopper = 0;
-        if (gold != null) totalCopper += gold * 1000;
-        if (silver != null) totalCopper += silver * 100;
-        if (copper != null) totalCopper += copper;
-        this.priceInCopper = totalCopper > 0 ? totalCopper : null;
+        this.priceInCopper = CurrencyUtil.toCopperValue(gold, silver, copper);
     }
 
     public Integer getQuantity() {
