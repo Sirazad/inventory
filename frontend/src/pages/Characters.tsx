@@ -166,7 +166,7 @@ const Characters: React.FC = () => {
         <div>
           <button 
             onClick={() => navigate('/categories')} 
-            style={{ padding: '10px 20px', marginRight: '10px', backgroundColor: '#007bff', color: 'white' }}
+            style={{ padding: '10px 20px', marginRight: '10px', backgroundColor: '#7AB8C0', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
           >
             {t.characters.manageCategories}
           </button>
@@ -175,7 +175,7 @@ const Characters: React.FC = () => {
           </button>
           <button 
             onClick={() => setShowDeleteAccount(!showDeleteAccount)} 
-            style={{ padding: '10px 20px', backgroundColor: '#dc3545', color: 'white' }}
+            style={{ padding: '10px 20px', backgroundColor: '#7AB8C0', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
           >
             {t.account.deleteAccount}
           </button>
@@ -183,7 +183,7 @@ const Characters: React.FC = () => {
       </div>
 
       {showDeleteAccount && (
-        <div style={{ padding: '15px', border: '2px solid #dc3545', marginBottom: '20px', backgroundColor: '#ffe6e6' }}>
+        <div style={{ padding: '15px', border: '2px solid #7AB8C0', marginBottom: '20px', backgroundColor: 'white' }}>
           <h3>Delete Account</h3>
           <form onSubmit={handleDeleteAccount}>
             <div style={{ marginBottom: '10px' }}>
@@ -196,7 +196,7 @@ const Characters: React.FC = () => {
                 style={{ width: '100%', padding: '8px', marginTop: '5px' }}
               />
             </div>
-            <button type="submit" style={{ padding: '10px 20px', backgroundColor: '#dc3545', color: 'white', marginRight: '10px' }}>
+            <button type="submit" style={{ padding: '10px 20px', backgroundColor: '#7AB8C0', color: 'white', marginRight: '10px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
               Confirm Delete
             </button>
             <button type="button" onClick={() => setShowDeleteAccount(false)} style={{ padding: '10px 20px' }}>
@@ -207,7 +207,7 @@ const Characters: React.FC = () => {
       )}
 
       {editingCharacter && (
-        <div style={{ padding: '20px', border: '2px solid #007bff', marginBottom: '20px', backgroundColor: '#e7f3ff' }}>
+        <div style={{ padding: '20px', border: '2px solid #7AB8C0', marginBottom: '20px', backgroundColor: 'white' }}>
           <h3>Edit Character</h3>
           <form onSubmit={handleSaveEdit}>
             <div style={{ marginBottom: '15px' }}>
@@ -268,7 +268,7 @@ const Characters: React.FC = () => {
               </div>
             </div>
 
-            <button type="submit" style={{ padding: '10px 20px', backgroundColor: '#007bff', color: 'white', marginRight: '10px' }}>
+            <button type="submit" style={{ padding: '10px 20px', backgroundColor: '#7AB8C0', color: 'white', marginRight: '10px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
               Save Changes
             </button>
             <button type="button" onClick={handleCancelEdit} style={{ padding: '10px 20px' }}>
@@ -302,7 +302,7 @@ const Characters: React.FC = () => {
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ backgroundColor: '#f0f0f0' }}>
+              <tr style={{ backgroundColor: 'white' }}>
                 <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Name</th>
                 <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Current Date</th>
                 <th style={{ padding: '10px', textAlign: 'center', border: '1px solid #ccc' }}>Date Controls</th>
@@ -322,7 +322,7 @@ const Characters: React.FC = () => {
                       style={{
                         padding: '5px 12px',
                         marginRight: '5px',
-                        backgroundColor: '#dc3545',
+                        backgroundColor: '#7AB8C0',
                         color: 'white',
                         border: 'none',
                         borderRadius: '3px',
@@ -337,7 +337,7 @@ const Characters: React.FC = () => {
                       onClick={() => handleIncrementDay(character.id)}
                       style={{
                         padding: '5px 12px',
-                        backgroundColor: '#28a745',
+                        backgroundColor: '#7AB8C0',
                         color: 'white',
                         border: 'none',
                         borderRadius: '3px',
@@ -358,13 +358,13 @@ const Characters: React.FC = () => {
                     </button>
                     <button
                       onClick={() => handleEditCharacter(character)}
-                      style={{ padding: '5px 15px', marginRight: '5px', backgroundColor: '#ffc107', color: 'black' }}
+                      style={{ padding: '5px 15px', marginRight: '5px', backgroundColor: '#7AB8C0', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDeleteCharacter(character.id)}
-                      style={{ padding: '5px 15px', backgroundColor: '#dc3545', color: 'white' }}
+                      style={{ padding: '5px 15px', backgroundColor: '#7AB8C0', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
                     >
                       Delete
                     </button>

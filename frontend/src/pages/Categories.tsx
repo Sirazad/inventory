@@ -82,14 +82,14 @@ const Categories: React.FC = () => {
             setFormData({ name: '' });
             setError('');
           }}
-          style={{ padding: '10px 20px', backgroundColor: '#28a745', color: 'white' }}
+          style={{ padding: '10px 20px', backgroundColor: '#7AB8C0', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
         >
           {showAddForm ? 'Cancel' : 'Add New Category'}
         </button>
       </div>
 
       {showAddForm && (
-        <div style={{ marginBottom: '20px', padding: '20px', border: '2px solid #28a745', backgroundColor: '#f0fff0' }}>
+        <div style={{ marginBottom: '20px', padding: '20px', border: '2px solid #7AB8C0', backgroundColor: 'white' }}>
           <h3>{editingId ? 'Edit Category' : 'Add New Category'}</h3>
           {error && (
             <div style={{ color: 'red', marginBottom: '10px', padding: '10px', backgroundColor: '#ffeeee' }}>
@@ -108,7 +108,7 @@ const Categories: React.FC = () => {
               />
             </div>
             <div style={{ marginTop: '15px' }}>
-              <button type="submit" style={{ padding: '10px 20px', backgroundColor: '#28a745', color: 'white' }}>
+              <button type="submit" style={{ padding: '10px 20px', backgroundColor: '#7AB8C0', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                 {editingId ? 'Update Category' : 'Add Category'}
               </button>
             </div>
@@ -124,7 +124,7 @@ const Categories: React.FC = () => {
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ backgroundColor: '#f0f0f0' }}>
+              <tr style={{ backgroundColor: 'white' }}>
                 <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Name</th>
                 <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>Created</th>
                 <th style={{ padding: '10px', textAlign: 'center', border: '1px solid #ccc' }}>Actions</th>
@@ -146,7 +146,7 @@ const Categories: React.FC = () => {
                     </button>
                     <button
                       onClick={() => handleDelete(category.id)}
-                      style={{ padding: '5px 10px', backgroundColor: '#dc3545', color: 'white' }}
+                      style={{ padding: '5px 10px', backgroundColor: '#7AB8C0', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
                     >
                       Delete
                     </button>
