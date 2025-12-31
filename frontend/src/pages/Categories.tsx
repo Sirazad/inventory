@@ -82,7 +82,7 @@ const Categories: React.FC = () => {
             setFormData({ name: '' });
             setError('');
           }}
-          style={{ padding: '10px 20px', backgroundColor: '#7AB8C0', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+          className="btn-primary"
         >
           {showAddForm ? 'Cancel' : 'Add New Category'}
         </button>
@@ -108,7 +108,7 @@ const Categories: React.FC = () => {
               />
             </div>
             <div style={{ marginTop: '15px' }}>
-              <button type="submit" style={{ padding: '10px 20px', backgroundColor: '#7AB8C0', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+              <button type="submit" className="btn-primary">
                 {editingId ? 'Update Category' : 'Add Category'}
               </button>
             </div>

@@ -166,16 +166,16 @@ const Characters: React.FC = () => {
         <div>
           <button 
             onClick={() => navigate('/categories')} 
-            style={{ padding: '10px 20px', marginRight: '10px', backgroundColor: '#7AB8C0', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+            className="btn-primary mr-10"
           >
             {t.characters.manageCategories}
           </button>
-          <button onClick={handleLogout} style={{ padding: '10px 20px', marginRight: '10px' }}>
+          <button onClick={handleLogout} className="btn-primary mr-10">
             {t.nav.logout}
           </button>
           <button 
             onClick={() => setShowDeleteAccount(!showDeleteAccount)} 
-            style={{ padding: '10px 20px', backgroundColor: '#7AB8C0', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+            className="btn-primary"
           >
             {t.account.deleteAccount}
           </button>
@@ -196,7 +196,7 @@ const Characters: React.FC = () => {
                 style={{ width: '100%', padding: '8px', marginTop: '5px' }}
               />
             </div>
-            <button type="submit" style={{ padding: '10px 20px', backgroundColor: '#7AB8C0', color: 'white', marginRight: '10px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+            <button type="submit" className="btn-delete mr-10">
               Confirm Delete
             </button>
             <button type="button" onClick={() => setShowDeleteAccount(false)} style={{ padding: '10px 20px' }}>
@@ -268,7 +268,7 @@ const Characters: React.FC = () => {
               </div>
             </div>
 
-            <button type="submit" style={{ padding: '10px 20px', backgroundColor: '#7AB8C0', color: 'white', marginRight: '10px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+            <button type="submit" className="btn-primary mr-10">
               Save Changes
             </button>
             <button type="button" onClick={handleCancelEdit} style={{ padding: '10px 20px' }}>
@@ -319,31 +319,14 @@ const Characters: React.FC = () => {
                   <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
                     <button
                       onClick={() => handleDecrementDay(character.id)}
-                      style={{
-                        padding: '5px 12px',
-                        marginRight: '5px',
-                        backgroundColor: '#7AB8C0',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '3px',
-                        cursor: 'pointer',
-                        fontWeight: 'bold'
-                      }}
+                      className="btn-quantity mr-5"
                       title="Previous day"
                     >
                       −
                     </button>
                     <button
                       onClick={() => handleIncrementDay(character.id)}
-                      style={{
-                        padding: '5px 12px',
-                        backgroundColor: '#7AB8C0',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '3px',
-                        cursor: 'pointer',
-                        fontWeight: 'bold'
-                      }}
+                      className="btn-quantity"
                       title="Next day"
                     >
                       +
@@ -352,13 +335,13 @@ const Characters: React.FC = () => {
                   <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
                     <button
                       onClick={() => navigate(`/characters/${character.id}/inventory`)}
-                      style={{ padding: '5px 15px', marginRight: '5px' }}
+                      className="btn-small mr-5"
                     >
                       View Inventory
                     </button>
                     <button
                       onClick={() => handleEditCharacter(character)}
-                      style={{ padding: '5px 15px', marginRight: '5px', backgroundColor: '#7AB8C0', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+                      className="btn-small mr-5"
                     >
                       Edit
                     </button>

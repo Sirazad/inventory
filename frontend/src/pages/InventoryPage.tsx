@@ -316,7 +316,7 @@ const InventoryPage: React.FC = () => {
               containerId: '',
             });
           }}
-          style={{ padding: '10px 20px', backgroundColor: '#7AB8C0', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+          className="btn-primary"
         >
           {showAddForm ? 'Cancel' : 'Add New Item'}
         </button>
@@ -374,15 +374,7 @@ const InventoryPage: React.FC = () => {
                       const newQty = Math.max(1, parseInt(formData.quantity || '1') - 1);
                       setFormData({ ...formData, quantity: newQty.toString() });
                     }}
-                    style={{ 
-                      padding: '8px 15px', 
-                      backgroundColor: '#7AB8C0', 
-                      color: 'white', 
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontSize: '16px',
-                      fontWeight: 'bold'
-                    }}
+                    className="btn-form-quantity"
                   >
                     −
                   </button>
@@ -400,14 +392,8 @@ const InventoryPage: React.FC = () => {
                       const newQty = parseInt(formData.quantity || '1') + 1;
                       setFormData({ ...formData, quantity: newQty.toString() });
                     }}
-                    style={{ 
-                      padding: '8px 15px', 
-                      backgroundColor: '#7AB8C0', 
-                      color: 'white', 
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontSize: '16px',
-                      fontWeight: 'bold'
+                    className="btn-form-quantity"
+                  >
                     }}
                   >
                     +
@@ -497,7 +483,7 @@ const InventoryPage: React.FC = () => {
               </div>
             </div>
             <div style={{ marginTop: '15px' }}>
-              <button type="submit" style={{ padding: '10px 20px', backgroundColor: '#7AB8C0', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+              <button type="submit" className="btn-primary">
                 {editingId ? 'Update Item' : 'Add Item'}
               </button>
             </div>
@@ -537,16 +523,7 @@ const InventoryPage: React.FC = () => {
                       {isContainer(item) && (
                         <button
                           onClick={() => toggleContainer(item.id)}
-                          style={{
-                            marginRight: '5px',
-                            padding: '2px 8px',
-                            backgroundColor: '#7AB8C0',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '3px',
-                            cursor: 'pointer',
-                            fontSize: '12px'
-                          }}
+                          className="btn-tiny mr-5"
                         >
                           {expandedContainers.has(item.id) ? '▼' : '▶'}
                         </button>
@@ -564,38 +541,20 @@ const InventoryPage: React.FC = () => {
                         : '-'}
                     </td>
                     <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
-                      <div style={{ display: 'flex', gap: '5px', alignItems: 'center', justifyContent: 'center' }}>
+                      <div className="quantity-controls">
                         <button
                           onClick={() => handleQuantityChange(item, -1)}
-                          style={{ 
-                            padding: '4px 10px', 
-                            backgroundColor: '#7AB8C0', 
-                            color: 'white', 
-                            border: 'none',
-                            cursor: 'pointer',
-                            fontSize: '14px',
-                            fontWeight: 'bold',
-                            borderRadius: '3px'
-                          }}
+                          className="btn-quantity"
                           title="Decrease quantity"
                         >
                           −
                         </button>
-                        <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: 'bold' }}>
+                        <span className="quantity-value">
                           {item.quantity}
                         </span>
                         <button
                           onClick={() => handleQuantityChange(item, +1)}
-                          style={{ 
-                            padding: '4px 10px', 
-                            backgroundColor: '#7AB8C0', 
-                            color: 'white', 
-                            border: 'none',
-                            cursor: 'pointer',
-                            fontSize: '14px',
-                            fontWeight: 'bold',
-                            borderRadius: '3px'
-                          }}
+                          className="btn-quantity"
                           title="Increase quantity"
                         >
                           +
@@ -621,7 +580,7 @@ const InventoryPage: React.FC = () => {
                     <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
                       <button
                         onClick={() => handleEdit(item)}
-                        style={{ padding: '5px 10px', marginRight: '5px', backgroundColor: '#7AB8C0', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+                        className="btn-small mr-5"
                       >
                         Edit
                       </button>
@@ -650,16 +609,7 @@ const InventoryPage: React.FC = () => {
                           {isContainer(containedItem) && (
                             <button
                               onClick={() => toggleContainer(containedItem.id)}
-                              style={{
-                                marginRight: '5px',
-                                padding: '2px 8px',
-                                backgroundColor: '#7AB8C0',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '3px',
-                                cursor: 'pointer',
-                                fontSize: '12px'
-                              }}
+                              className="btn-tiny mr-5"
                             >
                               {expandedContainers.has(containedItem.id) ? '▼' : '▶'}
                             </button>
@@ -675,38 +625,20 @@ const InventoryPage: React.FC = () => {
                           : '-'}
                       </td>
                       <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
-                        <div style={{ display: 'flex', gap: '5px', alignItems: 'center', justifyContent: 'center' }}>
+                        <div className="quantity-controls">
                           <button
                             onClick={() => handleQuantityChange(containedItem, -1)}
-                            style={{ 
-                              padding: '4px 10px', 
-                              backgroundColor: '#7AB8C0', 
-                              color: 'white', 
-                              border: 'none',
-                              cursor: 'pointer',
-                              fontSize: '14px',
-                              fontWeight: 'bold',
-                              borderRadius: '3px'
-                            }}
+                            className="btn-quantity"
                             title="Decrease quantity"
                           >
                             −
                           </button>
-                          <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: 'bold' }}>
+                          <span className="quantity-value">
                             {containedItem.quantity}
                           </span>
                           <button
                             onClick={() => handleQuantityChange(containedItem, +1)}
-                            style={{ 
-                              padding: '4px 10px', 
-                              backgroundColor: '#7AB8C0', 
-                              color: 'white', 
-                              border: 'none',
-                              cursor: 'pointer',
-                              fontSize: '14px',
-                              fontWeight: 'bold',
-                              borderRadius: '3px'
-                            }}
+                            className="btn-quantity"
                             title="Increase quantity"
                           >
                             +
@@ -726,7 +658,7 @@ const InventoryPage: React.FC = () => {
                       <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
                         <button
                           onClick={() => handleEdit(containedItem)}
-                          style={{ padding: '5px 10px', marginRight: '5px', backgroundColor: '#7AB8C0', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+                          className="btn-small mr-5"
                         >
                           Edit
                         </button>
@@ -753,38 +685,20 @@ const InventoryPage: React.FC = () => {
                             : '-'}
                         </td>
                         <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
-                          <div style={{ display: 'flex', gap: '5px', alignItems: 'center', justifyContent: 'center' }}>
+                          <div className="quantity-controls">
                             <button
                               onClick={() => handleQuantityChange(nestedItem, -1)}
-                              style={{ 
-                                padding: '4px 10px', 
-                                backgroundColor: '#7AB8C0', 
-                                color: 'white', 
-                                border: 'none',
-                                cursor: 'pointer',
-                                fontSize: '14px',
-                                fontWeight: 'bold',
-                                borderRadius: '3px'
-                              }}
+                              className="btn-quantity"
                               title="Decrease quantity"
                             >
                               −
                             </button>
-                            <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: 'bold' }}>
+                            <span className="quantity-value">
                               {nestedItem.quantity}
                             </span>
                             <button
                               onClick={() => handleQuantityChange(nestedItem, +1)}
-                              style={{ 
-                                padding: '4px 10px', 
-                                backgroundColor: '#7AB8C0', 
-                                color: 'white', 
-                                border: 'none',
-                                cursor: 'pointer',
-                                fontSize: '14px',
-                                fontWeight: 'bold',
-                                borderRadius: '3px'
-                              }}
+                              className="btn-quantity"
                               title="Increase quantity"
                             >
                               +
@@ -804,7 +718,7 @@ const InventoryPage: React.FC = () => {
                         <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
                           <button
                             onClick={() => handleEdit(nestedItem)}
-                            style={{ padding: '5px 10px', marginRight: '5px', backgroundColor: '#7AB8C0', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}
+                            className="btn-small mr-5"
                           >
                             Edit
                           </button>
