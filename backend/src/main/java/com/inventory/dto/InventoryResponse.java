@@ -68,7 +68,8 @@ public class InventoryResponse {
         if (addedYear != null && addedDay != null) {
             try {
                 this.formattedAddedDate = calendarService.formatDate(addedYear, addedDay);
-            } catch (Exception e) {
+            } catch (IllegalArgumentException e) {
+                // Invalid date values - leave formattedAddedDate as null
                 this.formattedAddedDate = null;
             }
         }
@@ -76,7 +77,8 @@ public class InventoryResponse {
         if (modifiedYear != null && modifiedDay != null) {
             try {
                 this.formattedModifiedDate = calendarService.formatDate(modifiedYear, modifiedDay);
-            } catch (Exception e) {
+            } catch (IllegalArgumentException e) {
+                // Invalid date values - leave formattedModifiedDate as null
                 this.formattedModifiedDate = null;
             }
         }
@@ -84,7 +86,8 @@ public class InventoryResponse {
         if (removedYear != null && removedDay != null) {
             try {
                 this.formattedRemovedDate = calendarService.formatDate(removedYear, removedDay);
-            } catch (Exception e) {
+            } catch (IllegalArgumentException e) {
+                // Invalid date values - leave formattedRemovedDate as null
                 this.formattedRemovedDate = null;
             }
         }

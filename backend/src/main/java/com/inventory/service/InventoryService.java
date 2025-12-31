@@ -269,9 +269,8 @@ public class InventoryService {
             }
         }
         
-        // No change
-        Inventory saved = inventoryRepository.save(inventory);
-        return new InventoryResponse(saved, pyarrCalendarService);
+        // No change - return as is without saving
+        return new InventoryResponse(inventory, pyarrCalendarService);
     }
     
     public List<InventoryResponse> getItemsInContainer(String username, Long characterId, Long containerId) {
