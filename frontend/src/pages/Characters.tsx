@@ -57,7 +57,8 @@ const Characters: React.FC = () => {
       setNewCharacterName('');
       loadCharacters();
     } catch (err: any) {
-      alert(t.characters.failedCreate);
+      const errorMessage = err.response?.data?.error || t.characters.failedCreate;
+      alert(errorMessage);
     }
   };
 
