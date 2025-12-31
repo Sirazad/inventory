@@ -2,7 +2,6 @@ package com.inventory.service;
 
 import com.inventory.entity.CalendarMonth;
 import com.inventory.repository.CalendarMonthRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -11,8 +10,11 @@ import java.util.Map;
 @Service
 public class PyarrCalendarService {
     
-    @Autowired
-    private CalendarMonthRepository calendarMonthRepository;
+    private final CalendarMonthRepository calendarMonthRepository;
+    
+    public PyarrCalendarService(CalendarMonthRepository calendarMonthRepository) {
+        this.calendarMonthRepository = calendarMonthRepository;
+    }
     
     // Constants
     public static final int DAYS_PER_YEAR = 620;

@@ -4,6 +4,9 @@ import com.inventory.dto.AuthResponse;
 import com.inventory.dto.LoginRequest;
 import com.inventory.dto.RegisterRequest;
 import com.inventory.entity.User;
+import com.inventory.exception.DuplicateResourceException;
+import com.inventory.exception.InvalidOperationException;
+import com.inventory.exception.ResourceNotFoundException;
 import com.inventory.repository.UserRepository;
 import com.inventory.security.JwtUtil;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -30,10 +33,10 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("Username already exists");
+            throw new DuplicateResourceException("Username already exists");
         }
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists");
+            throw new DuplicateResourceException("Email already exists");
         }
 
         User user = new User();
@@ -53,7 +56,7 @@ public class AuthService {
         );
 
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         String token = jwtUtil.generateToken(user.getUsername());
         return new AuthResponse(token, user.getUsername(), user.getEmail());
@@ -61,10 +64,10 @@ public class AuthService {
 
     public void deleteAccount(String username, String password) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("Invalid password");
+            throw new InvalidOperationException("Invalid password");
         }
 
         userRepository.delete(user);

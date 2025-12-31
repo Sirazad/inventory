@@ -59,11 +59,9 @@ public class InventoryController {
         try {
             return ResponseEntity.ok(inventoryService.updateInventory(
                     userDetails.getUsername(), characterId, inventoryId, request));
-        } catch (IllegalArgumentException e) {
+        } catch (RuntimeException e) {
             // Return 400 Bad Request for validation errors like circular references
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
         }
     }
 
