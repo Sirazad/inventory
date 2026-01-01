@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { inventoryService, categoryService } from '../services/api';
 import { Inventory, Category } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
+import { formatInventoryDate } from '../utils/dateFormatting';
 
 const InventoryPage: React.FC = () => {
   const { characterId } = useParams<{ characterId: string }>();
@@ -33,79 +34,6 @@ const InventoryPage: React.FC = () => {
   });
   const navigate = useNavigate();
   const { t } = useLanguage();
-
-  // Pyarr calendar constants (same as in Characters.tsx)
-  const DAYS_PER_MONTH = 20;
-  const MONTHS_PER_YEAR = 31;
-  const DAYS_PER_YEAR = MONTHS_PER_YEAR * DAYS_PER_MONTH; // 620 days total
-
-  // Pyarr calendar months (31 months)
-  const CALENDAR_MONTHS = [
-    { number: 1, name: 'Szándék' }, { number: 2, name: 'Akarat' }, { number: 3, name: 'Harag' },
-    { number: 4, name: 'Végítélet' }, { number: 5, name: 'Sikolyok' }, { number: 6, name: 'Csend' },
-    { number: 7, name: 'Kacaj' }, { number: 8, name: 'Pengék' }, { number: 9, name: 'Csontok' },
-    { number: 10, name: 'Hamvak' }, { number: 11, name: 'Lant' }, { number: 12, name: 'Álmok' },
-    { number: 13, name: 'Ébredés' }, { number: 14, name: 'Áldozat' }, { number: 15, name: 'Engesztelés' },
-    { number: 16, name: 'Lángok' }, { number: 17, name: 'Feloldozás' }, { number: 18, name: 'Ifjak' },
-    { number: 19, name: 'Bölcsek' }, { number: 20, name: 'Beavatottak' }, { number: 21, name: 'Felemelkedők' },
-    { number: 22, name: 'Fogadalmak' }, { number: 23, name: 'Esküvések' }, { number: 24, name: 'Fohászok' },
-    { number: 25, name: 'Hullámok' }, { number: 26, name: 'Áradás' }, { number: 27, name: 'Tengercsend' },
-    { number: 28, name: 'Zivatar' }, { number: 29, name: 'Kék Acél' }, { number: 30, name: 'Sólyomszárny' },
-    { number: 31, name: 'Holdak és vándorok' }
-  ];
-
-  // Map for efficient month lookup by number
-  const MONTHS_MAP = new Map(CALENDAR_MONTHS.map(m => [m.number, m]));
-
-  // Helper function to calculate month and day from day-of-year
-  const calculateMonthAndDay = (dayOfYear?: number) => {
-    // Default to day 1 if invalid
-    const day = (dayOfYear && dayOfYear >= 1 && dayOfYear <= DAYS_PER_YEAR) ? dayOfYear : 1;
-    const monthNumber = Math.floor((day - 1) / DAYS_PER_MONTH) + 1;
-    const dayInMonth = ((day - 1) % DAYS_PER_MONTH) + 1;
-    return { monthNumber, dayInMonth };
-  };
-
-  // Helper function to format inventory date with month name and god info
-  const formatInventoryDate = (year?: number, day?: number, godName?: string, godMonthNumber?: number, season?: string): string => {
-    // Check for null/undefined
-    if (year == null || day == null) {
-      return '-';
-    }
-    
-    // Validate currentDay is within valid range (1-620)
-    if (day < 1 || day > DAYS_PER_YEAR) {
-      return '-';
-    }
-    
-    // Calculate month and day
-    const { monthNumber, dayInMonth } = calculateMonthAndDay(day);
-    const month = MONTHS_MAP.get(monthNumber);
-    
-    // If month lookup fails, return dash
-    if (!month) {
-      return '-';
-    }
-    
-    // Base format: "3692, Csend 12"
-    let formattedDate = `${year}, ${month.name} ${dayInMonth}`;
-    
-    // Add god info if available from backend
-    if (godName && godMonthNumber != null && season) {
-      const ordinal = (t.calendar.ordinals as any)[godMonthNumber] || godMonthNumber.toString();
-      const translatedSeason = (t.calendar.seasons as any)[season] || season;
-      
-      // Replace placeholders in date format pattern
-      const godInfo = t.calendar.dateFormat
-        .replace('{god}', godName)
-        .replace('{ordinal}', ordinal)
-        .replace('{season}', translatedSeason);
-      
-      formattedDate += ` (${godInfo})`;
-    }
-    
-    return formattedDate;
-  };
 
   useEffect(() => {
     loadCategories();
@@ -644,10 +572,10 @@ const InventoryPage: React.FC = () => {
                       )}
                     </td>
                     <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
-                      {formatInventoryDate(item.addedYear, item.addedDay, item.addedGodName, item.addedGodMonthNumber, item.addedSeason)}
+                      {formatInventoryDate(item.addedYear, item.addedDay, item.addedGodName, item.addedGodMonthNumber, item.addedSeason, t)}
                     </td>
                     <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
-                      {formatInventoryDate(item.modifiedYear, item.modifiedDay, item.modifiedGodName, item.modifiedGodMonthNumber, item.modifiedSeason)}
+                      {formatInventoryDate(item.modifiedYear, item.modifiedDay, item.modifiedGodName, item.modifiedGodMonthNumber, item.modifiedSeason, t)}
                     </td>
                     <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.addedUpdated || '-'}</td>
                     <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
@@ -722,10 +650,10 @@ const InventoryPage: React.FC = () => {
                         {containedItem.weight ? `${containedItem.weight} ${t.inventory.kg}` : '-'}
                       </td>
                       <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
-                        {formatInventoryDate(containedItem.addedYear, containedItem.addedDay, containedItem.addedGodName, containedItem.addedGodMonthNumber, containedItem.addedSeason)}
+                        {formatInventoryDate(containedItem.addedYear, containedItem.addedDay, containedItem.addedGodName, containedItem.addedGodMonthNumber, containedItem.addedSeason, t)}
                       </td>
                       <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
-                        {formatInventoryDate(containedItem.modifiedYear, containedItem.modifiedDay, containedItem.modifiedGodName, containedItem.modifiedGodMonthNumber, containedItem.modifiedSeason)}
+                        {formatInventoryDate(containedItem.modifiedYear, containedItem.modifiedDay, containedItem.modifiedGodName, containedItem.modifiedGodMonthNumber, containedItem.modifiedSeason, t)}
                       </td>
                       <td style={{ padding: '10px', border: '1px solid #ccc' }}>{containedItem.addedUpdated || '-'}</td>
                       <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
@@ -782,10 +710,10 @@ const InventoryPage: React.FC = () => {
                           {nestedItem.weight ? `${nestedItem.weight} ${t.inventory.kg}` : '-'}
                         </td>
                         <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
-                          {formatInventoryDate(nestedItem.addedYear, nestedItem.addedDay, nestedItem.addedGodName, nestedItem.addedGodMonthNumber, nestedItem.addedSeason)}
+                          {formatInventoryDate(nestedItem.addedYear, nestedItem.addedDay, nestedItem.addedGodName, nestedItem.addedGodMonthNumber, nestedItem.addedSeason, t)}
                         </td>
                         <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
-                          {formatInventoryDate(nestedItem.modifiedYear, nestedItem.modifiedDay, nestedItem.modifiedGodName, nestedItem.modifiedGodMonthNumber, nestedItem.modifiedSeason)}
+                          {formatInventoryDate(nestedItem.modifiedYear, nestedItem.modifiedDay, nestedItem.modifiedGodName, nestedItem.modifiedGodMonthNumber, nestedItem.modifiedSeason, t)}
                         </td>
                         <td style={{ padding: '10px', border: '1px solid #ccc' }}>{nestedItem.addedUpdated || '-'}</td>
                         <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>

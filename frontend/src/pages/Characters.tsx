@@ -4,6 +4,7 @@ import { characterService, authService } from '../services/api';
 import { Character } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
 import LanguageToggle from '../components/LanguageToggle';
+import { formatPyarrDate, calculateMonthAndDay, DAYS_PER_MONTH, DAYS_PER_YEAR, MONTHS_PER_YEAR } from '../utils/dateFormatting';
 
 // Pyarr calendar months (31 months)
 const CALENDAR_MONTHS = [
@@ -19,14 +20,6 @@ const CALENDAR_MONTHS = [
   { number: 28, name: 'Zivatar' }, { number: 29, name: 'Kék Acél' }, { number: 30, name: 'Sólyomszárny' },
   { number: 31, name: 'Holdak és vándorok' }
 ];
-
-// Pyarr calendar constants
-const DAYS_PER_MONTH = 20;
-const MONTHS_PER_YEAR = 31;
-const DAYS_PER_YEAR = MONTHS_PER_YEAR * DAYS_PER_MONTH; // 620 days total
-
-// Map for efficient month lookup by number
-const MONTHS_MAP = new Map(CALENDAR_MONTHS.map(m => [m.number, m]));
 
 interface EditingCharacter {
   id: number;
@@ -44,65 +37,7 @@ const Characters: React.FC = () => {
   const [editingCharacter, setEditingCharacter] = useState<EditingCharacter | null>(null);
   const navigate = useNavigate();
   const { t } = useLanguage();
-
-  // Helper function to calculate month and day from day-of-year
-  const calculateMonthAndDay = (dayOfYear?: number) => {
-    // Default to day 1 if invalid
-    const day = (dayOfYear && dayOfYear >= 1 && dayOfYear <= DAYS_PER_YEAR) ? dayOfYear : 1;
-    const monthNumber = Math.floor((day - 1) / DAYS_PER_MONTH) + 1;
-    const dayInMonth = ((day - 1) % DAYS_PER_MONTH) + 1;
-    return { monthNumber, dayInMonth };
-  };
-
-  // Helper function to get fallback date format
-  const getFallbackDateFormat = (year?: number, day?: number): string => {
-    return `${t.characters.yearLabel} ${year}, ${t.characters.dayLabel} ${day}`;
-  };
-
-  // Helper function to format character date with month name and god info
-  const formatCharacterDate = (character: Character): string => {
-    const year = character.currentYear;
-    const day = character.currentDay;
     
-    // Check for null/undefined using nullish coalescing
-    if (year == null || day == null) {
-      return '';
-    }
-    
-    // Validate currentDay is within valid range (1-620, where 31 months × 20 days = 620)
-    if (day < 1 || day > DAYS_PER_YEAR) {
-      return getFallbackDateFormat(year, day);
-    }
-    
-    // Calculate month and day
-    const { monthNumber, dayInMonth } = calculateMonthAndDay(day);
-    const month = MONTHS_MAP.get(monthNumber);
-    
-    // If month lookup fails, return fallback format
-    if (!month) {
-      return getFallbackDateFormat(year, day);
-    }
-    
-    // Base format: "3692, Csend 12"
-    let formattedDate = `${year}, ${month.name} ${dayInMonth}`;
-    
-    // Add god info if available from backend
-    if (character.godName && character.godMonthNumber != null && character.season) {
-      const ordinal = (t.calendar.ordinals as any)[character.godMonthNumber] || character.godMonthNumber.toString();
-      const season = (t.calendar.seasons as any)[character.season] || character.season;
-      
-      // Replace placeholders in date format pattern
-      const godInfo = t.calendar.dateFormat
-        .replace('{god}', character.godName)
-        .replace('{ordinal}', ordinal)
-        .replace('{season}', season);
-      
-      formattedDate += ` (${godInfo})`;
-    }
-    
-    return formattedDate;
-  };
-
   useEffect(() => {
     loadCharacters();
   }, []);
@@ -383,7 +318,14 @@ const Characters: React.FC = () => {
                 <tr key={character.id}>
                   <td className="table-cell">{character.name}</td>
                   <td className="table-cell">
-                    {formatCharacterDate(character)}
+                    {formatPyarrDate(
+                      character.currentYear,
+                      character.currentDay,
+                      character.godName,
+                      character.godMonthNumber,
+                      character.season,
+                      t
+                    )}
                   </td>
                   <td className="table-cell-center">
                     <button
