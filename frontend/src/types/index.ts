@@ -31,6 +31,12 @@ export interface Inventory {
   removedText?: string;
   createdAt: string;
   updatedAt: string;
+  addedYear?: number;
+  addedDay?: number;
+  modifiedYear?: number;
+  modifiedDay?: number;
+  removedYear?: number;
+  removedDay?: number;
   formattedAddedDate?: string;
   formattedModifiedDate?: string;
   formattedRemovedDate?: string;
