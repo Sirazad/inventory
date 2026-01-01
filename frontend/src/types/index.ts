@@ -10,7 +10,9 @@ export interface Character {
   createdAt: string;
   currentYear?: number;
   currentDay?: number;
-  formattedDate?: string; // Pyarr calendar formatted date
+  godName?: string; // God associated with the current month
+  godMonthNumber?: number; // Which month this is for that god (1st, 2nd, 3rd, etc.)
+  season?: string; // Season for the current month
 }
 
 export interface Inventory {
@@ -31,9 +33,18 @@ export interface Inventory {
   removedText?: string;
   createdAt: string;
   updatedAt: string;
-  formattedAddedDate?: string;
-  formattedModifiedDate?: string;
-  formattedRemovedDate?: string;
+  addedYear?: number;
+  addedDay?: number;
+  modifiedYear?: number;
+  modifiedDay?: number;
+  removedYear?: number;
+  removedDay?: number;
+  addedGodName?: string;
+  addedGodMonthNumber?: number;
+  addedSeason?: string;
+  modifiedGodName?: string;
+  modifiedGodMonthNumber?: number;
+  modifiedSeason?: string;
 }
 
 export interface LoginRequest {

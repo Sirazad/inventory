@@ -4,6 +4,7 @@ import { characterService, authService } from '../services/api';
 import { Character } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
 import LanguageToggle from '../components/LanguageToggle';
+import { formatPyarrDate, calculateMonthAndDay, DAYS_PER_MONTH, DAYS_PER_YEAR, MONTHS_PER_YEAR } from '../utils/dateFormatting';
 
 // Pyarr calendar months (31 months)
 const CALENDAR_MONTHS = [
@@ -36,7 +37,7 @@ const Characters: React.FC = () => {
   const [editingCharacter, setEditingCharacter] = useState<EditingCharacter | null>(null);
   const navigate = useNavigate();
   const { t } = useLanguage();
-
+    
   useEffect(() => {
     loadCharacters();
   }, []);
@@ -57,7 +58,7 @@ const Characters: React.FC = () => {
       setNewCharacterName('');
       loadCharacters();
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error || 'Failed to create character';
+      const errorMessage = err.response?.data?.error || t.characters.failedCreate;
       alert(errorMessage);
     }
   };
@@ -68,7 +69,7 @@ const Characters: React.FC = () => {
         await characterService.deleteCharacter(id);
         loadCharacters();
       } catch (err) {
-        alert('Failed to delete character');
+        alert(t.characters.failedDelete);
       }
     }
   };
@@ -80,7 +81,7 @@ const Characters: React.FC = () => {
         char.id === id ? updatedCharacter : char
       ));
     } catch (err) {
-      alert('Failed to increment day');
+      alert(t.characters.failedIncrement);
     }
   };
 
@@ -91,14 +92,13 @@ const Characters: React.FC = () => {
         char.id === id ? updatedCharacter : char
       ));
     } catch (err) {
-      alert('Failed to decrement day');
+      alert(t.characters.failedDecrement);
     }
   };
 
   const handleEditCharacter = (character: Character) => {
     // Calculate month and day from currentDay
-    const monthNumber = Math.floor((character.currentDay - 1) / 20) + 1;
-    const dayInMonth = ((character.currentDay - 1) % 20) + 1;
+    const { monthNumber, dayInMonth } = calculateMonthAndDay(character.currentDay);
     
     setEditingCharacter({
       id: character.id,
@@ -115,7 +115,7 @@ const Characters: React.FC = () => {
 
     try {
       // Convert month and day to day-of-year (1-620)
-      const dayOfYear = (editingCharacter.month - 1) * 20 + editingCharacter.day;
+      const dayOfYear = (editingCharacter.month - 1) * DAYS_PER_MONTH + editingCharacter.day;
       
       const updatedCharacter = await characterService.updateCharacter(
         editingCharacter.id,
@@ -129,7 +129,7 @@ const Characters: React.FC = () => {
       ));
       setEditingCharacter(null);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error || 'Failed to update character';
+      const errorMessage = err.response?.data?.error || t.characters.failedUpdate;
       alert(errorMessage);
     }
   };
@@ -146,7 +146,7 @@ const Characters: React.FC = () => {
         localStorage.clear();
         navigate('/login');
       } catch (err) {
-        alert('Failed to delete account. Please check your password.');
+        alert(t.account.failedDelete);
       }
     }
   };
@@ -184,10 +184,10 @@ const Characters: React.FC = () => {
 
       {showDeleteAccount && (
         <div className="form-border mb-20">
-          <h3>Delete Account</h3>
+          <h3>{t.account.deleteAccountHeading}</h3>
           <form onSubmit={handleDeleteAccount}>
             <div className="form-group">
-              <label className="form-label-block">Confirm with password:</label>
+              <label className="form-label-block">{t.account.confirmWithPassword}</label>
               <input
                 type="password"
                 value={deletePassword}
@@ -198,10 +198,10 @@ const Characters: React.FC = () => {
             </div>
             <div className="form-actions">
               <button type="submit" className="btn-delete mr-10">
-                Confirm Delete
+                {t.account.confirmDeleteButton}
               </button>
               <button type="button" onClick={() => setShowDeleteAccount(false)} className="btn-primary">
-                Cancel
+                {t.characters.cancel}
               </button>
             </div>
           </form>
@@ -210,10 +210,10 @@ const Characters: React.FC = () => {
 
       {editingCharacter && (
         <div className="form-border mb-20">
-          <h3>Edit Character</h3>
+          <h3>{t.characters.editCharacter}</h3>
           <form onSubmit={handleSaveEdit}>
             <div className="form-group">
-              <label className="form-label-block">Character Name:</label>
+              <label className="form-label-block">{t.characters.characterName}:</label>
               <input
                 type="text"
                 value={editingCharacter.name}
@@ -224,10 +224,10 @@ const Characters: React.FC = () => {
             </div>
             
             <div className="form-group">
-              <label className="form-label-block">Pyarr Calendar Date:</label>
+              <label className="form-label-block">{t.characters.pyarrCalendarDate}:</label>
               <div className="grid-3-col">
                 <div>
-                  <label className="form-help-text">Year:</label>
+                  <label className="form-help-text">{t.characters.year}:</label>
                   <input
                     type="number"
                     value={editingCharacter.year}
@@ -238,7 +238,7 @@ const Characters: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="form-help-text">Month:</label>
+                  <label className="form-help-text">{t.characters.month}:</label>
                   <select
                     value={editingCharacter.month}
                     onChange={(e) => setEditingCharacter({ ...editingCharacter, month: parseInt(e.target.value) })}
@@ -253,7 +253,7 @@ const Characters: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="form-help-text">Day:</label>
+                  <label className="form-help-text">{t.characters.day}:</label>
                   <input
                     type="number"
                     value={editingCharacter.day}
@@ -266,16 +266,16 @@ const Characters: React.FC = () => {
                 </div>
               </div>
               <div className="form-help-text mt-5">
-                Each month has 20 days (Day 1-20)
+                {t.characters.monthHasDays}
               </div>
             </div>
 
             <div className="form-actions">
               <button type="submit" className="btn-primary mr-10">
-                Save Changes
+                {t.characters.saveChanges}
               </button>
               <button type="button" onClick={handleCancelEdit} className="btn-primary">
-                Cancel
+                {t.characters.cancel}
               </button>
             </div>
           </form>
@@ -283,34 +283,34 @@ const Characters: React.FC = () => {
       )}
 
       <div className="filter-container mb-20">
-        <h3>Add New Character</h3>
+        <h3>{t.characters.addNewCharacter}</h3>
         <form onSubmit={handleCreateCharacter} className="flex-row flex-gap-10">
           <input
             type="text"
             value={newCharacterName}
             onChange={(e) => setNewCharacterName(e.target.value)}
-            placeholder="Character name"
+            placeholder={t.characters.characterNamePlaceholder}
             required
             className="form-input-medium"
           />
           <button type="submit" className="btn-primary">
-            Add Character
+            {t.characters.addCharacter}
           </button>
         </form>
       </div>
 
       <div>
-        <h3>Character List</h3>
+        <h3>{t.characters.characterList}</h3>
         {characters.length === 0 ? (
-          <p>No characters yet. Create your first character above!</p>
+          <p>{t.characters.noCharacters}</p>
         ) : (
           <table className="data-table">
             <thead>
               <tr>
-                <th className="table-cell">Name</th>
-                <th className="table-cell">Current Date</th>
-                <th className="table-cell-center">Date Controls</th>
-                <th className="table-cell-center">Actions</th>
+                <th className="table-cell">{t.characters.name}</th>
+                <th className="table-cell">{t.characters.currentDate}</th>
+                <th className="table-cell-center">{t.characters.dateControls}</th>
+                <th className="table-cell-center">{t.characters.actions}</th>
               </tr>
             </thead>
             <tbody>
@@ -318,20 +318,27 @@ const Characters: React.FC = () => {
                 <tr key={character.id}>
                   <td className="table-cell">{character.name}</td>
                   <td className="table-cell">
-                    {character.formattedDate || `Year ${character.currentYear}, Day ${character.currentDay}`}
+                    {formatPyarrDate(
+                      character.currentYear,
+                      character.currentDay,
+                      character.godName,
+                      character.godMonthNumber,
+                      character.season,
+                      t
+                    )}
                   </td>
                   <td className="table-cell-center">
                     <button
                       onClick={() => handleDecrementDay(character.id)}
                       className="btn-quantity mr-5"
-                      title="Previous day"
+                      title={t.characters.previousDay}
                     >
                       −
                     </button>
                     <button
                       onClick={() => handleIncrementDay(character.id)}
                       className="btn-quantity"
-                      title="Next day"
+                      title={t.characters.nextDay}
                     >
                       +
                     </button>
@@ -341,19 +348,19 @@ const Characters: React.FC = () => {
                       onClick={() => navigate(`/characters/${character.id}/inventory`)}
                       className="btn-small mr-5"
                     >
-                      View Inventory
+                      {t.characters.viewInventory}
                     </button>
                     <button
                       onClick={() => handleEditCharacter(character)}
                       className="btn-small mr-5"
                     >
-                      Edit
+                      {t.characters.edit}
                     </button>
                     <button
                       onClick={() => handleDeleteCharacter(character.id)}
                       className="btn-delete"
                     >
-                      Delete
+                      {t.characters.delete}
                     </button>
                   </td>
                 </tr>
