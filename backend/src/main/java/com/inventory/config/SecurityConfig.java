@@ -54,9 +54,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // TODO: In production, replace with actual frontend URL from environment variable
-        // For development: localhost:3000 (production build), localhost:3001, localhost:3002 (dev servers)
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:3001", "http://localhost:3002"));
+        // Development: Allow requests from React dev server on localhost:3000
+        // Production: Replace with environment variable (e.g., FRONTEND_URL) containing your deployed frontend URL
+        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
