@@ -59,7 +59,7 @@ const Characters: React.FC = () => {
     return `${t.characters.yearLabel} ${year}, ${t.characters.dayLabel} ${day}`;
   };
 
-  // Helper function to format character date with month name
+  // Helper function to format character date with month name and god info
   const formatCharacterDate = (character: Character): string => {
     const year = character.currentYear;
     const day = character.currentDay;
@@ -83,8 +83,24 @@ const Characters: React.FC = () => {
       return getFallbackDateFormat(year, day);
     }
     
-    // Format: "3692, Csend 12" (year, month day)
-    return `${year}, ${month.name} ${dayInMonth}`;
+    // Base format: "3692, Csend 12"
+    let formattedDate = `${year}, ${month.name} ${dayInMonth}`;
+    
+    // Add god info if available from backend
+    if (character.godName && character.godMonthNumber != null && character.season) {
+      const ordinal = (t.calendar.ordinals as any)[character.godMonthNumber] || character.godMonthNumber.toString();
+      const season = (t.calendar.seasons as any)[character.season] || character.season;
+      
+      // Replace placeholders in date format pattern
+      const godInfo = t.calendar.dateFormat
+        .replace('{god}', character.godName)
+        .replace('{ordinal}', ordinal)
+        .replace('{season}', season);
+      
+      formattedDate += ` (${godInfo})`;
+    }
+    
+    return formattedDate;
   };
 
   useEffect(() => {

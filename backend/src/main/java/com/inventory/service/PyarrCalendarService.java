@@ -57,43 +57,6 @@ public class PyarrCalendarService {
     }
     
     /**
-     * Format a date in Pyarr calendar format
-     * Example: "3692, Csend 12 (Darton's 2nd month, Hideg évszak)"
-     * @param year the year
-     * @param dayOfYear 1-620
-     * @return formatted date string
-     */
-    public String formatDate(int year, int dayOfYear) {
-        CalendarMonth month = getCalendarMonth(dayOfYear);
-        int dayInMonth = getDayInMonth(dayOfYear);
-        
-        String ordinal = getOrdinal(month.getGodMonthNumber());
-        
-        return String.format("%d, %s %d (%s's %s month, %s)",
-                year,
-                month.getMonthName(),
-                dayInMonth,
-                month.getGodName(),
-                ordinal,
-                month.getSeason());
-    }
-    
-    /**
-     * Get ordinal suffix for god's month number
-     */
-    private String getOrdinal(int number) {
-        if (number >= 11 && number <= 13) {
-            return number + "th";
-        }
-        switch (number % 10) {
-            case 1: return number + "st";
-            case 2: return number + "nd";
-            case 3: return number + "rd";
-            default: return number + "th";
-        }
-    }
-    
-    /**
      * Increment day by one, handling year rollover
      * @param year current year
      * @param dayOfYear current day (1-620)

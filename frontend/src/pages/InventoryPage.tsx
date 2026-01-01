@@ -66,8 +66,8 @@ const InventoryPage: React.FC = () => {
     return { monthNumber, dayInMonth };
   };
 
-  // Helper function to format inventory date with month name
-  const formatInventoryDate = (year?: number, day?: number): string => {
+  // Helper function to format inventory date with month name and god info
+  const formatInventoryDate = (year?: number, day?: number, godName?: string, godMonthNumber?: number, season?: string): string => {
     // Check for null/undefined
     if (year == null || day == null) {
       return '-';
@@ -87,8 +87,24 @@ const InventoryPage: React.FC = () => {
       return '-';
     }
     
-    // Format: "3692, Csend 12" (year, month day)
-    return `${year}, ${month.name} ${dayInMonth}`;
+    // Base format: "3692, Csend 12"
+    let formattedDate = `${year}, ${month.name} ${dayInMonth}`;
+    
+    // Add god info if available from backend
+    if (godName && godMonthNumber != null && season) {
+      const ordinal = (t.calendar.ordinals as any)[godMonthNumber] || godMonthNumber.toString();
+      const translatedSeason = (t.calendar.seasons as any)[season] || season;
+      
+      // Replace placeholders in date format pattern
+      const godInfo = t.calendar.dateFormat
+        .replace('{god}', godName)
+        .replace('{ordinal}', ordinal)
+        .replace('{season}', translatedSeason);
+      
+      formattedDate += ` (${godInfo})`;
+    }
+    
+    return formattedDate;
   };
 
   useEffect(() => {
@@ -628,10 +644,10 @@ const InventoryPage: React.FC = () => {
                       )}
                     </td>
                     <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
-                      {formatInventoryDate(item.addedYear, item.addedDay)}
+                      {formatInventoryDate(item.addedYear, item.addedDay, item.addedGodName, item.addedGodMonthNumber, item.addedSeason)}
                     </td>
                     <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
-                      {formatInventoryDate(item.modifiedYear, item.modifiedDay)}
+                      {formatInventoryDate(item.modifiedYear, item.modifiedDay, item.modifiedGodName, item.modifiedGodMonthNumber, item.modifiedSeason)}
                     </td>
                     <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.addedUpdated || '-'}</td>
                     <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
@@ -706,10 +722,10 @@ const InventoryPage: React.FC = () => {
                         {containedItem.weight ? `${containedItem.weight} ${t.inventory.kg}` : '-'}
                       </td>
                       <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
-                        {formatInventoryDate(containedItem.addedYear, containedItem.addedDay)}
+                        {formatInventoryDate(containedItem.addedYear, containedItem.addedDay, containedItem.addedGodName, containedItem.addedGodMonthNumber, containedItem.addedSeason)}
                       </td>
                       <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
-                        {formatInventoryDate(containedItem.modifiedYear, containedItem.modifiedDay)}
+                        {formatInventoryDate(containedItem.modifiedYear, containedItem.modifiedDay, containedItem.modifiedGodName, containedItem.modifiedGodMonthNumber, containedItem.modifiedSeason)}
                       </td>
                       <td style={{ padding: '10px', border: '1px solid #ccc' }}>{containedItem.addedUpdated || '-'}</td>
                       <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
@@ -766,10 +782,10 @@ const InventoryPage: React.FC = () => {
                           {nestedItem.weight ? `${nestedItem.weight} ${t.inventory.kg}` : '-'}
                         </td>
                         <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
-                          {formatInventoryDate(nestedItem.addedYear, nestedItem.addedDay)}
+                          {formatInventoryDate(nestedItem.addedYear, nestedItem.addedDay, nestedItem.addedGodName, nestedItem.addedGodMonthNumber, nestedItem.addedSeason)}
                         </td>
                         <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
-                          {formatInventoryDate(nestedItem.modifiedYear, nestedItem.modifiedDay)}
+                          {formatInventoryDate(nestedItem.modifiedYear, nestedItem.modifiedDay, nestedItem.modifiedGodName, nestedItem.modifiedGodMonthNumber, nestedItem.modifiedSeason)}
                         </td>
                         <td style={{ padding: '10px', border: '1px solid #ccc' }}>{nestedItem.addedUpdated || '-'}</td>
                         <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>

@@ -186,6 +186,24 @@ export const translations = {
       qualityLabel: 'Quality:',
       weightKg: 'Weight (kg)',
     },
+    // Calendar
+    calendar: {
+      // Seasons
+      seasons: {
+        'Hideg évszak': 'Cold season',
+        'Meleg évszak': 'Warm season',
+        'Esős évszak': 'Rainy season',
+      },
+      // Date format pattern: "{god}'s {ordinal} month, {season}"
+      dateFormat: "{god}'s {ordinal} month, {season}",
+      // Ordinals
+      ordinals: {
+        1: '1st',
+        2: '2nd',
+        3: '3rd',
+        4: '4th',
+      },
+    },
     // Common
     common: {
       loading: 'Loading...',
@@ -378,6 +396,24 @@ export const translations = {
       addedUpdated: 'Megjegyzések',
       qualityLabel: 'Minőség:',
       weightKg: 'Súly (kg)',
+    },
+    // Calendar
+    calendar: {
+      // Seasons (kept in Hungarian)
+      seasons: {
+        'Hideg évszak': 'Hideg évszak',
+        'Meleg évszak': 'Meleg évszak',
+        'Esős évszak': 'Esős évszak',
+      },
+      // Date format pattern: "{god} {ordinal}. hónapja, {season}"
+      dateFormat: "{god} {ordinal}. hónapja, {season}",
+      // Ordinals (just numbers in Hungarian)
+      ordinals: {
+        1: '1',
+        2: '2',
+        3: '3',
+        4: '4',
+      },
     },
     // Common
     common: {

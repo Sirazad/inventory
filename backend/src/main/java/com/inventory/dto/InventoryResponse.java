@@ -34,10 +34,13 @@ public class InventoryResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     
-    // Formatted dates
-    private String formattedAddedDate;
-    private String formattedModifiedDate;
-    private String formattedRemovedDate;
+    // Calendar metadata for frontend i18n
+    private String addedGodName;
+    private Integer addedGodMonthNumber;
+    private String addedSeason;
+    private String modifiedGodName;
+    private Integer modifiedGodMonthNumber;
+    private String modifiedSeason;
     
     public InventoryResponse(Inventory inventory, PyarrCalendarService calendarService) {
         this.id = inventory.getId();
@@ -64,31 +67,32 @@ public class InventoryResponse {
         this.createdAt = inventory.getCreatedAt();
         this.updatedAt = inventory.getUpdatedAt();
         
-        // Format dates using the calendar service
+        // Get calendar month info for frontend i18n
         if (addedYear != null && addedDay != null) {
             try {
-                this.formattedAddedDate = calendarService.formatDate(addedYear, addedDay);
+                var calendarMonth = calendarService.getCalendarMonth(addedDay);
+                this.addedGodName = calendarMonth.getGodName();
+                this.addedGodMonthNumber = calendarMonth.getGodMonthNumber();
+                this.addedSeason = calendarMonth.getSeason();
             } catch (IllegalArgumentException e) {
-                // Invalid date values - leave formattedAddedDate as null
-                this.formattedAddedDate = null;
+                // Invalid date values - leave fields as null
+                this.addedGodName = null;
+                this.addedGodMonthNumber = null;
+                this.addedSeason = null;
             }
         }
         
         if (modifiedYear != null && modifiedDay != null) {
             try {
-                this.formattedModifiedDate = calendarService.formatDate(modifiedYear, modifiedDay);
+                var calendarMonth = calendarService.getCalendarMonth(modifiedDay);
+                this.modifiedGodName = calendarMonth.getGodName();
+                this.modifiedGodMonthNumber = calendarMonth.getGodMonthNumber();
+                this.modifiedSeason = calendarMonth.getSeason();
             } catch (IllegalArgumentException e) {
-                // Invalid date values - leave formattedModifiedDate as null
-                this.formattedModifiedDate = null;
-            }
-        }
-        
-        if (removedYear != null && removedDay != null) {
-            try {
-                this.formattedRemovedDate = calendarService.formatDate(removedYear, removedDay);
-            } catch (IllegalArgumentException e) {
-                // Invalid date values - leave formattedRemovedDate as null
-                this.formattedRemovedDate = null;
+                // Invalid date values - leave fields as null
+                this.modifiedGodName = null;
+                this.modifiedGodMonthNumber = null;
+                this.modifiedSeason = null;
             }
         }
     }

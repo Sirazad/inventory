@@ -11,7 +11,9 @@ public class CharacterResponse {
     private LocalDateTime createdAt;
     private Integer currentYear;
     private Integer currentDay;
-    private String formattedDate; // Pyarr calendar formatted date
+    private String godName; // God associated with the current month
+    private Integer godMonthNumber; // Which month this is for that god (1st, 2nd, 3rd, etc.)
+    private String season; // Season for the current month
     
     public CharacterResponse() {}
     
@@ -22,8 +24,18 @@ public class CharacterResponse {
         this.currentYear = character.getCurrentYear() != null ? character.getCurrentYear() : 3692;
         this.currentDay = character.getCurrentDay() != null ? character.getCurrentDay() : 1;
         
-        // Format the Pyarr calendar date
-        this.formattedDate = calendarService.formatDate(this.currentYear, this.currentDay);
+        // Get calendar month info for frontend i18n
+        try {
+            var calendarMonth = calendarService.getCalendarMonth(this.currentDay);
+            this.godName = calendarMonth.getGodName();
+            this.godMonthNumber = calendarMonth.getGodMonthNumber();
+            this.season = calendarMonth.getSeason();
+        } catch (Exception e) {
+            // If unable to get calendar month, leave fields as null
+            this.godName = null;
+            this.godMonthNumber = null;
+            this.season = null;
+        }
     }
     
     // Getters and Setters
@@ -67,11 +79,27 @@ public class CharacterResponse {
         this.currentDay = currentDay;
     }
     
-    public String getFormattedDate() {
-        return formattedDate;
+    public String getGodName() {
+        return godName;
     }
     
-    public void setFormattedDate(String formattedDate) {
-        this.formattedDate = formattedDate;
+    public void setGodName(String godName) {
+        this.godName = godName;
+    }
+    
+    public Integer getGodMonthNumber() {
+        return godMonthNumber;
+    }
+    
+    public void setGodMonthNumber(Integer godMonthNumber) {
+        this.godMonthNumber = godMonthNumber;
+    }
+    
+    public String getSeason() {
+        return season;
+    }
+    
+    public void setSeason(String season) {
+        this.season = season;
     }
 }
