@@ -18,6 +18,7 @@ const InventoryPage: React.FC = () => {
     category: '',
     minPrice: '',
     maxWeight: '',
+    itemName: '',
   });
   const [formData, setFormData] = useState({
     category: '',
@@ -46,7 +47,7 @@ const InventoryPage: React.FC = () => {
   }, [characterId]);
 
   useEffect(() => {
-    if (filters.category === '' && filters.minPrice === '' && filters.maxWeight === '') {
+    if (filters.category === '' && filters.minPrice === '' && filters.maxWeight === '' && filters.itemName === '') {
       loadInventory();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -84,7 +85,8 @@ const InventoryPage: React.FC = () => {
         Number(characterId),
         filters.category || undefined,
         minPrice,
-        maxWeight
+        maxWeight,
+        filters.itemName || undefined
       );
       setInventory(data);
     } catch (err: any) {
@@ -202,6 +204,15 @@ const InventoryPage: React.FC = () => {
     return item.category.toLowerCase() === 'container';
   };
 
+  const hasActiveFilters = () => {
+    return filters.category !== '' || filters.minPrice !== '' || filters.maxWeight !== '' || filters.itemName !== '';
+  };
+
+  const getContainerName = (containerId: number): string => {
+    const container = inventory.find(item => item.id === containerId);
+    return container ? container.item : 'Unknown Container';
+  };
+
   const toggleContainer = async (itemId: number) => {
     const newExpanded = new Set(expandedContainers);
     
@@ -263,6 +274,16 @@ const InventoryPage: React.FC = () => {
             />
           </div>
           <div>
+            <label>{t.inventory.itemNameLabel} </label>
+            <input
+              type="text"
+              value={filters.itemName}
+              onChange={(e) => setFilters({ ...filters, itemName: e.target.value })}
+              className="form-input-small"
+              placeholder={t.inventory.itemNamePlaceholder}
+            />
+          </div>
+          <div>
             <label>{t.inventory.minPriceLabel} </label>
             <input
               type="number"
@@ -290,7 +311,7 @@ const InventoryPage: React.FC = () => {
           </button>
           <button
             onClick={() => {
-              setFilters({ category: '', minPrice: '', maxWeight: '' });
+              setFilters({ category: '', minPrice: '', maxWeight: '', itemName: '' });
             }}
             className="btn-small"
           >
@@ -497,7 +518,7 @@ const InventoryPage: React.FC = () => {
         <h3>{t.inventory.inventoryItems}</h3>
         {inventory.length === 0 ? (
           <p>{t.inventory.noItems}</p>
-        ) : inventory.filter(item => !item.containerId).length === 0 ? (
+        ) : (!hasActiveFilters() && inventory.filter(item => !item.containerId).length === 0) ? (
           <p>{t.inventory.allInContainers}</p>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -517,11 +538,11 @@ const InventoryPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {inventory.filter(item => !item.containerId).map((item) => (
+              {(hasActiveFilters() ? inventory : inventory.filter(item => !item.containerId)).map((item) => (
                 <React.Fragment key={item.id}>
                   <tr style={{ backgroundColor: 'white' }}>
                     <td style={{ padding: '10px', border: '1px solid #ccc' }}>
-                      {isContainer(item) && (
+                      {isContainer(item) && !hasActiveFilters() && (
                         <button
                           onClick={() => toggleContainer(item.id)}
                           className="btn-tiny mr-5"
@@ -533,6 +554,11 @@ const InventoryPage: React.FC = () => {
                     </td>
                     <td style={{ padding: '10px', border: '1px solid #ccc', fontWeight: isContainer(item) ? 'bold' : 'normal' }}>
                       {item.item}
+                      {hasActiveFilters() && item.containerId && (
+                        <div style={{ fontSize: '0.85em', color: '#666', fontStyle: 'italic', fontWeight: 'normal' }}>
+                          📦 {t.inventory.inContainer} {getContainerName(item.containerId)}
+                        </div>
+                      )}
                     </td>
                     <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.quality || '-'}</td>
                     <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.description}</td>
@@ -593,8 +619,8 @@ const InventoryPage: React.FC = () => {
                       </button>
                     </td>
                   </tr>
-                  {/* Show container contents when expanded */}
-                  {isContainer(item) && expandedContainers.has(item.id) && (
+                  {/* Show container contents when expanded (only when no filters are active) */}
+                  {!hasActiveFilters() && isContainer(item) && expandedContainers.has(item.id) && (
                     <>
                       {containerContents.get(item.id)?.length === 0 && (
                         <tr key={`empty-${item.id}`} style={{ backgroundColor: 'white' }}>

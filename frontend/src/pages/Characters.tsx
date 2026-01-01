@@ -4,7 +4,7 @@ import { characterService, authService } from '../services/api';
 import { Character } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
 import LanguageToggle from '../components/LanguageToggle';
-import { formatPyarrDate, calculateMonthAndDay, DAYS_PER_MONTH, DAYS_PER_YEAR, MONTHS_PER_YEAR } from '../utils/dateFormatting';
+import { formatPyarrDate, calculateMonthAndDay, DAYS_PER_MONTH } from '../utils/dateFormatting';
 
 // Pyarr calendar months (31 months)
 const CALENDAR_MONTHS = [

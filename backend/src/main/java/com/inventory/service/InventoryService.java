@@ -50,7 +50,7 @@ public class InventoryService {
     }
 
     public List<InventoryResponse> getInventoryByCharacter(String username, Long characterId, 
-                                                   String category, Double minPrice, Double maxWeight) {
+                                                   String category, Double minPrice, Double maxWeight, String itemName) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -64,7 +64,8 @@ public class InventoryService {
             predicates.add(cb.equal(root.get("removed"), false));
 
             if (category != null && !category.isEmpty()) {
-                predicates.add(cb.equal(root.get("category"), category));
+                // Partial, case-insensitive match for category
+                predicates.add(cb.like(cb.lower(root.get("category")), "%" + category.toLowerCase() + "%"));
             }
 
             if (minPrice != null) {
@@ -80,6 +81,11 @@ public class InventoryService {
                     cb.isNotNull(root.get("weight")),
                     cb.lessThanOrEqualTo(root.get("weight"), maxWeight)
                 ));
+            }
+
+            if (itemName != null && !itemName.isEmpty()) {
+                // Partial, case-insensitive match for item name
+                predicates.add(cb.like(cb.lower(root.get("item")), "%" + itemName.toLowerCase() + "%"));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
