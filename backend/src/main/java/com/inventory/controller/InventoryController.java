@@ -29,9 +29,10 @@ public class InventoryController {
             @PathVariable Long characterId,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) Double minPrice,
-            @RequestParam(required = false) Double maxWeight) {
+            @RequestParam(required = false) Double maxWeight,
+            @RequestParam(required = false) String itemName) {
         return ResponseEntity.ok(inventoryService.getInventoryByCharacter(
-                userDetails.getUsername(), characterId, category, minPrice, maxWeight));
+                userDetails.getUsername(), characterId, category, minPrice, maxWeight, itemName));
     }
 
     @PostMapping

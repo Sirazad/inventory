@@ -71,12 +71,14 @@ export const inventoryService = {
     characterId: number,
     category?: string,
     minPrice?: number,
-    maxWeight?: number
+    maxWeight?: number,
+    itemName?: string
   ) => {
     const params = new URLSearchParams();
     if (category) params.append('category', category);
     if (minPrice !== undefined) params.append('minPrice', minPrice.toString());
     if (maxWeight !== undefined) params.append('maxWeight', maxWeight.toString());
+    if (itemName) params.append('itemName', itemName);
 
     const response = await axiosInstance.get(
       `/characters/${characterId}/inventory?${params.toString()}`
