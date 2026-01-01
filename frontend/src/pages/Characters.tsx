@@ -20,6 +20,12 @@ const CALENDAR_MONTHS = [
   { number: 31, name: 'Holdak és vándorok' }
 ];
 
+// Pyarr calendar constants
+const DAYS_PER_MONTH = 20;
+
+// Map for efficient month lookup by number
+const MONTHS_MAP = new Map(CALENDAR_MONTHS.map(m => [m.number, m]));
+
 interface EditingCharacter {
   id: number;
   name: string;
@@ -43,10 +49,10 @@ const Characters: React.FC = () => {
       return '';
     }
     
-    // Calculate month and day from currentDay (1-620)
-    const monthNumber = Math.floor((character.currentDay - 1) / 20) + 1;
-    const dayInMonth = ((character.currentDay - 1) % 20) + 1;
-    const month = CALENDAR_MONTHS.find(m => m.number === monthNumber);
+    // Calculate month and day from currentDay (1-620, where 31 months × 20 days = 620)
+    const monthNumber = Math.floor((character.currentDay - 1) / DAYS_PER_MONTH) + 1;
+    const dayInMonth = ((character.currentDay - 1) % DAYS_PER_MONTH) + 1;
+    const month = MONTHS_MAP.get(monthNumber);
     
     // Format: "3692, Csend 12" (year, month day)
     return `${character.currentYear}, ${month?.name || ''} ${dayInMonth}`;
@@ -112,8 +118,8 @@ const Characters: React.FC = () => {
 
   const handleEditCharacter = (character: Character) => {
     // Calculate month and day from currentDay
-    const monthNumber = Math.floor((character.currentDay - 1) / 20) + 1;
-    const dayInMonth = ((character.currentDay - 1) % 20) + 1;
+    const monthNumber = Math.floor((character.currentDay - 1) / DAYS_PER_MONTH) + 1;
+    const dayInMonth = ((character.currentDay - 1) % DAYS_PER_MONTH) + 1;
     
     setEditingCharacter({
       id: character.id,
@@ -130,7 +136,7 @@ const Characters: React.FC = () => {
 
     try {
       // Convert month and day to day-of-year (1-620)
-      const dayOfYear = (editingCharacter.month - 1) * 20 + editingCharacter.day;
+      const dayOfYear = (editingCharacter.month - 1) * DAYS_PER_MONTH + editingCharacter.day;
       
       const updatedCharacter = await characterService.updateCharacter(
         editingCharacter.id,
