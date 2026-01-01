@@ -37,6 +37,21 @@ const Characters: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
 
+  // Helper function to format character date with month name
+  const formatCharacterDate = (character: Character): string => {
+    if (!character.currentYear || !character.currentDay) {
+      return '';
+    }
+    
+    // Calculate month and day from currentDay (1-620)
+    const monthNumber = Math.floor((character.currentDay - 1) / 20) + 1;
+    const dayInMonth = ((character.currentDay - 1) % 20) + 1;
+    const month = CALENDAR_MONTHS.find(m => m.number === monthNumber);
+    
+    // Format: "3692, Csend 12" (year, month day)
+    return `${character.currentYear}, ${month?.name || ''} ${dayInMonth}`;
+  };
+
   useEffect(() => {
     loadCharacters();
   }, []);
@@ -307,10 +322,10 @@ const Characters: React.FC = () => {
           <table className="data-table">
             <thead>
               <tr>
-                <th className="table-cell">Name</th>
-                <th className="table-cell">Current Date</th>
-                <th className="table-cell-center">Date Controls</th>
-                <th className="table-cell-center">Actions</th>
+                <th className="table-cell">{t.characters.name}</th>
+                <th className="table-cell">{t.characters.currentDate}</th>
+                <th className="table-cell-center">{t.characters.dateControls}</th>
+                <th className="table-cell-center">{t.characters.actions}</th>
               </tr>
             </thead>
             <tbody>
@@ -318,7 +333,7 @@ const Characters: React.FC = () => {
                 <tr key={character.id}>
                   <td className="table-cell">{character.name}</td>
                   <td className="table-cell">
-                    {character.formattedDate || `${t.characters.yearLabel} ${character.currentYear}, ${t.characters.dayLabel} ${character.currentDay}`}
+                    {formatCharacterDate(character) || `${t.characters.yearLabel} ${character.currentYear}, ${t.characters.dayLabel} ${character.currentDay}`}
                   </td>
                   <td className="table-cell-center">
                     <button
