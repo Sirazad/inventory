@@ -64,8 +64,9 @@ public class InventoryService {
             predicates.add(cb.equal(root.get("removed"), false));
 
             if (category != null && !category.isEmpty()) {
-                // Partial, case-insensitive match for category
-                predicates.add(cb.like(cb.lower(root.get("category")), "%" + category.toLowerCase() + "%"));
+                // Partial, case-insensitive match for category with escaped special characters
+                String escapedCategory = escapeLikePattern(category);
+                predicates.add(cb.like(cb.lower(root.get("category")), "%" + escapedCategory.toLowerCase() + "%"));
             }
 
             if (minPrice != null) {
@@ -84,8 +85,9 @@ public class InventoryService {
             }
 
             if (itemName != null && !itemName.isEmpty()) {
-                // Partial, case-insensitive match for item name
-                predicates.add(cb.like(cb.lower(root.get("item")), "%" + itemName.toLowerCase() + "%"));
+                // Partial, case-insensitive match for item name with escaped special characters
+                String escapedItemName = escapeLikePattern(itemName);
+                predicates.add(cb.like(cb.lower(root.get("item")), "%" + escapedItemName.toLowerCase() + "%"));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
@@ -95,6 +97,19 @@ public class InventoryService {
         return inventories.stream()
                 .map(inv -> new InventoryResponse(inv, pyarrCalendarService))
                 .collect(Collectors.toList());
+    }
+    
+    /**
+     * Escape special LIKE pattern characters to prevent SQL injection.
+     * Escapes: % (matches any characters), _ (matches single character), \ (escape character)
+     */
+    private String escapeLikePattern(String input) {
+        if (input == null) {
+            return null;
+        }
+        return input.replace("\\", "\\\\")
+                    .replace("%", "\\%")
+                    .replace("_", "\\_");
     }
 
     public InventoryResponse createInventory(String username, Long characterId, InventoryRequest request) {
