@@ -22,6 +22,8 @@ const CALENDAR_MONTHS = [
 
 // Pyarr calendar constants
 const DAYS_PER_MONTH = 20;
+const MONTHS_PER_YEAR = 31;
+const DAYS_PER_YEAR = MONTHS_PER_YEAR * DAYS_PER_MONTH; // 620 days total
 
 // Map for efficient month lookup by number
 const MONTHS_MAP = new Map(CALENDAR_MONTHS.map(m => [m.number, m]));
@@ -66,7 +68,7 @@ const Characters: React.FC = () => {
     }
     
     // Validate currentDay is within valid range (1-620, where 31 months × 20 days = 620)
-    if (day < 1 || day > 620) {
+    if (day < 1 || day > DAYS_PER_YEAR) {
       return getFallbackDateFormat(year, day);
     }
     
@@ -363,7 +365,7 @@ const Characters: React.FC = () => {
                 <tr key={character.id}>
                   <td className="table-cell">{character.name}</td>
                   <td className="table-cell">
-                    {formatCharacterDate(character) || getFallbackDateFormat(character.currentYear, character.currentDay)}
+                    {formatCharacterDate(character)}
                   </td>
                   <td className="table-cell-center">
                     <button
