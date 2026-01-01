@@ -46,9 +46,11 @@ const Characters: React.FC = () => {
   const { t } = useLanguage();
 
   // Helper function to calculate month and day from day-of-year
-  const calculateMonthAndDay = (dayOfYear: number) => {
-    const monthNumber = Math.floor((dayOfYear - 1) / DAYS_PER_MONTH) + 1;
-    const dayInMonth = ((dayOfYear - 1) % DAYS_PER_MONTH) + 1;
+  const calculateMonthAndDay = (dayOfYear?: number) => {
+    // Default to day 1 if invalid
+    const day = (dayOfYear && dayOfYear >= 1 && dayOfYear <= DAYS_PER_YEAR) ? dayOfYear : 1;
+    const monthNumber = Math.floor((day - 1) / DAYS_PER_MONTH) + 1;
+    const dayInMonth = ((day - 1) % DAYS_PER_MONTH) + 1;
     return { monthNumber, dayInMonth };
   };
 
@@ -62,8 +64,8 @@ const Characters: React.FC = () => {
     const year = character.currentYear;
     const day = character.currentDay;
     
-    // Check for null/undefined (but allow 0 if it's a valid value)
-    if (year === null || year === undefined || day === null || day === undefined) {
+    // Check for null/undefined using nullish coalescing
+    if (year == null || day == null) {
       return '';
     }
     
