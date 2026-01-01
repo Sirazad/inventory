@@ -43,29 +43,44 @@ const Characters: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
 
+  // Helper function to calculate month and day from day-of-year
+  const calculateMonthAndDay = (dayOfYear: number) => {
+    const monthNumber = Math.floor((dayOfYear - 1) / DAYS_PER_MONTH) + 1;
+    const dayInMonth = ((dayOfYear - 1) % DAYS_PER_MONTH) + 1;
+    return { monthNumber, dayInMonth };
+  };
+
+  // Helper function to get fallback date format
+  const getFallbackDateFormat = (year?: number, day?: number): string => {
+    return `${t.characters.yearLabel} ${year}, ${t.characters.dayLabel} ${day}`;
+  };
+
   // Helper function to format character date with month name
   const formatCharacterDate = (character: Character): string => {
-    if (!character.currentYear || !character.currentDay) {
+    const year = character.currentYear;
+    const day = character.currentDay;
+    
+    // Check for null/undefined (but allow 0 if it's a valid value)
+    if (year === null || year === undefined || day === null || day === undefined) {
       return '';
     }
     
     // Validate currentDay is within valid range (1-620, where 31 months × 20 days = 620)
-    if (character.currentDay < 1 || character.currentDay > 620) {
-      return `${t.characters.yearLabel} ${character.currentYear}, ${t.characters.dayLabel} ${character.currentDay}`;
+    if (day < 1 || day > 620) {
+      return getFallbackDateFormat(year, day);
     }
     
-    // Calculate month and day from currentDay
-    const monthNumber = Math.floor((character.currentDay - 1) / DAYS_PER_MONTH) + 1;
-    const dayInMonth = ((character.currentDay - 1) % DAYS_PER_MONTH) + 1;
+    // Calculate month and day
+    const { monthNumber, dayInMonth } = calculateMonthAndDay(day);
     const month = MONTHS_MAP.get(monthNumber);
     
     // If month lookup fails, return fallback format
     if (!month) {
-      return `${t.characters.yearLabel} ${character.currentYear}, ${t.characters.dayLabel} ${character.currentDay}`;
+      return getFallbackDateFormat(year, day);
     }
     
     // Format: "3692, Csend 12" (year, month day)
-    return `${character.currentYear}, ${month.name} ${dayInMonth}`;
+    return `${year}, ${month.name} ${dayInMonth}`;
   };
 
   useEffect(() => {
@@ -128,8 +143,7 @@ const Characters: React.FC = () => {
 
   const handleEditCharacter = (character: Character) => {
     // Calculate month and day from currentDay
-    const monthNumber = Math.floor((character.currentDay - 1) / DAYS_PER_MONTH) + 1;
-    const dayInMonth = ((character.currentDay - 1) % DAYS_PER_MONTH) + 1;
+    const { monthNumber, dayInMonth } = calculateMonthAndDay(character.currentDay);
     
     setEditingCharacter({
       id: character.id,
@@ -349,7 +363,7 @@ const Characters: React.FC = () => {
                 <tr key={character.id}>
                   <td className="table-cell">{character.name}</td>
                   <td className="table-cell">
-                    {formatCharacterDate(character) || `${t.characters.yearLabel} ${character.currentYear}, ${t.characters.dayLabel} ${character.currentDay}`}
+                    {formatCharacterDate(character) || getFallbackDateFormat(character.currentYear, character.currentDay)}
                   </td>
                   <td className="table-cell-center">
                     <button
