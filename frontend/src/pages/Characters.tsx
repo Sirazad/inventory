@@ -49,13 +49,23 @@ const Characters: React.FC = () => {
       return '';
     }
     
-    // Calculate month and day from currentDay (1-620, where 31 months × 20 days = 620)
+    // Validate currentDay is within valid range (1-620, where 31 months × 20 days = 620)
+    if (character.currentDay < 1 || character.currentDay > 620) {
+      return `${t.characters.yearLabel} ${character.currentYear}, ${t.characters.dayLabel} ${character.currentDay}`;
+    }
+    
+    // Calculate month and day from currentDay
     const monthNumber = Math.floor((character.currentDay - 1) / DAYS_PER_MONTH) + 1;
     const dayInMonth = ((character.currentDay - 1) % DAYS_PER_MONTH) + 1;
     const month = MONTHS_MAP.get(monthNumber);
     
+    // If month lookup fails, return fallback format
+    if (!month) {
+      return `${t.characters.yearLabel} ${character.currentYear}, ${t.characters.dayLabel} ${character.currentDay}`;
+    }
+    
     // Format: "3692, Csend 12" (year, month day)
-    return `${character.currentYear}, ${month?.name || ''} ${dayInMonth}`;
+    return `${character.currentYear}, ${month.name} ${dayInMonth}`;
   };
 
   useEffect(() => {
@@ -150,7 +160,7 @@ const Characters: React.FC = () => {
       ));
       setEditingCharacter(null);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error || 'Failed to update character';
+      const errorMessage = err.response?.data?.error || t.characters.failedUpdate;
       alert(errorMessage);
     }
   };
