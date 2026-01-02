@@ -44,7 +44,7 @@ public class TemplateResponse {
         this.copper = CurrencyUtil.getCopper(template.getPriceInCopper());
         this.quantity = template.getQuantity();
         this.weight = template.getWeight();
-        this.isContainer = template.getIsContainer();
+        this.isContainer = template.getIsContainer() != null ? template.getIsContainer() : false;
         this.createdAt = template.getCreatedAt();
         this.updatedAt = template.getUpdatedAt();
     }
