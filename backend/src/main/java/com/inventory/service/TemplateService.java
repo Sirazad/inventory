@@ -51,8 +51,12 @@ public class TemplateService {
             Sort.Direction.DESC : Sort.Direction.ASC;
         Pageable pageable = PageRequest.of(page, Math.min(size, 100), Sort.by(direction, sortBy));
         
+        // Add wildcards for LIKE search
+        String namePattern = (name != null && !name.isEmpty()) ? "%" + name + "%" : null;
+        String categoryPattern = (category != null && !category.isEmpty()) ? "%" + category + "%" : null;
+        
         Page<ItemTemplate> templates = itemTemplateRepository.searchTemplates(
-            name, isContainer, category, pageable);
+            namePattern, isContainer, categoryPattern, pageable);
         
         return templates.map(this::toResponse);
     }

@@ -14,9 +14,9 @@ public interface ItemTemplateRepository extends JpaRepository<ItemTemplate, Long
     Page<ItemTemplate> findByNameContainingIgnoreCase(String name, Pageable pageable);
     
     @Query("SELECT t FROM ItemTemplate t WHERE " +
-           "(:name IS NULL OR LOWER(t.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
+           "(:name IS NULL OR :name = '' OR LOWER(t.name) LIKE LOWER(:name)) AND " +
            "(:isContainer IS NULL OR t.isContainer = :isContainer) AND " +
-           "(:category IS NULL OR LOWER(t.category) LIKE LOWER(CONCAT('%', :category, '%')))")
+           "(:category IS NULL OR :category = '' OR LOWER(t.category) LIKE LOWER(:category))")
     Page<ItemTemplate> searchTemplates(
         @Param("name") String name,
         @Param("isContainer") Boolean isContainer,
