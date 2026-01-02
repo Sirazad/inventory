@@ -165,6 +165,12 @@ const Characters: React.FC = () => {
         </div>
         <div>
           <button 
+            onClick={() => navigate('/templates')} 
+            className="btn-primary mr-10"
+          >
+            Manage Templates
+          </button>
+          <button 
             onClick={() => navigate('/categories')} 
             className="btn-primary mr-10"
           >

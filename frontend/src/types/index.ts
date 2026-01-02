@@ -102,3 +102,78 @@ export interface Category {
 export interface CategoryRequest {
   name: string;
 }
+
+export interface ItemTemplate {
+  id: number;
+  name: string;
+  category: string;
+  item: string;
+  quality?: string;
+  description: string;
+  priceInCopper?: number;
+  gold?: number;
+  silver?: number;
+  copper?: number;
+  quantity: number;
+  weight?: number;
+  isContainer: boolean;
+  contents?: TemplateContent[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TemplateContent {
+  id: number;
+  referencedTemplateId?: number;
+  referencedTemplateName?: string;
+  quantityOverride?: number;
+  category?: string;
+  item?: string;
+  quality?: string;
+  description?: string;
+  priceInCopper?: number;
+  gold?: number;
+  silver?: number;
+  copper?: number;
+  quantity?: number;
+  weight?: number;
+}
+
+export interface TemplateRequest {
+  name: string;
+  category: string;
+  item: string;
+  quality?: string;
+  description: string;
+  gold?: number;
+  silver?: number;
+  copper?: number;
+  quantity: number;
+  weight?: number;
+  isContainer?: boolean;
+  contents?: TemplateContentRequest[];
+}
+
+export interface TemplateContentRequest {
+  referencedTemplateId?: number;
+  quantityOverride?: number;
+  category?: string;
+  item?: string;
+  quality?: string;
+  description?: string;
+  gold?: number;
+  silver?: number;
+  copper?: number;
+  quantity?: number;
+  weight?: number;
+}
+
+export interface Page<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+}
