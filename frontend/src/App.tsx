@@ -6,6 +6,7 @@ import Characters from './pages/Characters';
 import InventoryPage from './pages/InventoryPage';
 import Categories from './pages/Categories';
 import TemplatesPage from './pages/TemplatesPage';
+import TemplateFormPage from './pages/TemplateFormPage';
 
 const PrivateRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
   const token = localStorage.getItem('token');
@@ -40,6 +41,22 @@ const App: React.FC = () => {
             element={
               <PrivateRoute>
                 <TemplatesPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/templates/new"
+            element={
+              <PrivateRoute>
+                <TemplateFormPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/templates/:templateId/edit"
+            element={
+              <PrivateRoute>
+                <TemplateFormPage />
               </PrivateRoute>
             }
           />

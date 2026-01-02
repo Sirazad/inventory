@@ -97,9 +97,12 @@ const TemplatesPage: React.FC = () => {
 
   return (
     <div className="page-container max-width-1200">
-      <div className="mb-20">
+      <div className="mb-20" style={{ display: 'flex', gap: '10px' }}>
         <button onClick={() => navigate('/characters')} className="btn-primary">
           ← Back to Characters
+        </button>
+        <button onClick={() => navigate('/templates/new')} className="btn-primary" style={{ backgroundColor: '#5cb85c' }}>
+          + Create New Template
         </button>
       </div>
 
