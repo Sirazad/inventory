@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { templateService, categoryService } from '../services/api';
 import { ItemTemplate, TemplateContentRequest, Category } from '../types';
+import Notification from '../components/Notification';
 
 const TemplateFormPage: React.FC = () => {
   const { templateId } = useParams<{ templateId: string }>();
@@ -10,6 +11,7 @@ const TemplateFormPage: React.FC = () => {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [allTemplates, setAllTemplates] = useState<ItemTemplate[]>([]);
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     category: '',
@@ -123,8 +125,8 @@ const TemplateFormPage: React.FC = () => {
       }
     } catch (err) {
       console.error('Failed to load template', err);
-      alert('Failed to load template');
-      navigate('/templates');
+      setNotification({ message: 'Failed to load template', type: 'error' });
+      setTimeout(() => navigate('/templates'), 2000);
     }
   };
 
@@ -177,15 +179,19 @@ const TemplateFormPage: React.FC = () => {
     try {
       if (isEditMode) {
         await templateService.updateTemplate(Number(templateId), request);
-        alert('Template updated successfully!');
+        setNotification({ message: 'Template updated successfully!', type: 'success' });
+        setTimeout(() => navigate('/templates'), 1500);
       } else {
         await templateService.createTemplate(request);
-        alert('Template created successfully!');
+        setNotification({ message: 'Template created successfully!', type: 'success' });
+        setTimeout(() => navigate('/templates'), 1500);
       }
-      navigate('/templates');
     } catch (err: any) {
       console.error('Failed to save template', err);
-      alert('Failed to save template: ' + (err.response?.data?.message || err.message));
+      setNotification({ 
+        message: 'Failed to save template: ' + (err.response?.data?.message || err.message),
+        type: 'error'
+      });
     }
   };
 
@@ -523,6 +529,14 @@ const TemplateFormPage: React.FC = () => {
           </button>
         </div>
       </form>
+      
+      {notification && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          onClose={() => setNotification(null)}
+        />
+      )}
     </div>
   );
 };

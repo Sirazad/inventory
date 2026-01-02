@@ -84,8 +84,6 @@ public class TemplateService {
             throw new InvalidOperationException("Template with name '" + request.getName() + "' already exists");
         }
         
-        validateTemplateRequest(request);
-        
         ItemTemplate template = new ItemTemplate();
         mapRequestToEntity(request, template);
         
@@ -108,7 +106,6 @@ public class TemplateService {
         log.debug("Updating template ID: {}", id);
         
         ItemTemplate template = findTemplateOrThrow(id);
-        validateTemplateRequest(request);
         
         // Check name uniqueness if changed
         if (!template.getName().equals(request.getName()) && 
@@ -153,7 +150,7 @@ public class TemplateService {
 
     // Instantiate template to inventory with recursive resolution
     @Transactional
-    public InventoryResponse addTemplateToInventory(String username, Long characterId, Long templateId) {
+    public InventoryResponse addTemplateToInventory(Long characterId, Long templateId) {
         log.debug("Adding template ID {} to character ID {} inventory", templateId, characterId);
         
         com.inventory.entity.Character character = characterRepository.findById(characterId)
@@ -293,12 +290,7 @@ public class TemplateService {
         return false;
     }
 
-    private void validateTemplateRequest(TemplateRequest request) {
-        // Additional validation if needed
-        if (request.getIsContainer() != null && request.getIsContainer()) {
-            // Container-specific validation
-        }
-    }
+
 
     private void mapRequestToEntity(TemplateRequest request, ItemTemplate template) {
         template.setName(request.getName());

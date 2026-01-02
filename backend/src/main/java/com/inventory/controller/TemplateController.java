@@ -71,10 +71,8 @@ public class TemplateController {
 
     @PostMapping("/{templateId}/add-to-character/{characterId}")
     public ResponseEntity<InventoryResponse> addTemplateToInventory(
-            @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long characterId,
             @PathVariable Long templateId) {
-        return ResponseEntity.ok(templateService.addTemplateToInventory(
-                userDetails.getUsername(), characterId, templateId));
+        return ResponseEntity.ok(templateService.addTemplateToInventory(characterId, templateId));
     }
 }
