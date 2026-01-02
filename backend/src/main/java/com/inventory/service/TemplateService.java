@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TemplateService {
 
+    private static final int MAX_PAGE_SIZE = 100;
+
     private final ItemTemplateRepository itemTemplateRepository;
     private final TemplateContentRepository templateContentRepository;
     private final CharacterRepository characterRepository;
@@ -49,7 +51,7 @@ public class TemplateService {
         
         Sort.Direction direction = "DESC".equalsIgnoreCase(sortDir) ? 
             Sort.Direction.DESC : Sort.Direction.ASC;
-        Pageable pageable = PageRequest.of(page, Math.min(size, 100), Sort.by(direction, sortBy));
+        Pageable pageable = PageRequest.of(page, Math.min(size, MAX_PAGE_SIZE), Sort.by(direction, sortBy));
         
         // Add wildcards for LIKE search
         String namePattern = (name != null && !name.isEmpty()) ? "%" + name + "%" : null;

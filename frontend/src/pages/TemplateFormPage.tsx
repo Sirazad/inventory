@@ -3,6 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { templateService, categoryService } from '../services/api';
 import { ItemTemplate, TemplateContentRequest, Category } from '../types';
 import Notification from '../components/Notification';
+import { toCopperValue, getGold, getSilver, getCopper } from '../utils/currencyUtils';
+
+const MAX_TEMPLATES_FETCH = 1000;
 
 const TemplateFormPage: React.FC = () => {
   const { templateId } = useParams<{ templateId: string }>();
@@ -61,7 +64,7 @@ const TemplateFormPage: React.FC = () => {
 
   const loadAllTemplates = async () => {
     try {
-      const response = await templateService.getAllTemplates(0, 1000, 'name', 'ASC');
+      const response = await templateService.getAllTemplates(0, MAX_TEMPLATES_FETCH, 'name', 'ASC');
       setAllTemplates(response.content);
     } catch (err) {
       console.error('Failed to load templates', err);
@@ -72,10 +75,10 @@ const TemplateFormPage: React.FC = () => {
     try {
       const template = await templateService.getTemplate(Number(templateId));
       
-      // Calculate gold, silver, copper from priceInCopper
-      const gold = template.priceInCopper ? Math.floor(template.priceInCopper / 10000) : 0;
-      const silver = template.priceInCopper ? Math.floor((template.priceInCopper % 10000) / 100) : 0;
-      const copper = template.priceInCopper ? template.priceInCopper % 100 : 0;
+      // Calculate gold, silver, copper from priceInCopper using utility
+      const gold = getGold(template.priceInCopper);
+      const silver = getSilver(template.priceInCopper);
+      const copper = getCopper(template.priceInCopper);
 
       setFormData({
         name: template.name,
@@ -102,9 +105,9 @@ const TemplateFormPage: React.FC = () => {
               isReference: true,
             };
           } else {
-            const gold = content.priceInCopper ? Math.floor(content.priceInCopper / 10000) : 0;
-            const silver = content.priceInCopper ? Math.floor((content.priceInCopper % 10000) / 100) : 0;
-            const copper = content.priceInCopper ? content.priceInCopper % 100 : 0;
+            const gold = getGold(content.priceInCopper);
+            const silver = getSilver(content.priceInCopper);
+            const copper = getCopper(content.priceInCopper);
 
             return {
               id: content.id,
@@ -133,11 +136,11 @@ const TemplateFormPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Calculate price in copper
+    // Calculate price in copper using utility
     const gold = parseInt(formData.gold) || 0;
     const silver = parseInt(formData.silver) || 0;
     const copper = parseInt(formData.copper) || 0;
-    const priceInCopper = gold * 10000 + silver * 100 + copper;
+    const priceInCopper = toCopperValue(gold, silver, copper);
 
     const contents: TemplateContentRequest[] = formData.isContainer ? contentItems.map(item => {
       if (item.isReference) {
@@ -149,7 +152,7 @@ const TemplateFormPage: React.FC = () => {
         const goldValue = parseInt(item.gold || '0') || 0;
         const silverValue = parseInt(item.silver || '0') || 0;
         const copperValue = parseInt(item.copper || '0') || 0;
-        const itemPrice = goldValue * 10000 + silverValue * 100 + copperValue;
+        const itemPrice = toCopperValue(goldValue, silverValue, copperValue);
 
         return {
           category: item.category!,

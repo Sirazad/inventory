@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { templateService } from '../services/api';
 import { ItemTemplate, Page } from '../types';
+import { getGold, getSilver, getCopper } from '../utils/currencyUtils';
 
 const TemplatesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -71,9 +72,9 @@ const TemplatesPage: React.FC = () => {
 
   const formatPrice = (priceInCopper?: number) => {
     if (!priceInCopper) return '-';
-    const gold = Math.floor(priceInCopper / 1000);
-    const silver = Math.floor((priceInCopper % 1000) / 100);
-    const copper = priceInCopper % 100;
+    const gold = getGold(priceInCopper);
+    const silver = getSilver(priceInCopper);
+    const copper = getCopper(priceInCopper);
     const parts = [];
     if (gold > 0) parts.push(`${gold}g`);
     if (silver > 0) parts.push(`${silver}s`);
