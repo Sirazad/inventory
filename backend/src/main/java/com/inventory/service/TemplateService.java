@@ -42,6 +42,7 @@ public class TemplateService {
     }
 
     // Search with pagination
+    @Transactional(readOnly = true)
     public Page<TemplateResponse> searchTemplates(
             String name, Boolean isContainer, String category,
             int page, int size, String sortBy, String sortDir) {
@@ -57,11 +58,13 @@ public class TemplateService {
     }
 
     // Get all with pagination
+    @Transactional(readOnly = true)
     public Page<TemplateResponse> getAllTemplates(int page, int size, String sortBy, String sortDir) {
         return searchTemplates(null, null, null, page, size, sortBy, sortDir);
     }
 
     // Get single template with resolved contents
+    @Transactional(readOnly = true)
     public TemplateResponse getTemplate(Long id) {
         ItemTemplate template = findTemplateOrThrow(id);
         return toResponseWithContents(template);
