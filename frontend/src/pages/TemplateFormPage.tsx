@@ -100,9 +100,9 @@ const TemplateFormPage: React.FC = () => {
               isReference: true,
             };
           } else {
-            const g = content.priceInCopper ? Math.floor(content.priceInCopper / 10000) : 0;
-            const s = content.priceInCopper ? Math.floor((content.priceInCopper % 10000) / 100) : 0;
-            const c = content.priceInCopper ? content.priceInCopper % 100 : 0;
+            const gold = content.priceInCopper ? Math.floor(content.priceInCopper / 10000) : 0;
+            const silver = content.priceInCopper ? Math.floor((content.priceInCopper % 10000) / 100) : 0;
+            const copper = content.priceInCopper ? content.priceInCopper % 100 : 0;
 
             return {
               id: content.id,
@@ -110,9 +110,9 @@ const TemplateFormPage: React.FC = () => {
               item: content.item,
               quality: content.quality || '',
               description: content.description,
-              gold: g > 0 ? g.toString() : '',
-              silver: s > 0 ? s.toString() : '',
-              copper: c > 0 ? c.toString() : '',
+              gold: gold > 0 ? gold.toString() : '',
+              silver: silver > 0 ? silver.toString() : '',
+              copper: copper > 0 ? copper.toString() : '',
               quantity: content.quantity?.toString() || '1',
               weight: content.weight ? content.weight.toString() : '',
               isReference: false,
@@ -144,10 +144,10 @@ const TemplateFormPage: React.FC = () => {
           quantityOverride: item.quantityOverride,
         };
       } else {
-        const g = parseInt(item.gold || '0') || 0;
-        const s = parseInt(item.silver || '0') || 0;
-        const c = parseInt(item.copper || '0') || 0;
-        const itemPrice = g * 10000 + s * 100 + c;
+        const goldValue = parseInt(item.gold || '0') || 0;
+        const silverValue = parseInt(item.silver || '0') || 0;
+        const copperValue = parseInt(item.copper || '0') || 0;
+        const itemPrice = goldValue * 10000 + silverValue * 100 + copperValue;
 
         return {
           category: item.category!,

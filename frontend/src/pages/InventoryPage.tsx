@@ -277,7 +277,7 @@ const InventoryPage: React.FC = () => {
     if (!selectedTemplate) return;
     
     try {
-      await templateService.addTemplateToInventory(selectedTemplate.id, Number(characterId));
+      await templateService.addTemplateToInventory(Number(characterId), selectedTemplate.id);
       alert(`Template "${selectedTemplate.name}" added to inventory successfully!`);
       setSelectedTemplate(null);
       setTemplateSearch('');
