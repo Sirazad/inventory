@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { templateService } from '../services/api';
 import { ItemTemplate, Page } from '../types';
 import { getGold, getSilver, getCopper } from '../utils/currencyUtils';
+import { useLanguage } from '../i18n/LanguageContext';
 
 const TemplatesPage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   
   const [templates, setTemplates] = useState<Page<ItemTemplate> | null>(null);
   const [loading, setLoading] = useState(false);
@@ -40,7 +42,7 @@ const TemplatesPage: React.FC = () => {
       setTemplates(data);
     } catch (err) {
       console.error('Failed to load templates', err);
-      alert('Failed to load templates');
+      alert(t.templates.loadFailed);
     } finally {
       setLoading(false);
     }
@@ -52,19 +54,19 @@ const TemplatesPage: React.FC = () => {
   };
 
   const handleDelete = async (id: number, name: string) => {
-    if (!window.confirm(`Are you sure you want to delete template "${name}"?`)) {
+    if (!window.confirm(t.templates.confirmDelete)) {
       return;
     }
 
     try {
       await templateService.deleteTemplate(id);
-      alert('Template deleted successfully');
+      alert(t.templates.deleteSuccess);
       loadTemplates();
     } catch (err: any) {
       if (err.response?.data?.error) {
         alert('Error: ' + err.response.data.error);
       } else {
-        alert('Failed to delete template');
+        alert(t.templates.deleteFailed);
       }
       console.error('Failed to delete template', err);
     }
