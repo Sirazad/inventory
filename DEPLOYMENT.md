@@ -39,7 +39,11 @@ docker compose down -v
 - `jwt.expiration`: Token expiration time in milliseconds
 
 ### Frontend
-The frontend connects to the backend via the nginx proxy configuration.
+The frontend connects to the backend via:
+- **Docker/Production**: nginx proxy configuration (see `frontend/nginx.conf`)
+- **Local Development**: Create React App proxy (see `proxy` setting in `frontend/package.json`)
+
+Both environments use relative `/api` URLs, eliminating the need for environment-specific configuration.
 
 ## Manual Development Setup
 
@@ -81,7 +85,7 @@ npm start
 
 Frontend will be available at http://localhost:3000
 
-Note: Update the API URL in `frontend/src/services/api.ts` if the backend is running on a different port.
+Note: The frontend is configured to proxy API requests to `http://localhost:8080` via the `proxy` setting in `package.json`. If your backend runs on a different port, update the `proxy` value in `frontend/package.json`.
 
 ## Testing the Application
 
