@@ -90,6 +90,9 @@ public class Inventory {
     @Column(name = "removed_day")
     private Integer removedDay;
 
+    @Column(name = "is_container")
+    private Boolean isContainer = false;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

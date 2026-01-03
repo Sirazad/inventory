@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { AuthResponse, LoginRequest, RegisterRequest, InventoryCreateRequest, InventoryUpdateRequest, Category, CategoryRequest } from '../types';
+import { AuthResponse, LoginRequest, RegisterRequest, InventoryCreateRequest, InventoryUpdateRequest, Category, CategoryRequest, ItemTemplate, TemplateRequest, Page } from '../types';
 
 const API_URL = 'http://localhost:8080/api';
 
@@ -158,5 +158,62 @@ export const categoryService = {
 
   deleteCategory: async (id: number): Promise<void> => {
     await axiosInstance.delete(`/categories/${id}`);
+  },
+};
+
+export const templateService = {
+  getAllTemplates: async (page: number = 0, size: number = 20, sortBy: string = 'name', sortDir: string = 'ASC'): Promise<Page<ItemTemplate>> => {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    params.append('size', size.toString());
+    params.append('sortBy', sortBy);
+    params.append('sortDir', sortDir);
+    const response = await axiosInstance.get(`/templates?${params.toString()}`);
+    return response.data;
+  },
+
+  searchTemplates: async (
+    name?: string,
+    isContainer?: boolean,
+    category?: string,
+    page: number = 0,
+    size: number = 20,
+    sortBy: string = 'name',
+    sortDir: string = 'ASC'
+  ): Promise<Page<ItemTemplate>> => {
+    const params = new URLSearchParams();
+    if (name) params.append('name', name);
+    if (isContainer !== undefined) params.append('isContainer', isContainer.toString());
+    if (category) params.append('category', category);
+    params.append('page', page.toString());
+    params.append('size', size.toString());
+    params.append('sortBy', sortBy);
+    params.append('sortDir', sortDir);
+    const response = await axiosInstance.get(`/templates/search?${params.toString()}`);
+    return response.data;
+  },
+
+  getTemplate: async (id: number): Promise<ItemTemplate> => {
+    const response = await axiosInstance.get(`/templates/${id}`);
+    return response.data;
+  },
+
+  createTemplate: async (data: TemplateRequest): Promise<ItemTemplate> => {
+    const response = await axiosInstance.post('/templates', data);
+    return response.data;
+  },
+
+  updateTemplate: async (id: number, data: TemplateRequest): Promise<ItemTemplate> => {
+    const response = await axiosInstance.put(`/templates/${id}`, data);
+    return response.data;
+  },
+
+  deleteTemplate: async (id: number): Promise<void> => {
+    await axiosInstance.delete(`/templates/${id}`);
+  },
+
+  addTemplateToInventory: async (characterId: number, templateId: number) => {
+    const response = await axiosInstance.post(`/templates/${templateId}/add-to-character/${characterId}`);
+    return response.data;
   },
 };
