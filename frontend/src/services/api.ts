@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { AuthResponse, LoginRequest, RegisterRequest, InventoryCreateRequest, InventoryUpdateRequest, Category, CategoryRequest, ItemTemplate, TemplateRequest, Page } from '../types';
 
-const API_URL = '/api';
+// Use environment variable if available, otherwise use relative path for nginx proxy
+const API_URL = process.env.REACT_APP_API_URL || '/api';
 
 const axiosInstance = axios.create({
   baseURL: API_URL,

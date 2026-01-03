@@ -40,10 +40,16 @@ docker compose down -v
 
 ### Frontend
 The frontend connects to the backend via:
-- **Docker/Production**: nginx proxy configuration (see `frontend/nginx.conf`)
+- **Docker Compose**: nginx proxy configuration (see `frontend/nginx.conf`) - uses relative `/api` path
+- **Individual Service Deployment** (e.g., Zeabur): Set `REACT_APP_API_URL` environment variable to your backend URL
 - **Local Development**: Create React App proxy (see `proxy` setting in `frontend/package.json`)
 
-Both environments use relative `/api` URLs, eliminating the need for environment-specific configuration.
+#### Frontend Environment Variables
+- `REACT_APP_API_URL`: (Optional) Full backend API URL including protocol and path
+  - If not set: Uses relative `/api` path (suitable for Docker Compose with nginx proxy)
+  - If set: Uses the specified URL (e.g., `https://your-backend.zeabur.app/api` for individual deployment)
+
+See `frontend/.env.example` for configuration examples.
 
 ## Manual Development Setup
 
@@ -133,7 +139,9 @@ docker compose up
 
 ## Production Deployment
 
-For production deployment:
+### Docker Compose Deployment
+
+For production deployment with Docker Compose:
 
 1. Update JWT secret in `backend/src/main/resources/application.properties`
 2. Use environment-specific configuration
@@ -141,6 +149,30 @@ For production deployment:
 4. Use HTTPS
 5. Configure proper database with backups
 6. Set up monitoring and logging
+
+### Individual Service Deployment (Zeabur, Railway, etc.)
+
+When deploying services individually on platforms like Zeabur:
+
+#### Backend Deployment
+1. Deploy the backend service first
+2. Note the backend's public URL (e.g., `https://inventory-backend.zeabur.app`)
+3. Configure database connection via environment variables
+4. Update CORS settings to allow your frontend domain
+
+#### Frontend Deployment
+1. Set the `REACT_APP_API_URL` build argument/environment variable:
+   ```bash
+   # For Zeabur, Railway, or similar platforms
+   REACT_APP_API_URL=https://your-backend-url.zeabur.app/api
+   ```
+2. Build the frontend with this environment variable:
+   ```bash
+   docker build --build-arg REACT_APP_API_URL=https://your-backend-url.zeabur.app/api -t frontend .
+   ```
+3. Deploy the built image
+
+**Note**: With individual deployment, the nginx proxy in `frontend/nginx.conf` won't be used for backend communication since the frontend will connect directly to the backend's public URL. The nginx server only serves static files in this scenario.
 
 ## Security Considerations
 
