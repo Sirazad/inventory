@@ -256,7 +256,7 @@ const InventoryPage: React.FC = () => {
       let message = `${t.inventory.cloneSuccess} ${item.item}`;
       if (result.clonedContainers && result.clonedContainers.length > 0) {
         const containerList = result.clonedContainers
-          .map((c: any) => `${c.name} (${c.count})`)
+          .map((c: { name: string; count: number }) => `${c.name} (${c.count})`)
           .join(', ');
         message += ` - ${t.inventory.cloneContains}: ${containerList}`;
       }

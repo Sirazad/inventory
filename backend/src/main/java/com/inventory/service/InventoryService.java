@@ -461,10 +461,7 @@ public class InventoryService {
         Inventory savedClone = inventoryRepository.save(clone);
         
         // If it's a container and includeContents is true, recursively clone all contained items
-        boolean isContainer = original.getCategory() != null && 
-                             original.getCategory().toLowerCase().equals("container");
-        
-        if (isContainer && includeContents) {
+        if (Boolean.TRUE.equals(original.getIsContainer()) && includeContents) {
             List<Inventory> containedItems = inventoryRepository.findByContainerIdAndRemovedFalse(original.getId());
             int itemCount = containedItems.size();
             
