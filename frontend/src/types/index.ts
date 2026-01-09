@@ -45,6 +45,7 @@ export interface Inventory {
   modifiedGodName?: string;
   modifiedGodMonthNumber?: number;
   modifiedSeason?: string;
+  isContainer?: boolean;
 }
 
 export interface LoginRequest {

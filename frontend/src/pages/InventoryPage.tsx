@@ -337,7 +337,8 @@ const InventoryPage: React.FC = () => {
 
 
   const isContainer = (item: Inventory) => {
-    return item.category.toLowerCase() === 'container';
+    // Use isContainer field if available, fallback to category check for backward compatibility
+    return item.isContainer === true || item.category.toLowerCase() === 'container';
   };
 
   const hasActiveFilters = () => {
