@@ -1067,7 +1067,7 @@ const InventoryPage: React.FC = () => {
                           </td>
                         )}
                         {!visibleColumns.category && (
-                          <td style={{ padding: '10px', border: '1px solid #ccc', paddingLeft: '40px', width: '50px' }}>
+                          <td style={{ padding: '10px', border: '1px solid #ccc', paddingLeft: '30px', width: '50px' }}>
                             {isContainer(containedItem) && (
                               <button
                                 onClick={() => toggleContainer(containedItem.id)}
@@ -1153,7 +1153,7 @@ const InventoryPage: React.FC = () => {
                           </td>
                         )}
                         {!visibleColumns.category && (
-                          <td style={{ padding: '10px', border: '1px solid #ccc', paddingLeft: '60px', width: '50px' }}>
+                          <td style={{ padding: '10px', border: '1px solid #ccc', paddingLeft: '50px', width: '50px' }}>
                           </td>
                         )}
                         {visibleColumns.item && <td style={{ padding: '10px', border: '1px solid #ccc' }}>{nestedItem.item}</td>}
