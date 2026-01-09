@@ -947,14 +947,16 @@ const InventoryPage: React.FC = () => {
                         {item.category}
                       </td>
                     )}
-                    {!visibleColumns.category && isContainer(item) && !hasActiveFilters() && (
+                    {!visibleColumns.category && !hasActiveFilters() && (
                       <td style={{ padding: '10px', border: '1px solid #ccc', width: '50px' }}>
-                        <button
-                          onClick={() => toggleContainer(item.id)}
-                          className="btn-tiny"
-                        >
-                          {expandedContainers.has(item.id) ? '▼' : '▶'}
-                        </button>
+                        {isContainer(item) && (
+                          <button
+                            onClick={() => toggleContainer(item.id)}
+                            className="btn-tiny"
+                          >
+                            {expandedContainers.has(item.id) ? '▼' : '▶'}
+                          </button>
+                        )}
                       </td>
                     )}
                     {visibleColumns.item && (
@@ -1064,14 +1066,16 @@ const InventoryPage: React.FC = () => {
                             ↳ {containedItem.category}
                           </td>
                         )}
-                        {!visibleColumns.category && isContainer(containedItem) && (
+                        {!visibleColumns.category && (
                           <td style={{ padding: '10px', border: '1px solid #ccc', paddingLeft: '40px', width: '50px' }}>
-                            <button
-                              onClick={() => toggleContainer(containedItem.id)}
-                              className="btn-tiny"
-                            >
-                              {expandedContainers.has(containedItem.id) ? '▼' : '▶'}
-                            </button>
+                            {isContainer(containedItem) && (
+                              <button
+                                onClick={() => toggleContainer(containedItem.id)}
+                                className="btn-tiny"
+                              >
+                                {expandedContainers.has(containedItem.id) ? '▼' : '▶'}
+                              </button>
+                            )}
                           </td>
                         )}
                       {visibleColumns.item && <td style={{ padding: '10px', border: '1px solid #ccc' }}>{containedItem.item}</td>}
