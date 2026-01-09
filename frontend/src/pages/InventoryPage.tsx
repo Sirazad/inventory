@@ -5,6 +5,192 @@ import { Inventory, Category, ItemTemplate } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
 import { formatInventoryDate } from '../utils/dateFormatting';
 
+// Get max nesting depth from environment variable with default of 5
+const MAX_NESTING_DEPTH = parseInt(process.env.REACT_APP_MAX_NESTING_DEPTH || '5', 10);
+
+// Recursive component for rendering inventory items with arbitrary nesting depth
+interface InventoryItemRowProps {
+  item: Inventory;
+  depth: number;
+  maxDepth: number;
+  visibleColumns: any;
+  isContainer: (item: Inventory) => boolean;
+  expandedContainers: Set<number>;
+  containerContents: Map<number, Inventory[]>;
+  containerWeights: Map<number, number>;
+  toggleContainer: (itemId: number) => void;
+  handleEdit: (item: Inventory) => void;
+  handleRemove: (id: number) => void;
+  handleQuantityChange: (item: Inventory, delta: number) => void;
+  getColspan: () => number;
+  t: any;
+}
+
+const InventoryItemRow: React.FC<InventoryItemRowProps> = ({
+  item,
+  depth,
+  maxDepth,
+  visibleColumns,
+  isContainer,
+  expandedContainers,
+  containerContents,
+  containerWeights,
+  toggleContainer,
+  handleEdit,
+  handleRemove,
+  handleQuantityChange,
+  getColspan,
+  t,
+}) => {
+  // Cap depth at maxDepth for indentation purposes
+  const displayDepth = Math.min(depth, maxDepth);
+  const basePadding = 10;
+  const depthIncrement = 20;
+  const paddingLeft = basePadding + displayDepth * depthIncrement;
+  
+  // Calculate arrow indicators for category column
+  const arrowIndicator = '↳'.repeat(depth);
+
+  return (
+    <React.Fragment key={item.id}>
+      <tr style={{ backgroundColor: 'white' }}>
+        {visibleColumns.category && (
+          <td style={{ padding: '10px', border: '1px solid #ccc', paddingLeft: depth > 0 ? `${paddingLeft}px` : '10px' }}>
+            {isContainer(item) && (
+              <button
+                onClick={() => toggleContainer(item.id)}
+                className="btn-tiny mr-5"
+              >
+                {expandedContainers.has(item.id) ? '▼' : '▶'}
+              </button>
+            )}
+            {depth > 0 && `${arrowIndicator} `}{item.category}
+          </td>
+        )}
+        {!visibleColumns.category && (
+          <td style={{ padding: '10px', border: '1px solid #ccc', paddingLeft: `${paddingLeft}px`, width: '50px' }}>
+            {isContainer(item) && (
+              <button
+                onClick={() => toggleContainer(item.id)}
+                className="btn-tiny"
+              >
+                {expandedContainers.has(item.id) ? '▼' : '▶'}
+              </button>
+            )}
+          </td>
+        )}
+        {visibleColumns.item && (
+          <td style={{ padding: '10px', border: '1px solid #ccc', fontWeight: isContainer(item) ? 'bold' : 'normal' }}>
+            {item.item}
+          </td>
+        )}
+        {visibleColumns.quality && <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.quality || '-'}</td>}
+        {visibleColumns.description && <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.description}</td>}
+        {visibleColumns.price && (
+          <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
+            {item.gold !== undefined || item.silver !== undefined || item.copper !== undefined
+              ? `${item.gold || 0}g ${item.silver || 0}s ${item.copper || 0}c`
+              : '-'}
+          </td>
+        )}
+        {visibleColumns.quantity && (
+          <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
+            <div className="quantity-controls">
+              <button
+                onClick={() => handleQuantityChange(item, -1)}
+                className="btn-quantity"
+                title={t.inventory.decreaseQuantity}
+              >
+                −
+              </button>
+              <span className="quantity-value">
+                {item.quantity}
+              </span>
+              <button
+                onClick={() => handleQuantityChange(item, +1)}
+                className="btn-quantity"
+                title={t.inventory.increaseQuantity}
+              >
+                +
+              </button>
+            </div>
+          </td>
+        )}
+        {visibleColumns.weight && (
+          <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
+            {isContainer(item) && containerWeights.has(item.id) ? (
+              <strong>{containerWeights.get(item.id)?.toFixed(2)} {t.inventory.kgTotal}</strong>
+            ) : item.weight ? (
+              `${item.weight} ${t.inventory.kg}`
+            ) : (
+              '-'
+            )}
+          </td>
+        )}
+        {visibleColumns.added && (
+          <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
+            {formatInventoryDate(item.addedYear, item.addedDay, item.addedGodName, item.addedGodMonthNumber, item.addedSeason, t)}
+          </td>
+        )}
+        {visibleColumns.modified && (
+          <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
+            {formatInventoryDate(item.modifiedYear, item.modifiedDay, item.modifiedGodName, item.modifiedGodMonthNumber, item.modifiedSeason, t)}
+          </td>
+        )}
+        {visibleColumns.notes && <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.addedUpdated || '-'}</td>}
+        {visibleColumns.actions && (
+          <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
+            <button
+              onClick={() => handleEdit(item)}
+              className="btn-small mr-5"
+            >
+              {t.inventory.edit}
+            </button>
+            <button
+              onClick={() => handleRemove(item.id)}
+              className="btn-delete"
+            >
+              {t.inventory.remove}
+            </button>
+          </td>
+        )}
+      </tr>
+      
+      {/* Show container contents when expanded - recursively */}
+      {isContainer(item) && expandedContainers.has(item.id) && (
+        <>
+          {containerContents.get(item.id)?.length === 0 && (
+            <tr key={`empty-${item.id}`} style={{ backgroundColor: 'white' }}>
+              <td colSpan={getColspan()} style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center', fontStyle: 'italic', color: '#999' }}>
+                {t.inventory.containerEmpty}
+              </td>
+            </tr>
+          )}
+          {containerContents.get(item.id)?.map((containedItem) => (
+            <InventoryItemRow
+              key={containedItem.id}
+              item={containedItem}
+              depth={depth + 1}
+              maxDepth={maxDepth}
+              visibleColumns={visibleColumns}
+              isContainer={isContainer}
+              expandedContainers={expandedContainers}
+              containerContents={containerContents}
+              containerWeights={containerWeights}
+              toggleContainer={toggleContainer}
+              handleEdit={handleEdit}
+              handleRemove={handleRemove}
+              handleQuantityChange={handleQuantityChange}
+              getColspan={getColspan}
+              t={t}
+            />
+          ))}
+        </>
+      )}
+    </React.Fragment>
+  );
+};
+
 const InventoryPage: React.FC = () => {
   const { characterId } = useParams<{ characterId: string }>();
   const [inventory, setInventory] = useState<Inventory[]>([]);
@@ -931,238 +1117,33 @@ const InventoryPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {(hasActiveFilters() ? inventory : inventory.filter(item => !item.containerId)).map((item) => (
-                <React.Fragment key={item.id}>
-                  <tr style={{ backgroundColor: 'white' }}>
-                    {visibleColumns.category && (
-                      <td style={{ padding: '10px', border: '1px solid #ccc' }}>
-                        {isContainer(item) && !hasActiveFilters() && (
-                          <button
-                            onClick={() => toggleContainer(item.id)}
-                            className="btn-tiny mr-5"
-                          >
-                            {expandedContainers.has(item.id) ? '▼' : '▶'}
-                          </button>
-                        )}
-                        {item.category}
-                      </td>
-                    )}
-                    {!visibleColumns.category && !hasActiveFilters() && (
-                      <td style={{ padding: '10px', border: '1px solid #ccc', width: '50px' }}>
-                        {isContainer(item) && (
-                          <button
-                            onClick={() => toggleContainer(item.id)}
-                            className="btn-tiny"
-                          >
-                            {expandedContainers.has(item.id) ? '▼' : '▶'}
-                          </button>
-                        )}
-                      </td>
-                    )}
-                    {visibleColumns.item && (
-                      <td style={{ padding: '10px', border: '1px solid #ccc', fontWeight: isContainer(item) ? 'bold' : 'normal' }}>
-                        {item.item}
-                        {hasActiveFilters() && item.containerId && (
-                          <div style={{ fontSize: '0.85em', color: '#666', fontStyle: 'italic', fontWeight: 'normal' }}>
-                            📦 {t.inventory.inContainer} {getContainerName(item.containerId)}
-                          </div>
-                        )}
-                      </td>
-                    )}
-                    {visibleColumns.quality && <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.quality || '-'}</td>}
-                    {visibleColumns.description && <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.description}</td>}
-                    {visibleColumns.price && (
-                      <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
-                        {item.gold !== undefined || item.silver !== undefined || item.copper !== undefined
-                          ? `${item.gold || 0}g ${item.silver || 0}s ${item.copper || 0}c`
-                          : '-'}
-                      </td>
-                    )}
-                    {visibleColumns.quantity && (
-                      <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
-                        <div className="quantity-controls">
-                          <button
-                            onClick={() => handleQuantityChange(item, -1)}
-                            className="btn-quantity"
-                            title={t.inventory.decreaseQuantity}
-                          >
-                            −
-                          </button>
-                          <span className="quantity-value">
-                            {item.quantity}
-                          </span>
-                          <button
-                            onClick={() => handleQuantityChange(item, +1)}
-                            className="btn-quantity"
-                            title={t.inventory.increaseQuantity}
-                          >
-                            +
-                          </button>
-                        </div>
-                      </td>
-                    )}
-                    {visibleColumns.weight && (
-                      <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
-                        {isContainer(item) && containerWeights.has(item.id) ? (
-                          <strong>{containerWeights.get(item.id)?.toFixed(2)} {t.inventory.kgTotal}</strong>
-                        ) : item.weight ? (
-                          `${item.weight} ${t.inventory.kg}`
-                        ) : (
-                          '-'
-                        )}
-                      </td>
-                    )}
-                    {visibleColumns.added && (
-                      <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
-                        {formatInventoryDate(item.addedYear, item.addedDay, item.addedGodName, item.addedGodMonthNumber, item.addedSeason, t)}
-                      </td>
-                    )}
-                    {visibleColumns.modified && (
-                      <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
-                        {formatInventoryDate(item.modifiedYear, item.modifiedDay, item.modifiedGodName, item.modifiedGodMonthNumber, item.modifiedSeason, t)}
-                      </td>
-                    )}
-                    {visibleColumns.notes && <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.addedUpdated || '-'}</td>}
-                    {visibleColumns.actions && (
-                      <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
-                        <button
-                          onClick={() => handleEdit(item)}
-                          className="btn-small mr-5"
-                        >
-                          {t.inventory.edit}
-                        </button>
-                        <button
-                          onClick={() => handleRemove(item.id)}
-                          className="btn-delete"
-                        >
-                          {t.inventory.remove}
-                        </button>
-                      </td>
-                    )}
-                  </tr>
-                  {/* Show container contents when expanded (only when no filters are active) */}
-                  {!hasActiveFilters() && isContainer(item) && expandedContainers.has(item.id) && (
-                    <>
-                      {containerContents.get(item.id)?.length === 0 && (
-                        <tr key={`empty-${item.id}`} style={{ backgroundColor: 'white' }}>
-                          <td colSpan={getColspan()} style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center', fontStyle: 'italic', color: '#999' }}>
-                            {t.inventory.containerEmpty}
-                          </td>
-                        </tr>
-                      )}
-                      {containerContents.get(item.id)?.map((containedItem) => (
-                    <React.Fragment key={`contained-${containedItem.id}`}>
+              {(hasActiveFilters() ? inventory : inventory.filter(item => !item.containerId)).map((item) => {
+                // For items shown with filters, render without expand/collapse functionality
+                if (hasActiveFilters()) {
+                  return (
+                    <React.Fragment key={item.id}>
                       <tr style={{ backgroundColor: 'white' }}>
                         {visibleColumns.category && (
-                          <td style={{ padding: '10px', border: '1px solid #ccc', paddingLeft: '40px' }}>
-                            {isContainer(containedItem) && (
-                              <button
-                                onClick={() => toggleContainer(containedItem.id)}
-                                className="btn-tiny mr-5"
-                              >
-                                {expandedContainers.has(containedItem.id) ? '▼' : '▶'}
-                              </button>
-                            )}
-                            ↳ {containedItem.category}
+                          <td style={{ padding: '10px', border: '1px solid #ccc' }}>
+                            {item.category}
                           </td>
                         )}
-                        {!visibleColumns.category && (
-                          <td style={{ padding: '10px', border: '1px solid #ccc', paddingLeft: '30px', width: '50px' }}>
-                            {isContainer(containedItem) && (
-                              <button
-                                onClick={() => toggleContainer(containedItem.id)}
-                                className="btn-tiny"
-                              >
-                                {expandedContainers.has(containedItem.id) ? '▼' : '▶'}
-                              </button>
+                        {visibleColumns.item && (
+                          <td style={{ padding: '10px', border: '1px solid #ccc', fontWeight: isContainer(item) ? 'bold' : 'normal' }}>
+                            {item.item}
+                            {item.containerId && (
+                              <div style={{ fontSize: '0.85em', color: '#666', fontStyle: 'italic', fontWeight: 'normal' }}>
+                                📦 {t.inventory.inContainer} {getContainerName(item.containerId)}
+                              </div>
                             )}
                           </td>
                         )}
-                      {visibleColumns.item && <td style={{ padding: '10px', border: '1px solid #ccc' }}>{containedItem.item}</td>}
-                      {visibleColumns.quality && <td style={{ padding: '10px', border: '1px solid #ccc' }}>{containedItem.quality || '-'}</td>}
-                      {visibleColumns.description && <td style={{ padding: '10px', border: '1px solid #ccc' }}>{containedItem.description}</td>}
-                      {visibleColumns.price && (
-                        <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
-                          {containedItem.gold !== undefined || containedItem.silver !== undefined || containedItem.copper !== undefined
-                            ? `${containedItem.gold || 0}g ${containedItem.silver || 0}s ${containedItem.copper || 0}c`
-                            : '-'}
-                        </td>
-                      )}
-                      {visibleColumns.quantity && (
-                        <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
-                          <div className="quantity-controls">
-                            <button
-                              onClick={() => handleQuantityChange(containedItem, -1)}
-                              className="btn-quantity"
-                              title={t.inventory.decreaseQuantity}
-                            >
-                              −
-                            </button>
-                            <span className="quantity-value">
-                              {containedItem.quantity}
-                            </span>
-                            <button
-                              onClick={() => handleQuantityChange(containedItem, +1)}
-                              className="btn-quantity"
-                              title={t.inventory.increaseQuantity}
-                            >
-                              +
-                            </button>
-                          </div>
-                        </td>
-                      )}
-                      {visibleColumns.weight && (
-                        <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
-                          {containedItem.weight ? `${containedItem.weight} ${t.inventory.kg}` : '-'}
-                        </td>
-                      )}
-                      {visibleColumns.added && (
-                        <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
-                          {formatInventoryDate(containedItem.addedYear, containedItem.addedDay, containedItem.addedGodName, containedItem.addedGodMonthNumber, containedItem.addedSeason, t)}
-                        </td>
-                      )}
-                      {visibleColumns.modified && (
-                        <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
-                          {formatInventoryDate(containedItem.modifiedYear, containedItem.modifiedDay, containedItem.modifiedGodName, containedItem.modifiedGodMonthNumber, containedItem.modifiedSeason, t)}
-                        </td>
-                      )}
-                      {visibleColumns.notes && <td style={{ padding: '10px', border: '1px solid #ccc' }}>{containedItem.addedUpdated || '-'}</td>}
-                      {visibleColumns.actions && (
-                        <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
-                          <button
-                            onClick={() => handleEdit(containedItem)}
-                            className="btn-small mr-5"
-                          >
-                            {t.inventory.edit}
-                          </button>
-                          <button
-                            onClick={() => handleRemove(containedItem.id)}
-                            className="btn-delete"
-                          >
-                            {t.inventory.remove}
-                          </button>
-                        </td>
-                      )}
-                    </tr>
-                    {/* Show nested container contents when expanded */}
-                    {isContainer(containedItem) && expandedContainers.has(containedItem.id) && containerContents.get(containedItem.id)?.map((nestedItem) => (
-                      <tr key={`nested-${nestedItem.id}`} style={{ backgroundColor: 'white' }}>
-                        {visibleColumns.category && (
-                          <td style={{ padding: '10px', border: '1px solid #ccc', paddingLeft: '60px' }}>
-                            ↳↳ {nestedItem.category}
-                          </td>
-                        )}
-                        {!visibleColumns.category && (
-                          <td style={{ padding: '10px', border: '1px solid #ccc', paddingLeft: '50px', width: '50px' }}>
-                          </td>
-                        )}
-                        {visibleColumns.item && <td style={{ padding: '10px', border: '1px solid #ccc' }}>{nestedItem.item}</td>}
-                        {visibleColumns.quality && <td style={{ padding: '10px', border: '1px solid #ccc' }}>{nestedItem.quality || '-'}</td>}
-                        {visibleColumns.description && <td style={{ padding: '10px', border: '1px solid #ccc' }}>{nestedItem.description}</td>}
+                        {visibleColumns.quality && <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.quality || '-'}</td>}
+                        {visibleColumns.description && <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.description}</td>}
                         {visibleColumns.price && (
                           <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
-                            {nestedItem.gold !== undefined || nestedItem.silver !== undefined || nestedItem.copper !== undefined
-                              ? `${nestedItem.gold || 0}g ${nestedItem.silver || 0}s ${nestedItem.copper || 0}c`
+                            {item.gold !== undefined || item.silver !== undefined || item.copper !== undefined
+                              ? `${item.gold || 0}g ${item.silver || 0}s ${item.copper || 0}c`
                               : '-'}
                           </td>
                         )}
@@ -1170,17 +1151,17 @@ const InventoryPage: React.FC = () => {
                           <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
                             <div className="quantity-controls">
                               <button
-                                onClick={() => handleQuantityChange(nestedItem, -1)}
+                                onClick={() => handleQuantityChange(item, -1)}
                                 className="btn-quantity"
                                 title={t.inventory.decreaseQuantity}
                               >
                                 −
                               </button>
                               <span className="quantity-value">
-                                {nestedItem.quantity}
+                                {item.quantity}
                               </span>
                               <button
-                                onClick={() => handleQuantityChange(nestedItem, +1)}
+                                onClick={() => handleQuantityChange(item, +1)}
                                 className="btn-quantity"
                                 title={t.inventory.increaseQuantity}
                               >
@@ -1191,30 +1172,36 @@ const InventoryPage: React.FC = () => {
                         )}
                         {visibleColumns.weight && (
                           <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
-                            {nestedItem.weight ? `${nestedItem.weight} ${t.inventory.kg}` : '-'}
+                            {isContainer(item) && containerWeights.has(item.id) ? (
+                              <strong>{containerWeights.get(item.id)?.toFixed(2)} {t.inventory.kgTotal}</strong>
+                            ) : item.weight ? (
+                              `${item.weight} ${t.inventory.kg}`
+                            ) : (
+                              '-'
+                            )}
                           </td>
                         )}
                         {visibleColumns.added && (
                           <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
-                            {formatInventoryDate(nestedItem.addedYear, nestedItem.addedDay, nestedItem.addedGodName, nestedItem.addedGodMonthNumber, nestedItem.addedSeason, t)}
+                            {formatInventoryDate(item.addedYear, item.addedDay, item.addedGodName, item.addedGodMonthNumber, item.addedSeason, t)}
                           </td>
                         )}
                         {visibleColumns.modified && (
                           <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
-                            {formatInventoryDate(nestedItem.modifiedYear, nestedItem.modifiedDay, nestedItem.modifiedGodName, nestedItem.modifiedGodMonthNumber, nestedItem.modifiedSeason, t)}
+                            {formatInventoryDate(item.modifiedYear, item.modifiedDay, item.modifiedGodName, item.modifiedGodMonthNumber, item.modifiedSeason, t)}
                           </td>
                         )}
-                        {visibleColumns.notes && <td style={{ padding: '10px', border: '1px solid #ccc' }}>{nestedItem.addedUpdated || '-'}</td>}
+                        {visibleColumns.notes && <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.addedUpdated || '-'}</td>}
                         {visibleColumns.actions && (
                           <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
                             <button
-                              onClick={() => handleEdit(nestedItem)}
+                              onClick={() => handleEdit(item)}
                               className="btn-small mr-5"
                             >
                               {t.inventory.edit}
                             </button>
                             <button
-                              onClick={() => handleRemove(nestedItem.id)}
+                              onClick={() => handleRemove(item.id)}
                               className="btn-delete"
                             >
                               {t.inventory.remove}
@@ -1222,13 +1209,31 @@ const InventoryPage: React.FC = () => {
                           </td>
                         )}
                       </tr>
-                    ))}
                     </React.Fragment>
-                  ))}
-                    </>
-                  )}
-                </React.Fragment>
-              ))}
+                  );
+                }
+                
+                // For items without filters, use recursive component
+                return (
+                  <InventoryItemRow
+                    key={item.id}
+                    item={item}
+                    depth={0}
+                    maxDepth={MAX_NESTING_DEPTH}
+                    visibleColumns={visibleColumns}
+                    isContainer={isContainer}
+                    expandedContainers={expandedContainers}
+                    containerContents={containerContents}
+                    containerWeights={containerWeights}
+                    toggleContainer={toggleContainer}
+                    handleEdit={handleEdit}
+                    handleRemove={handleRemove}
+                    handleQuantityChange={handleQuantityChange}
+                    getColspan={getColspan}
+                    t={t}
+                  />
+                );
+              })}
             </tbody>
           </table>
         )}
