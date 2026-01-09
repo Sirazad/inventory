@@ -98,4 +98,14 @@ public class InventoryController {
                 userDetails.getUsername(), characterId, inventoryId);
         return ResponseEntity.ok(Map.of("totalWeight", totalWeight));
     }
+    
+    @PostMapping("/{inventoryId}/clone")
+    public ResponseEntity<Map<String, Object>> cloneInventory(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long characterId,
+            @PathVariable Long inventoryId,
+            @RequestParam(required = false, defaultValue = "false") boolean includeContents) {
+        return ResponseEntity.ok(inventoryService.cloneInventoryItem(
+                userDetails.getUsername(), characterId, inventoryId, includeContents));
+    }
 }

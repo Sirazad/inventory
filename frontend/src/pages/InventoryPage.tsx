@@ -52,6 +52,8 @@ const InventoryPage: React.FC = () => {
     weight: '',
     containerId: '',
   });
+  const [showCloneDialog, setShowCloneDialog] = useState(false);
+  const [itemToClone, setItemToClone] = useState<Inventory | null>(null);
   const navigate = useNavigate();
   const { t } = useLanguage();
 
@@ -229,6 +231,49 @@ const InventoryPage: React.FC = () => {
         alert(t.inventory.failedRemove);
       }
     }
+  };
+
+  const handleClone = (item: Inventory) => {
+    if (isContainer(item)) {
+      // Show dialog for container
+      setItemToClone(item);
+      setShowCloneDialog(true);
+    } else {
+      // Clone simple item immediately
+      performClone(item, false);
+    }
+  };
+
+  const performClone = async (item: Inventory, includeContents: boolean) => {
+    try {
+      const result = await inventoryService.cloneInventory(
+        Number(characterId),
+        item.id,
+        includeContents
+      );
+      
+      // Build success message
+      let message = `${t.inventory.cloneSuccess} ${item.item}`;
+      if (result.clonedContainers && result.clonedContainers.length > 0) {
+        const containerList = result.clonedContainers
+          .map((c: any) => `${c.name} (${c.count})`)
+          .join(', ');
+        message += ` - ${t.inventory.cloneContains}: ${containerList}`;
+      }
+      
+      alert(message);
+      loadInventory();
+    } catch (err) {
+      alert(t.inventory.cloneFailed);
+    }
+  };
+
+  const handleCloneDialogResponse = (includeContents: boolean | null) => {
+    if (includeContents !== null && itemToClone) {
+      performClone(itemToClone, includeContents);
+    }
+    setShowCloneDialog(false);
+    setItemToClone(null);
   };
 
   const handleQuantityChange = async (item: Inventory, delta: number) => {
@@ -1024,6 +1069,12 @@ const InventoryPage: React.FC = () => {
                     {visibleColumns.actions && (
                       <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
                         <button
+                          onClick={() => handleClone(item)}
+                          className="btn-small mr-5"
+                        >
+                          {t.inventory.clone}
+                        </button>
+                        <button
                           onClick={() => handleEdit(item)}
                           className="btn-small mr-5"
                         >
@@ -1126,6 +1177,12 @@ const InventoryPage: React.FC = () => {
                       {visibleColumns.actions && (
                         <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
                           <button
+                            onClick={() => handleClone(containedItem)}
+                            className="btn-small mr-5"
+                          >
+                            {t.inventory.clone}
+                          </button>
+                          <button
                             onClick={() => handleEdit(containedItem)}
                             className="btn-small mr-5"
                           >
@@ -1204,6 +1261,12 @@ const InventoryPage: React.FC = () => {
                         {visibleColumns.actions && (
                           <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
                             <button
+                              onClick={() => handleClone(nestedItem)}
+                              className="btn-small mr-5"
+                            >
+                              {t.inventory.clone}
+                            </button>
+                            <button
                               onClick={() => handleEdit(nestedItem)}
                               className="btn-small mr-5"
                             >
@@ -1229,6 +1292,54 @@ const InventoryPage: React.FC = () => {
           </table>
         )}
       </div>
+
+      {/* Clone Confirmation Dialog */}
+      {showCloneDialog && itemToClone && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            padding: '30px',
+            borderRadius: '8px',
+            maxWidth: '500px',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+          }}>
+            <h3 style={{ marginTop: 0 }}>{t.inventory.cloneContainer}</h3>
+            <p>{t.inventory.cloneContainerQuestion}</p>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '20px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => handleCloneDialogResponse(true)}
+                className="btn-primary"
+                style={{ backgroundColor: '#5cb85c' }}
+              >
+                {t.inventory.cloneWithContents}
+              </button>
+              <button
+                onClick={() => handleCloneDialogResponse(false)}
+                className="btn-primary"
+              >
+                {t.inventory.cloneEmpty}
+              </button>
+              <button
+                onClick={() => handleCloneDialogResponse(null)}
+                className="btn-small"
+              >
+                {t.inventory.cloneCancel}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

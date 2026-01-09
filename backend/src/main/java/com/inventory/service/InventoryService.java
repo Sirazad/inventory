@@ -19,9 +19,12 @@ import jakarta.persistence.criteria.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -375,5 +378,109 @@ public class InventoryService {
         
         // Otherwise, check if its container is inside the ancestor
         return isDescendantOf(item.getContainerId(), ancestor, depth + 1);
+    }
+    
+    /**
+     * Clone an inventory item with optional recursive container cloning.
+     * Returns a map with the cloned item and a list of cloned containers with their item counts.
+     */
+    @Transactional
+    public Map<String, Object> cloneInventoryItem(String username, Long characterId, 
+                                                   Long inventoryId, boolean includeContents) {
+        log.debug("Cloning inventory item ID {} for character ID {}, includeContents: {}", 
+                inventoryId, characterId, includeContents);
+        
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Character character = characterRepository.findByIdAndUserId(characterId, user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Character not found"));
+
+        Inventory originalItem = inventoryRepository.findByIdAndCharacterId(inventoryId, characterId)
+                .orElseThrow(() -> new ResourceNotFoundException("Inventory item not found"));
+        
+        // Track cloned containers for success message
+        List<Map<String, Object>> clonedContainers = new ArrayList<>();
+        
+        // Clone the item (and optionally its contents if it's a container)
+        Inventory clonedItem = cloneItemRecursive(originalItem, originalItem.getContainer(), 
+                                                   character, 0, includeContents, clonedContainers);
+        
+        log.info("Successfully cloned inventory item '{}' (ID: {}) to new ID: {}", 
+                originalItem.getItem(), inventoryId, clonedItem.getId());
+        
+        // Prepare response
+        Map<String, Object> response = new HashMap<>();
+        response.put("clonedItem", new InventoryResponse(clonedItem, pyarrCalendarService));
+        response.put("clonedContainers", clonedContainers);
+        
+        return response;
+    }
+    
+    /**
+     * Recursive helper to clone an inventory item and optionally its contents.
+     */
+    private Inventory cloneItemRecursive(Inventory original, Inventory targetContainer, 
+                                        Character character, int depth, boolean includeContents,
+                                        List<Map<String, Object>> clonedContainers) {
+        // Prevent infinite recursion
+        if (depth > 10) {
+            throw new InvalidOperationException("Container nesting too deep (max 10 levels)");
+        }
+        
+        // Create new inventory item with same properties
+        Inventory clone = new Inventory();
+        clone.setCategory(original.getCategory());
+        
+        // Set category entity if it exists
+        if (original.getCategory() != null && !original.getCategory().isEmpty()) {
+            categoryRepository.findByName(original.getCategory())
+                    .ifPresent(clone::setCategoryEntity);
+        }
+        
+        clone.setItem(original.getItem());
+        clone.setQuality(original.getQuality());
+        clone.setDescription(original.getDescription());
+        clone.setPriceInCopper(original.getPriceInCopper());
+        clone.setQuantity(original.getQuantity());
+        clone.setAddedUpdated(original.getAddedUpdated());
+        clone.setWeight(original.getWeight());
+        clone.setCharacter(character);
+        clone.setContainer(targetContainer);
+        clone.setIsContainer(original.getIsContainer());
+        
+        // Set added date from character's current date (NOT from original item)
+        clone.setAddedYear(character.getCurrentYear());
+        clone.setAddedDay(character.getCurrentDay());
+        
+        // Modified date should be null (new item has not been modified yet)
+        clone.setModifiedYear(null);
+        clone.setModifiedDay(null);
+        
+        // Save the cloned item
+        Inventory savedClone = inventoryRepository.save(clone);
+        
+        // If it's a container and includeContents is true, recursively clone all contained items
+        boolean isContainer = original.getCategory() != null && 
+                             original.getCategory().toLowerCase().equals("container");
+        
+        if (isContainer && includeContents) {
+            List<Inventory> containedItems = inventoryRepository.findByContainerIdAndRemovedFalse(original.getId());
+            int itemCount = containedItems.size();
+            
+            // Track this container for success message
+            Map<String, Object> containerInfo = new HashMap<>();
+            containerInfo.put("name", savedClone.getItem());
+            containerInfo.put("count", itemCount);
+            clonedContainers.add(containerInfo);
+            
+            // Clone each contained item recursively
+            for (Inventory containedItem : containedItems) {
+                cloneItemRecursive(containedItem, savedClone, character, depth + 1, 
+                                  true, clonedContainers);
+            }
+        }
+        
+        return savedClone;
     }
 }

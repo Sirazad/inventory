@@ -201,6 +201,16 @@ export const translations = {
       addedUpdated: 'Notes',
       qualityLabel: 'Quality:',
       weightKg: 'Weight (kg)',
+      clone: 'Clone',
+      cloneItem: 'Clone Item',
+      cloneContainer: 'Clone Container',
+      cloneContainerQuestion: 'Do you want to copy all items in the container too?',
+      cloneWithContents: 'Yes, clone all contents',
+      cloneEmpty: 'No, clone empty container',
+      cloneCancel: 'Cancel',
+      cloneSuccess: 'Cloned',
+      cloneContains: 'contains',
+      cloneFailed: 'Failed to clone item',
     },
     // Calendar
     calendar: {
@@ -513,6 +523,16 @@ export const translations = {
       addedUpdated: 'Megjegyzések',
       qualityLabel: 'Minőség:',
       weightKg: 'Súly (kg)',
+      clone: 'Klónozás',
+      cloneItem: 'Tárgy klónozása',
+      cloneContainer: 'Tároló klónozása',
+      cloneContainerQuestion: 'Szeretnéd a tároló összes tárgyát is másolni?',
+      cloneWithContents: 'Igen, klónozd az összes tartalmat',
+      cloneEmpty: 'Nem, klónozd üres tárolóként',
+      cloneCancel: 'Mégse',
+      cloneSuccess: 'Klónozva',
+      cloneContains: 'tartalmaz',
+      cloneFailed: 'Tárgy klónozása sikertelen',
     },
     // Calendar
     calendar: {

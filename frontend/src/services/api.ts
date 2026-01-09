@@ -138,6 +138,17 @@ export const inventoryService = {
     );
     return response.data.totalWeight;
   },
+
+  cloneInventory: async (
+    characterId: number,
+    inventoryId: number,
+    includeContents: boolean
+  ) => {
+    const response = await axiosInstance.post(
+      `/characters/${characterId}/inventory/${inventoryId}/clone?includeContents=${includeContents}`
+    );
+    return response.data;
+  },
 };
 
 export const categoryService = {
