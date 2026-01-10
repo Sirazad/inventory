@@ -196,8 +196,11 @@ const InventoryItemRow: React.FC<InventoryItemRowProps> = ({
             // Determine if this is the last child
             const isLast = index === array.length - 1;
             // Build the parent chain for this item
-            // Add current level's continuation status to parent chain
-            const newParentChain = [...parentChain, !isLastChild];
+            // Only add to parentChain if current depth > 0
+            // parentChain tracks whether to show vertical lines at each depth level (starting from depth 1)
+            const newParentChain = depth > 0 
+              ? [...parentChain, !isLastChild]
+              : parentChain;
             
             return (
               <InventoryItemRow
