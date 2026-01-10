@@ -13,6 +13,8 @@ interface InventoryItemRowProps {
   item: Inventory;
   depth: number;
   maxDepth: number;
+  isLastChild: boolean;
+  parentChain: boolean[];  // Array tracking which ancestor levels need vertical lines
   visibleColumns: any;
   isContainer: (item: Inventory) => boolean;
   expandedContainers: Set<number>;
@@ -30,6 +32,8 @@ const InventoryItemRow: React.FC<InventoryItemRowProps> = ({
   item,
   depth,
   maxDepth,
+  isLastChild,
+  parentChain,
   visibleColumns,
   isContainer,
   expandedContainers,
@@ -48,7 +52,23 @@ const InventoryItemRow: React.FC<InventoryItemRowProps> = ({
   const depthIncrement = 20;
   const paddingLeft = basePadding + displayDepth * depthIncrement;
   
-  // Calculate arrow indicators for category column
+  // Build tree connector string
+  const buildTreeConnector = () => {
+    if (depth === 0) return '';
+    
+    let connector = '';
+    // Add vertical lines for ancestor levels that need them
+    for (let i = 0; i < depth - 1; i++) {
+      connector += parentChain[i] ? '│  ' : '   ';
+    }
+    // Add the branch connector for this item
+    connector += isLastChild ? '└─ ' : '├─ ';
+    return connector;
+  };
+  
+  const treeConnector = buildTreeConnector();
+  
+  // Calculate arrow indicators for category column (old style, still used)
   const arrowIndicator = '↳'.repeat(depth);
 
   return (
@@ -64,11 +84,17 @@ const InventoryItemRow: React.FC<InventoryItemRowProps> = ({
                 {expandedContainers.has(item.id) ? '▼' : '▶'}
               </button>
             )}
-            {depth > 0 && `${arrowIndicator} `}{item.category}
+            {depth > 0 && (
+              <span style={{ fontFamily: 'monospace', color: '#666' }}>{treeConnector}</span>
+            )}
+            {item.category}
           </td>
         )}
         {!visibleColumns.category && (
-          <td style={{ padding: '10px', border: '1px solid #ccc', paddingLeft: `${paddingLeft}px`, width: '50px' }}>
+          <td style={{ padding: '10px', border: '1px solid #ccc', paddingLeft: '10px', width: depth > 0 ? 'auto' : '50px' }}>
+            {depth > 0 && (
+              <span style={{ fontFamily: 'monospace', color: '#666', marginRight: '5px' }}>{treeConnector}</span>
+            )}
             {isContainer(item) && (
               <button
                 onClick={() => toggleContainer(item.id)}
@@ -166,25 +192,35 @@ const InventoryItemRow: React.FC<InventoryItemRowProps> = ({
               </td>
             </tr>
           )}
-          {containerContents.get(item.id)?.map((containedItem) => (
-            <InventoryItemRow
-              key={containedItem.id}
-              item={containedItem}
-              depth={depth + 1}
-              maxDepth={maxDepth}
-              visibleColumns={visibleColumns}
-              isContainer={isContainer}
-              expandedContainers={expandedContainers}
-              containerContents={containerContents}
-              containerWeights={containerWeights}
-              toggleContainer={toggleContainer}
-              handleEdit={handleEdit}
-              handleRemove={handleRemove}
-              handleQuantityChange={handleQuantityChange}
-              getColspan={getColspan}
-              t={t}
-            />
-          ))}
+          {containerContents.get(item.id)?.map((containedItem, index, array) => {
+            // Determine if this is the last child
+            const isLast = index === array.length - 1;
+            // Build the parent chain for this item
+            // Add current level's continuation status to parent chain
+            const newParentChain = [...parentChain, !isLastChild];
+            
+            return (
+              <InventoryItemRow
+                key={containedItem.id}
+                item={containedItem}
+                depth={depth + 1}
+                maxDepth={maxDepth}
+                isLastChild={isLast}
+                parentChain={newParentChain}
+                visibleColumns={visibleColumns}
+                isContainer={isContainer}
+                expandedContainers={expandedContainers}
+                containerContents={containerContents}
+                containerWeights={containerWeights}
+                toggleContainer={toggleContainer}
+                handleEdit={handleEdit}
+                handleRemove={handleRemove}
+                handleQuantityChange={handleQuantityChange}
+                getColspan={getColspan}
+                t={t}
+              />
+            );
+          })}
         </>
       )}
     </React.Fragment>
@@ -1220,6 +1256,8 @@ const InventoryPage: React.FC = () => {
                     item={item}
                     depth={0}
                     maxDepth={MAX_NESTING_DEPTH}
+                    isLastChild={true}  // Top-level items are treated as if they're last (no parent)
+                    parentChain={[]}    // Empty parent chain for top-level items
                     visibleColumns={visibleColumns}
                     isContainer={isContainer}
                     expandedContainers={expandedContainers}
