@@ -75,7 +75,7 @@ const InventoryItemRow: React.FC<InventoryItemRowProps> = ({
     <React.Fragment key={item.id}>
       <tr style={{ backgroundColor: 'white' }}>
         {visibleColumns.category && (
-          <td style={{ padding: '10px', border: '1px solid #ccc', paddingLeft: depth > 0 ? `${paddingLeft}px` : '10px' }}>
+          <td style={{ padding: '10px', border: '1px solid #ccc' }}>
             {isContainer(item) && (
               <button
                 onClick={() => toggleContainer(item.id)}
