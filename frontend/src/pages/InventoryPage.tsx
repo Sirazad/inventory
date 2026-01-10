@@ -16,6 +16,7 @@ interface InventoryItemRowProps {
   isLastChild: boolean;
   parentChain: boolean[];  // Array tracking which ancestor levels need vertical lines
   visibleColumns: any;
+  hasActiveFilters: boolean;
   isContainer: (item: Inventory) => boolean;
   expandedContainers: Set<number>;
   containerContents: Map<number, Inventory[]>;
@@ -35,6 +36,7 @@ const InventoryItemRow: React.FC<InventoryItemRowProps> = ({
   isLastChild,
   parentChain,
   visibleColumns,
+  hasActiveFilters,
   isContainer,
   expandedContainers,
   containerContents,
@@ -74,24 +76,9 @@ const InventoryItemRow: React.FC<InventoryItemRowProps> = ({
   return (
     <React.Fragment key={item.id}>
       <tr style={{ backgroundColor: 'white' }}>
-        {visibleColumns.category && (
-          <td style={{ padding: '10px', border: '1px solid #ccc' }}>
-            {isContainer(item) && (
-              <button
-                onClick={() => toggleContainer(item.id)}
-                className="btn-tiny mr-5"
-              >
-                {expandedContainers.has(item.id) ? '▼' : '▶'}
-              </button>
-            )}
-            {depth > 0 && (
-              <span style={{ fontFamily: 'monospace', color: '#666' }}>{treeConnector}</span>
-            )}
-            {item.category}
-          </td>
-        )}
-        {!visibleColumns.category && (
-          <td style={{ padding: '10px', border: '1px solid #ccc', paddingLeft: '10px', width: depth > 0 ? 'auto' : '50px' }}>
+        {/* Dedicated tree/hierarchy column (always shown when no filters) */}
+        {!hasActiveFilters && (
+          <td style={{ padding: '10px', border: '1px solid #ccc', paddingLeft: '10px', width: '50px' }}>
             {depth > 0 && (
               <span style={{ fontFamily: 'monospace', color: '#666', marginRight: '5px' }}>{treeConnector}</span>
             )}
@@ -103,6 +90,12 @@ const InventoryItemRow: React.FC<InventoryItemRowProps> = ({
                 {expandedContainers.has(item.id) ? '▼' : '▶'}
               </button>
             )}
+          </td>
+        )}
+        {/* Category column (independent of tree structure) */}
+        {visibleColumns.category && (
+          <td style={{ padding: '10px', border: '1px solid #ccc' }}>
+            {item.category}
           </td>
         )}
         {visibleColumns.item && (
@@ -211,6 +204,7 @@ const InventoryItemRow: React.FC<InventoryItemRowProps> = ({
                 isLastChild={isLast}
                 parentChain={newParentChain}
                 visibleColumns={visibleColumns}
+                hasActiveFilters={hasActiveFilters}
                 isContainer={isContainer}
                 expandedContainers={expandedContainers}
                 containerContents={containerContents}
@@ -569,6 +563,8 @@ const InventoryPage: React.FC = () => {
   // Calculate colspan for container empty message based on visible columns
   const getColspan = () => {
     let count = 0;
+    // Add 1 for the tree/hierarchy column (always shown when no filters)
+    if (!hasActiveFilters()) count++;
     if (visibleColumns.category) count++;
     if (visibleColumns.item) count++;
     if (visibleColumns.quality) count++;
@@ -580,8 +576,6 @@ const InventoryPage: React.FC = () => {
     if (visibleColumns.modified) count++;
     if (visibleColumns.notes) count++;
     if (visibleColumns.actions) count++;
-    // Add 1 for the expand/collapse column when category is hidden
-    if (!visibleColumns.category && !hasActiveFilters()) count++;
     return count;
   };
 
@@ -1141,7 +1135,7 @@ const InventoryPage: React.FC = () => {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
              <thead>
               <tr style={{ backgroundColor: 'white' }}>
-                {!visibleColumns.category && !hasActiveFilters() && <th style={{ padding: '10px', width: '50px', border: '1px solid #ccc' }}></th>}
+                {!hasActiveFilters() && <th style={{ padding: '10px', width: '50px', border: '1px solid #ccc' }}></th>}
                 {visibleColumns.category && <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>{t.inventory.category}</th>}
                 {visibleColumns.item && <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>{t.inventory.item}</th>}
                 {visibleColumns.quality && <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>{t.inventory.quality}</th>}
@@ -1262,6 +1256,7 @@ const InventoryPage: React.FC = () => {
                     isLastChild={true}  // Top-level items are treated as if they're last (no parent)
                     parentChain={[]}    // Empty parent chain for top-level items
                     visibleColumns={visibleColumns}
+                    hasActiveFilters={hasActiveFilters()}
                     isContainer={isContainer}
                     expandedContainers={expandedContainers}
                     containerContents={containerContents}
