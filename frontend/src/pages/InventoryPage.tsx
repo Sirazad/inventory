@@ -314,22 +314,15 @@ const InventoryPage: React.FC = () => {
       newExpanded.add(itemId);
       setExpandedContainers(newExpanded);
       
-      // Always reload container contents when expanding to get fresh data
+      // Load container contents and total weight in a single call
       try {
-        const contents = await inventoryService.getContainerContents(Number(characterId), itemId);
-        console.log('Loaded container contents:', contents);
-        setContainerContents(prev => new Map(prev).set(itemId, contents));
+        const details = await inventoryService.getContainerDetails(Number(characterId), itemId);
+        console.log('Loaded container details:', details);
+        setContainerContents(prev => new Map(prev).set(itemId, details.contents));
+        setContainerWeights(prev => new Map(prev).set(itemId, details.totalWeight));
       } catch (err) {
-        console.error('Failed to load container contents', err);
+        console.error('Failed to load container details', err);
         alert(t.inventory.failedLoadContainer);
-      }
-      
-      // Load total weight
-      try {
-        const totalWeight = await inventoryService.getTotalWeight(Number(characterId), itemId);
-        setContainerWeights(prev => new Map(prev).set(itemId, totalWeight));
-      } catch (err) {
-        console.error('Failed to load total weight', err);
       }
     }
   };
