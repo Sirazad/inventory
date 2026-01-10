@@ -92,6 +92,11 @@ export interface InventoryUpdateRequest {
   containerId?: number;
 }
 
+export interface ContainerDetailsResponse {
+  contents: Inventory[];
+  totalWeight: number;
+}
+
 export interface Category {
   id: number;
   name: string;

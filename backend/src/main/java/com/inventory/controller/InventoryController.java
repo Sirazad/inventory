@@ -1,5 +1,6 @@
 package com.inventory.controller;
 
+import com.inventory.dto.ContainerDetailsResponse;
 import com.inventory.dto.InventoryRequest;
 import com.inventory.dto.InventoryResponse;
 import com.inventory.exception.InvalidOperationException;
@@ -97,5 +98,14 @@ public class InventoryController {
         Double totalWeight = inventoryService.calculateTotalWeight(
                 userDetails.getUsername(), characterId, inventoryId);
         return ResponseEntity.ok(Map.of("totalWeight", totalWeight));
+    }
+    
+    @GetMapping("/{inventoryId}/details")
+    public ResponseEntity<ContainerDetailsResponse> getContainerDetails(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long characterId,
+            @PathVariable Long inventoryId) {
+        return ResponseEntity.ok(inventoryService.getContainerDetails(
+                userDetails.getUsername(), characterId, inventoryId));
     }
 }

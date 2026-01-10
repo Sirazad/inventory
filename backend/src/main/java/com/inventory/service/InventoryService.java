@@ -1,5 +1,6 @@
 package com.inventory.service;
 
+import com.inventory.dto.ContainerDetailsResponse;
 import com.inventory.dto.InventoryRequest;
 import com.inventory.dto.InventoryResponse;
 import com.inventory.entity.Category;
@@ -343,6 +344,33 @@ public class InventoryService {
         }
         
         return totalWeight;
+    }
+    
+    /**
+     * Get container details including contents and total weight in a single call.
+     * This combines getItemsInContainer and calculateTotalWeight for efficiency.
+     */
+    public ContainerDetailsResponse getContainerDetails(String username, Long characterId, Long containerId) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Character character = characterRepository.findByIdAndUserId(characterId, user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Character not found"));
+        
+        // Verify container belongs to this character and get it for weight calculation
+        Inventory container = inventoryRepository.findByIdAndCharacterId(containerId, characterId)
+                .orElseThrow(() -> new ResourceNotFoundException("Container not found"));
+
+        // Get contents
+        List<Inventory> items = inventoryRepository.findByContainerIdAndRemovedFalse(containerId);
+        List<InventoryResponse> contents = items.stream()
+                .map(item -> new InventoryResponse(item, pyarrCalendarService))
+                .collect(Collectors.toList());
+        
+        // Calculate total weight
+        Double totalWeight = calculateTotalWeightRecursive(container, 0);
+        
+        return new ContainerDetailsResponse(contents, totalWeight);
     }
     
     /**

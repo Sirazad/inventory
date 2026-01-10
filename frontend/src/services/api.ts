@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { AuthResponse, LoginRequest, RegisterRequest, InventoryCreateRequest, InventoryUpdateRequest, Category, CategoryRequest, ItemTemplate, TemplateRequest, Page } from '../types';
+import { AuthResponse, LoginRequest, RegisterRequest, InventoryCreateRequest, InventoryUpdateRequest, Category, CategoryRequest, ItemTemplate, TemplateRequest, Page, ContainerDetailsResponse } from '../types';
 
 const API_URL = 'http://localhost:8080/api';
 
@@ -137,6 +137,13 @@ export const inventoryService = {
       `/characters/${characterId}/inventory/${inventoryId}/total-weight`
     );
     return response.data.totalWeight;
+  },
+
+  getContainerDetails: async (characterId: number, inventoryId: number): Promise<ContainerDetailsResponse> => {
+    const response = await axiosInstance.get(
+      `/characters/${characterId}/inventory/${inventoryId}/details`
+    );
+    return response.data;
   },
 };
 
