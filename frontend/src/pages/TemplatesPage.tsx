@@ -181,16 +181,6 @@ const TemplatesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Create Template Button */}
-      <div style={{ marginBottom: '20px' }}>
-        <button
-          onClick={() => navigate('/templates/create')}
-          className="btn-primary"
-        >
-          + Create New Template
-        </button>
-      </div>
-
       {/* Templates Table */}
       {loading ? (
         <p>Loading...</p>
