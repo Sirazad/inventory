@@ -22,18 +22,24 @@ const TemplatesPage: React.FC = () => {
     category: ''
   });
 
+  const [appliedFilters, setAppliedFilters] = useState({
+    name: '',
+    isContainer: undefined as boolean | undefined,
+    category: ''
+  });
+
   useEffect(() => {
     loadTemplates();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, size, sortBy, sortDir]);
+  }, [page, size, sortBy, sortDir, appliedFilters]);
 
   const loadTemplates = async () => {
     setLoading(true);
     try {
       const data = await templateService.searchTemplates(
-        filters.name || undefined,
-        filters.isContainer,
-        filters.category || undefined,
+        appliedFilters.name || undefined,
+        appliedFilters.isContainer,
+        appliedFilters.category || undefined,
         page,
         size,
         sortBy,
@@ -49,8 +55,8 @@ const TemplatesPage: React.FC = () => {
   };
 
   const handleSearch = () => {
-    setPage(0); // Reset to first page when searching
-    loadTemplates();
+    setAppliedFilters({ ...filters });
+    setPage(0);
   };
 
   const handleDelete = async (id: number, name: string) => {
@@ -171,7 +177,9 @@ const TemplatesPage: React.FC = () => {
           </button>
           <button
             onClick={() => {
-              setFilters({ name: '', isContainer: undefined, category: '' });
+              const empty = { name: '', isContainer: undefined as boolean | undefined, category: '' };
+              setFilters(empty);
+              setAppliedFilters(empty);
               setPage(0);
             }}
             className="btn-small"

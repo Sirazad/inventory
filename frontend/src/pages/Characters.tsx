@@ -83,12 +83,12 @@ const Characters: React.FC = () => {
 
   const handleEditCharacter = (character: Character) => {
     // Calculate month and day from currentDay
-    const { monthNumber, dayInMonth } = calculateMonthAndDay(character.currentDay);
-    
+    const { monthNumber, dayInMonth } = calculateMonthAndDay(character.currentDay ?? 1);
+
     setEditingCharacter({
       id: character.id,
       name: character.name,
-      year: character.currentYear,
+      year: character.currentYear ?? 1,
       month: monthNumber,
       day: dayInMonth
     });
