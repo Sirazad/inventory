@@ -178,3 +178,9 @@ export interface Page<T> {
   first: boolean;
   last: boolean;
 }
+
+export interface ApiError {
+  error?: string;
+  message?: string;
+  status?: number;
+}

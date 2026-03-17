@@ -4,6 +4,7 @@ import { inventoryService, categoryService, templateService } from '../services/
 import { Inventory, Category, ItemTemplate } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
 import { formatInventoryDate } from '../utils/dateFormatting';
+import { getApiErrorMessage, isApiStatus } from '../utils/errorUtils';
 
 const InventoryPage: React.FC = () => {
   const { characterId } = useParams<{ characterId: string }>();
@@ -110,11 +111,11 @@ const InventoryPage: React.FC = () => {
         filters.itemName || undefined
       );
       setInventory(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load inventory', err);
       setInventory([]);
-      
-      if (err.response?.status === 403 || err.response?.status === 401) {
+
+      if (isApiStatus(err, 403) || isApiStatus(err, 401)) {
         alert(t.inventory.cannotLoad);
       }
     }
@@ -188,16 +189,13 @@ const InventoryPage: React.FC = () => {
       setSaveAsTemplate(false);
       setShowAddForm(false);
       loadInventory();
-    } catch (err: any) {
-      // Display better error messages
-      if (err.response?.data?.error) {
-        alert(t.inventory.errorPrefix + err.response.data.error);
-      } else if (err.response?.status === 400) {
+    } catch (err: unknown) {
+      if (isApiStatus(err, 400)) {
         alert(t.inventory.invalidRequest);
-      } else if (err.response?.status === 403) {
+      } else if (isApiStatus(err, 403)) {
         alert(t.inventory.accessDenied);
       } else {
-        alert(t.inventory.failedSave);
+        alert(t.inventory.errorPrefix + getApiErrorMessage(err, t.inventory.failedSave));
       }
       console.error('Failed to save inventory item', err);
     }
@@ -329,9 +327,9 @@ const InventoryPage: React.FC = () => {
       setTemplates([]);
       setShowAddForm(false);
       loadInventory();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to add template to inventory', err);
-      alert('Failed to add template to inventory: ' + (err.response?.data?.message || err.message));
+      alert(getApiErrorMessage(err, 'Failed to add template to inventory'));
     }
   };
 

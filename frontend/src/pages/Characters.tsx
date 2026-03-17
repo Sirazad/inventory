@@ -5,6 +5,7 @@ import { Character } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
 import LanguageToggle from '../components/LanguageToggle';
 import { formatPyarrDate, calculateMonthAndDay, DAYS_PER_MONTH, CALENDAR_MONTHS } from '../utils/dateFormatting';
+import { getApiErrorMessage } from '../utils/errorUtils';
 
 interface EditingCharacter {
   id: number;
@@ -42,9 +43,8 @@ const Characters: React.FC = () => {
       await characterService.createCharacter(newCharacterName);
       setNewCharacterName('');
       loadCharacters();
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.error || t.characters.failedCreate;
-      alert(errorMessage);
+    } catch (err: unknown) {
+      alert(getApiErrorMessage(err, t.characters.failedCreate));
     }
   };
 
@@ -113,9 +113,8 @@ const Characters: React.FC = () => {
         char.id === editingCharacter.id ? updatedCharacter : char
       ));
       setEditingCharacter(null);
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.error || t.characters.failedUpdate;
-      alert(errorMessage);
+    } catch (err: unknown) {
+      alert(getApiErrorMessage(err, t.characters.failedUpdate));
     }
   };
 

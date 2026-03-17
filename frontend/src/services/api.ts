@@ -1,10 +1,11 @@
 import axios from 'axios';
-import { AuthResponse, LoginRequest, RegisterRequest, InventoryCreateRequest, InventoryUpdateRequest, Category, CategoryRequest, ItemTemplate, TemplateRequest, Page } from '../types';
+import { AuthResponse, LoginRequest, RegisterRequest, Character, Inventory, InventoryCreateRequest, InventoryUpdateRequest, Category, CategoryRequest, ItemTemplate, TemplateRequest, Page } from '../types';
 
 const API_URL = process.env.REACT_APP_API_URL || '/api';
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
+  timeout: 15000,
 });
 
 axiosInstance.interceptors.request.use((config) => {
@@ -14,6 +15,17 @@ axiosInstance.interceptors.request.use((config) => {
   }
   return config;
 });
+
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.clear();
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
 export const authService = {
   login: async (data: LoginRequest): Promise<AuthResponse> => {
@@ -32,35 +44,35 @@ export const authService = {
 };
 
 export const characterService = {
-  getCharacters: async () => {
+  getCharacters: async (): Promise<Character[]> => {
     const response = await axiosInstance.get('/characters');
     return response.data;
   },
 
-  createCharacter: async (name: string) => {
+  createCharacter: async (name: string): Promise<Character> => {
     const response = await axiosInstance.post('/characters', { name });
     return response.data;
   },
 
-  updateCharacter: async (id: number, name: string, currentYear?: number, currentDay?: number) => {
-    const response = await axiosInstance.put(`/characters/${id}`, { 
+  updateCharacter: async (id: number, name: string, currentYear?: number, currentDay?: number): Promise<Character> => {
+    const response = await axiosInstance.put(`/characters/${id}`, {
       name,
       currentYear,
-      currentDay
+      currentDay,
     });
     return response.data;
   },
 
-  deleteCharacter: async (id: number) => {
+  deleteCharacter: async (id: number): Promise<void> => {
     await axiosInstance.delete(`/characters/${id}`);
   },
 
-  incrementDay: async (id: number) => {
+  incrementDay: async (id: number): Promise<Character> => {
     const response = await axiosInstance.post(`/characters/${id}/increment-day`);
     return response.data;
   },
 
-  decrementDay: async (id: number) => {
+  decrementDay: async (id: number): Promise<Character> => {
     const response = await axiosInstance.post(`/characters/${id}/decrement-day`);
     return response.data;
   },
@@ -73,7 +85,7 @@ export const inventoryService = {
     minPrice?: number,
     maxWeight?: number,
     itemName?: string
-  ) => {
+  ): Promise<Inventory[]> => {
     const params = new URLSearchParams();
     if (category) params.append('category', category);
     if (minPrice !== undefined) params.append('minPrice', minPrice.toString());
@@ -86,7 +98,7 @@ export const inventoryService = {
     return response.data;
   },
 
-  createInventory: async (characterId: number, data: InventoryCreateRequest) => {
+  createInventory: async (characterId: number, data: InventoryCreateRequest): Promise<Inventory> => {
     const response = await axiosInstance.post(
       `/characters/${characterId}/inventory`,
       data
@@ -94,7 +106,7 @@ export const inventoryService = {
     return response.data;
   },
 
-  updateInventory: async (characterId: number, inventoryId: number, data: InventoryUpdateRequest) => {
+  updateInventory: async (characterId: number, inventoryId: number, data: InventoryUpdateRequest): Promise<Inventory> => {
     const response = await axiosInstance.put(
       `/characters/${characterId}/inventory/${inventoryId}`,
       data
@@ -106,7 +118,7 @@ export const inventoryService = {
     characterId: number,
     inventoryId: number,
     removalText: string
-  ) => {
+  ): Promise<void> => {
     await axiosInstance.delete(
       `/characters/${characterId}/inventory/${inventoryId}`,
       { data: { removalText } }
@@ -117,7 +129,7 @@ export const inventoryService = {
     characterId: number,
     inventoryId: number,
     quantityChange: number
-  ) => {
+  ): Promise<Inventory> => {
     const response = await axiosInstance.patch(
       `/characters/${characterId}/inventory/${inventoryId}/quantity`,
       { quantityChange }
@@ -125,14 +137,14 @@ export const inventoryService = {
     return response.data;
   },
 
-  getContainerContents: async (characterId: number, inventoryId: number) => {
+  getContainerContents: async (characterId: number, inventoryId: number): Promise<Inventory[]> => {
     const response = await axiosInstance.get(
       `/characters/${characterId}/inventory/${inventoryId}/contents`
     );
     return response.data;
   },
 
-  getTotalWeight: async (characterId: number, inventoryId: number) => {
+  getTotalWeight: async (characterId: number, inventoryId: number): Promise<number> => {
     const response = await axiosInstance.get(
       `/characters/${characterId}/inventory/${inventoryId}/total-weight`
     );
@@ -143,7 +155,7 @@ export const inventoryService = {
     characterId: number,
     inventoryId: number,
     includeContents: boolean
-  ) => {
+  ): Promise<{ clonedContainers?: Array<{ name: string; count: number }> }> => {
     const response = await axiosInstance.post(
       `/characters/${characterId}/inventory/${inventoryId}/clone?includeContents=${includeContents}`
     );
@@ -223,7 +235,7 @@ export const templateService = {
     await axiosInstance.delete(`/templates/${id}`);
   },
 
-  addTemplateToInventory: async (characterId: number, templateId: number) => {
+  addTemplateToInventory: async (characterId: number, templateId: number): Promise<Inventory> => {
     const response = await axiosInstance.post(`/templates/${templateId}/add-to-character/${characterId}`);
     return response.data;
   },

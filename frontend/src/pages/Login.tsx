@@ -4,6 +4,7 @@ import { authService } from '../services/api';
 import { LoginRequest } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
 import LanguageToggle from '../components/LanguageToggle';
+import { getApiErrorMessage } from '../utils/errorUtils';
 
 const Login: React.FC = () => {
   const [formData, setFormData] = useState<LoginRequest>({
@@ -22,9 +23,8 @@ const Login: React.FC = () => {
       localStorage.setItem('token', response.token);
       localStorage.setItem('username', response.username);
       navigate('/characters');
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.error || t.login.invalidCredentials;
-      setError(errorMessage);
+    } catch (err: unknown) {
+      setError(getApiErrorMessage(err, t.login.invalidCredentials));
     }
   };
 

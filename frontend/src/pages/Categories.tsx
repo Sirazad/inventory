@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { categoryService } from '../services/api';
 import { Category } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
+import { getApiErrorMessage } from '../utils/errorUtils';
 
 const Categories: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -39,9 +40,8 @@ const Categories: React.FC = () => {
       setFormData({ name: '' });
       setShowAddForm(false);
       loadCategories();
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.error || t.categories.failedSave;
-      setError(errorMessage);
+    } catch (err: unknown) {
+      setError(getApiErrorMessage(err, t.categories.failedSave));
     }
   };
 
@@ -59,9 +59,8 @@ const Categories: React.FC = () => {
     try {
       await categoryService.deleteCategory(id);
       loadCategories();
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.error || t.categories.failedDelete;
-      alert(errorMessage);
+    } catch (err: unknown) {
+      alert(getApiErrorMessage(err, t.categories.failedDelete));
     }
   };
 

@@ -4,6 +4,7 @@ import { templateService } from '../services/api';
 import { ItemTemplate, Page } from '../types';
 import { getGold, getSilver, getCopper } from '../utils/currencyUtils';
 import { useLanguage } from '../i18n/LanguageContext';
+import { getApiErrorMessage } from '../utils/errorUtils';
 
 const TemplatesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -68,12 +69,8 @@ const TemplatesPage: React.FC = () => {
       await templateService.deleteTemplate(id);
       alert(t.templates.deleteSuccess);
       loadTemplates();
-    } catch (err: any) {
-      if (err.response?.data?.error) {
-        alert('Error: ' + err.response.data.error);
-      } else {
-        alert(t.templates.deleteFailed);
-      }
+    } catch (err: unknown) {
+      alert(getApiErrorMessage(err, t.templates.deleteFailed));
       console.error('Failed to delete template', err);
     }
   };
@@ -83,7 +80,7 @@ const TemplatesPage: React.FC = () => {
     const gold = getGold(priceInCopper);
     const silver = getSilver(priceInCopper);
     const copper = getCopper(priceInCopper);
-    const parts = [];
+    const parts: string[] = [];
     if (gold > 0) parts.push(`${gold}g`);
     if (silver > 0) parts.push(`${silver}s`);
     if (copper > 0) parts.push(`${copper}c`);
@@ -108,56 +105,56 @@ const TemplatesPage: React.FC = () => {
     <div className="page-container max-width-1200">
       <div className="mb-20" style={{ display: 'flex', gap: '10px' }}>
         <button onClick={() => navigate('/characters')} className="btn-primary">
-          ← Back to Characters
+          ← {t.templates.backToCharacters}
         </button>
         <button onClick={() => navigate('/templates/new')} className="btn-primary" style={{ backgroundColor: '#5cb85c' }}>
-          + Create New Template
+          + {t.templates.createNew}
         </button>
       </div>
 
-      <h2>Template Management</h2>
+      <h2>{t.templates.title}</h2>
 
       {/* Search and Filters */}
       <div className="filter-container mb-20">
-        <h3>Search Templates</h3>
+        <h3>{t.templates.searchTemplates}</h3>
         <div className="flex-row flex-gap-10" style={{ flexWrap: 'wrap', marginBottom: '15px' }}>
           <div>
-            <label>Name: </label>
+            <label>{t.templates.name}: </label>
             <input
               type="text"
               value={filters.name}
               onChange={(e) => setFilters({ ...filters, name: e.target.value })}
-              placeholder="Search by name..."
+              placeholder={t.templates.searchByName}
               className="form-input-small"
             />
           </div>
           <div>
-            <label>Category: </label>
+            <label>{t.templates.category}: </label>
             <input
               type="text"
               value={filters.category}
               onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-              placeholder="Search by category..."
+              placeholder={t.templates.searchByCategory}
               className="form-input-small"
             />
           </div>
           <div>
-            <label>Type: </label>
+            <label>{t.templates.type}: </label>
             <select
               value={filters.isContainer === undefined ? '' : filters.isContainer.toString()}
-              onChange={(e) => setFilters({ 
-                ...filters, 
+              onChange={(e) => setFilters({
+                ...filters,
                 isContainer: e.target.value === '' ? undefined : e.target.value === 'true'
               })}
               className="form-input-small"
             >
-              <option value="">All</option>
-              <option value="false">Simple Items</option>
-              <option value="true">Containers</option>
+              <option value="">{t.templates.all}</option>
+              <option value="false">{t.templates.simpleItems}</option>
+              <option value="true">{t.templates.containers}</option>
             </select>
           </div>
           <div>
-            <label>Page Size: </label>
+            <label>{t.templates.pageSize}: </label>
             <select
               value={size}
               onChange={(e) => {
@@ -173,7 +170,7 @@ const TemplatesPage: React.FC = () => {
             </select>
           </div>
           <button onClick={handleSearch} className="btn-small">
-            Search
+            {t.templates.search}
           </button>
           <button
             onClick={() => {
@@ -184,36 +181,36 @@ const TemplatesPage: React.FC = () => {
             }}
             className="btn-small"
           >
-            Clear
+            {t.templates.clear}
           </button>
         </div>
       </div>
 
       {/* Templates Table */}
       {loading ? (
-        <p>Loading...</p>
+        <p>{t.templates.loading}</p>
       ) : templates && templates.content.length > 0 ? (
         <>
           <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
             <thead>
               <tr style={{ backgroundColor: '#f0f0f0' }}>
-                <th 
+                <th
                   style={{ padding: '10px', border: '1px solid #ccc', cursor: 'pointer' }}
                   onClick={() => toggleSort('name')}
                 >
-                  Name{getSortIndicator('name')}
+                  {t.templates.name}{getSortIndicator('name')}
                 </th>
-                <th 
+                <th
                   style={{ padding: '10px', border: '1px solid #ccc', cursor: 'pointer' }}
                   onClick={() => toggleSort('category')}
                 >
-                  Category{getSortIndicator('category')}
+                  {t.templates.category}{getSortIndicator('category')}
                 </th>
-                <th style={{ padding: '10px', border: '1px solid #ccc' }}>Item</th>
-                <th style={{ padding: '10px', border: '1px solid #ccc' }}>Type</th>
-                <th style={{ padding: '10px', border: '1px solid #ccc' }}>Price</th>
-                <th style={{ padding: '10px', border: '1px solid #ccc' }}>Qty</th>
-                <th style={{ padding: '10px', border: '1px solid #ccc' }}>Actions</th>
+                <th style={{ padding: '10px', border: '1px solid #ccc' }}>{t.templates.item}</th>
+                <th style={{ padding: '10px', border: '1px solid #ccc' }}>{t.templates.type}</th>
+                <th style={{ padding: '10px', border: '1px solid #ccc' }}>{t.templates.price}</th>
+                <th style={{ padding: '10px', border: '1px solid #ccc' }}>{t.templates.quantity}</th>
+                <th style={{ padding: '10px', border: '1px solid #ccc' }}>{t.templates.actions}</th>
               </tr>
             </thead>
             <tbody>
@@ -231,10 +228,10 @@ const TemplatesPage: React.FC = () => {
                   <td style={{ padding: '10px', border: '1px solid #ccc' }}>
                     {template.isContainer ? (
                       <span style={{ color: '#7AB8C0', fontWeight: 'bold' }}>
-                        Container ({template.contents?.length || 0} items)
+                        {t.templates.containerWithItems.replace('{count}', String(template.contents?.length || 0))}
                       </span>
                     ) : (
-                      'Simple Item'
+                      t.templates.simpleItem
                     )}
                   </td>
                   <td style={{ padding: '10px', border: '1px solid #ccc' }}>
@@ -249,20 +246,20 @@ const TemplatesPage: React.FC = () => {
                       className="btn-small"
                       style={{ marginRight: '5px' }}
                     >
-                      View
+                      {t.templates.view}
                     </button>
                     <button
                       onClick={() => navigate(`/templates/${template.id}/edit`)}
                       className="btn-small"
                       style={{ marginRight: '5px' }}
                     >
-                      Edit
+                      {t.templates.edit}
                     </button>
                     <button
                       onClick={() => handleDelete(template.id, template.name)}
                       className="btn-small"
                     >
-                      Delete
+                      {t.templates.delete}
                     </button>
                   </td>
                 </tr>
@@ -273,7 +270,9 @@ const TemplatesPage: React.FC = () => {
           {/* Pagination */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              Showing {templates.content.length} of {templates.totalElements} templates
+              {t.templates.showing
+                .replace('{count}', String(templates.content.length))
+                .replace('{total}', String(templates.totalElements))}
             </div>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
               <button
@@ -281,23 +280,23 @@ const TemplatesPage: React.FC = () => {
                 disabled={page === 0}
                 className="btn-small"
               >
-                Previous
+                {t.templates.previous}
               </button>
               <span>
-                Page {page + 1} of {templates.totalPages || 1}
+                {t.templates.page} {page + 1} {t.templates.of} {templates.totalPages || 1}
               </span>
               <button
                 onClick={() => setPage(page + 1)}
                 disabled={page >= templates.totalPages - 1}
                 className="btn-small"
               >
-                Next
+                {t.templates.next}
               </button>
             </div>
           </div>
         </>
       ) : (
-        <p>No templates found. Create your first template to get started!</p>
+        <p>{t.templates.noTemplatesFound}</p>
       )}
     </div>
   );
