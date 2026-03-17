@@ -5,7 +5,6 @@ import { ItemTemplate, TemplateContentRequest, Category } from '../types';
 import Notification from '../components/Notification';
 import { useLanguage } from '../i18n/LanguageContext';
 import { toCopperValue, getGold, getSilver, getCopper } from '../utils/currencyUtils';
-import { getApiErrorMessage } from '../utils/errorUtils';
 
 const MAX_TEMPLATES_FETCH = 1000;
 
@@ -192,11 +191,10 @@ const TemplateFormPage: React.FC = () => {
         setNotification({ message: t.templateForm.createSuccess, type: 'success' });
         setTimeout(() => navigate('/templates'), 1500);
       }
-    } catch (err: unknown) {
+    } catch (err: any) {
       console.error('Failed to save template', err);
-      const fallback = isEditMode ? t.templateForm.updateFailed : t.templateForm.createFailed;
       setNotification({
-        message: getApiErrorMessage(err, fallback),
+        message: (isEditMode ? t.templateForm.updateFailed : t.templateForm.createFailed) + ': ' + (err.response?.data?.message || err.message),
         type: 'error'
       });
     }

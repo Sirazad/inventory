@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Characters from './pages/Characters';
-import InventoryPage from './pages/InventoryPage';
+import InventoryPage from './pages/inventory';
 import Categories from './pages/Categories';
 import TemplatesPage from './pages/TemplatesPage';
 import TemplateFormPage from './pages/TemplateFormPage';
