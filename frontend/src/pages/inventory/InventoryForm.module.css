@@ -1,0 +1,123 @@
+.tabBar {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #ccc;
+}
+
+.tabButton {
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+}
+
+.templateSearchRow {
+  display: flex;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.templateSearchInput {
+  flex: 1;
+  padding: 8px;
+}
+
+.templateResultsBox {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+
+.templateResultItem {
+  padding: 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.templateResultMeta {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.templateResultDesc {
+  font-size: 0.85em;
+  color: #888;
+}
+
+.templatePreview {
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 2px solid #5cb85c;
+  background-color: #f0fff0;
+}
+
+.templatePreviewContents {
+  margin-top: 10px;
+}
+
+.templatePreviewList {
+  margin-left: 20px;
+  margin-top: 5px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.fullRow {
+  grid-column: 1 / -1;
+}
+
+.quantityRow {
+  display: flex;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.quantityInput {
+  flex: 1;
+  padding: 8px;
+  text-align: center;
+}
+
+.priceRow {
+  display: flex;
+  gap: 5px;
+  margin-top: 5px;
+  align-items: center;
+}
+
+.priceInput {
+  width: 30%;
+  padding: 8px;
+}
+
+.saveAsTemplateBox {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #f0f8ff;
+  border: 1px solid #7AB8C0;
+}
+
+.saveAsTemplateLabel {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.saveAsTemplateCheckbox {
+  margin-right: 8px;
+}
+
+.saveAsTemplateHint {
+  font-size: 0.85em;
+  color: #666;
+  margin-top: 5px;
+  margin-left: 24px;
+}
+
+.btnSuccess {
+  background-color: #5cb85c;
+}

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { templateService } from '../services/api';
-import { ItemTemplate, Page } from '../types';
+import { templateService, characterService } from '../services/api';
+import { ItemTemplate, Page, Character } from '../types';
 import { getGold, getSilver, getCopper } from '../utils/currencyUtils';
 import { useLanguage } from '../i18n/LanguageContext';
+import { getApiErrorMessage } from '../utils/errorUtils';
 
 const TemplatesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -22,18 +23,33 @@ const TemplatesPage: React.FC = () => {
     category: ''
   });
 
+  const [appliedFilters, setAppliedFilters] = useState({
+    name: '',
+    isContainer: undefined as boolean | undefined,
+    category: ''
+  });
+
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [addModal, setAddModal] = useState<{ template: ItemTemplate } | null>(null);
+  const [selectedCharId, setSelectedCharId] = useState<number | ''>('');
+  const [addLoading, setAddLoading] = useState(false);
+
   useEffect(() => {
     loadTemplates();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, size, sortBy, sortDir]);
+  }, [page, size, sortBy, sortDir, appliedFilters]);
+
+  useEffect(() => {
+    characterService.getCharacters().then(setCharacters).catch(console.error);
+  }, []);
 
   const loadTemplates = async () => {
     setLoading(true);
     try {
       const data = await templateService.searchTemplates(
-        filters.name || undefined,
-        filters.isContainer,
-        filters.category || undefined,
+        appliedFilters.name || undefined,
+        appliedFilters.isContainer,
+        appliedFilters.category || undefined,
         page,
         size,
         sortBy,
@@ -49,8 +65,32 @@ const TemplatesPage: React.FC = () => {
   };
 
   const handleSearch = () => {
-    setPage(0); // Reset to first page when searching
-    loadTemplates();
+    setAppliedFilters({ ...filters });
+    setPage(0);
+  };
+
+  const handleOpenAddModal = async (template: ItemTemplate) => {
+    try {
+      const full = await templateService.getTemplate(template.id);
+      setAddModal({ template: full });
+      setSelectedCharId('');
+    } catch {
+      alert(t.templates.addFailed);
+    }
+  };
+
+  const handleConfirmAdd = async () => {
+    if (!addModal || selectedCharId === '') return;
+    setAddLoading(true);
+    try {
+      await templateService.addTemplateToInventory(Number(selectedCharId), addModal.template.id);
+      setAddModal(null);
+      alert(t.templates.addSuccess);
+    } catch (err: unknown) {
+      alert(getApiErrorMessage(err, t.templates.addFailed));
+    } finally {
+      setAddLoading(false);
+    }
   };
 
   const handleDelete = async (id: number, name: string) => {
@@ -62,12 +102,8 @@ const TemplatesPage: React.FC = () => {
       await templateService.deleteTemplate(id);
       alert(t.templates.deleteSuccess);
       loadTemplates();
-    } catch (err: any) {
-      if (err.response?.data?.error) {
-        alert('Error: ' + err.response.data.error);
-      } else {
-        alert(t.templates.deleteFailed);
-      }
+    } catch (err: unknown) {
+      alert(getApiErrorMessage(err, t.templates.deleteFailed));
       console.error('Failed to delete template', err);
     }
   };
@@ -77,7 +113,7 @@ const TemplatesPage: React.FC = () => {
     const gold = getGold(priceInCopper);
     const silver = getSilver(priceInCopper);
     const copper = getCopper(priceInCopper);
-    const parts = [];
+    const parts: string[] = [];
     if (gold > 0) parts.push(`${gold}g`);
     if (silver > 0) parts.push(`${silver}s`);
     if (copper > 0) parts.push(`${copper}c`);
@@ -102,56 +138,56 @@ const TemplatesPage: React.FC = () => {
     <div className="page-container max-width-1200">
       <div className="mb-20" style={{ display: 'flex', gap: '10px' }}>
         <button onClick={() => navigate('/characters')} className="btn-primary">
-          ← Back to Characters
+          ← {t.templates.backToCharacters}
         </button>
         <button onClick={() => navigate('/templates/new')} className="btn-primary" style={{ backgroundColor: '#5cb85c' }}>
-          + Create New Template
+          + {t.templates.createNew}
         </button>
       </div>
 
-      <h2>Template Management</h2>
+      <h2>{t.templates.title}</h2>
 
       {/* Search and Filters */}
       <div className="filter-container mb-20">
-        <h3>Search Templates</h3>
+        <h3>{t.templates.searchTemplates}</h3>
         <div className="flex-row flex-gap-10" style={{ flexWrap: 'wrap', marginBottom: '15px' }}>
           <div>
-            <label>Name: </label>
+            <label>{t.templates.name}: </label>
             <input
               type="text"
               value={filters.name}
               onChange={(e) => setFilters({ ...filters, name: e.target.value })}
-              placeholder="Search by name..."
+              placeholder={t.templates.searchByName}
               className="form-input-small"
             />
           </div>
           <div>
-            <label>Category: </label>
+            <label>{t.templates.category}: </label>
             <input
               type="text"
               value={filters.category}
               onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-              placeholder="Search by category..."
+              placeholder={t.templates.searchByCategory}
               className="form-input-small"
             />
           </div>
           <div>
-            <label>Type: </label>
+            <label>{t.templates.type}: </label>
             <select
               value={filters.isContainer === undefined ? '' : filters.isContainer.toString()}
-              onChange={(e) => setFilters({ 
-                ...filters, 
+              onChange={(e) => setFilters({
+                ...filters,
                 isContainer: e.target.value === '' ? undefined : e.target.value === 'true'
               })}
               className="form-input-small"
             >
-              <option value="">All</option>
-              <option value="false">Simple Items</option>
-              <option value="true">Containers</option>
+              <option value="">{t.templates.all}</option>
+              <option value="false">{t.templates.simpleItems}</option>
+              <option value="true">{t.templates.containers}</option>
             </select>
           </div>
           <div>
-            <label>Page Size: </label>
+            <label>{t.templates.pageSize}: </label>
             <select
               value={size}
               onChange={(e) => {
@@ -167,55 +203,47 @@ const TemplatesPage: React.FC = () => {
             </select>
           </div>
           <button onClick={handleSearch} className="btn-small">
-            Search
+            {t.templates.search}
           </button>
           <button
             onClick={() => {
-              setFilters({ name: '', isContainer: undefined, category: '' });
+              const empty = { name: '', isContainer: undefined as boolean | undefined, category: '' };
+              setFilters(empty);
+              setAppliedFilters(empty);
               setPage(0);
             }}
             className="btn-small"
           >
-            Clear
+            {t.templates.clear}
           </button>
         </div>
       </div>
 
-      {/* Create Template Button */}
-      <div style={{ marginBottom: '20px' }}>
-        <button
-          onClick={() => navigate('/templates/create')}
-          className="btn-primary"
-        >
-          + Create New Template
-        </button>
-      </div>
-
       {/* Templates Table */}
       {loading ? (
-        <p>Loading...</p>
+        <p>{t.templates.loading}</p>
       ) : templates && templates.content.length > 0 ? (
         <>
           <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
             <thead>
               <tr style={{ backgroundColor: '#f0f0f0' }}>
-                <th 
+                <th
                   style={{ padding: '10px', border: '1px solid #ccc', cursor: 'pointer' }}
                   onClick={() => toggleSort('name')}
                 >
-                  Name{getSortIndicator('name')}
+                  {t.templates.name}{getSortIndicator('name')}
                 </th>
-                <th 
+                <th
                   style={{ padding: '10px', border: '1px solid #ccc', cursor: 'pointer' }}
                   onClick={() => toggleSort('category')}
                 >
-                  Category{getSortIndicator('category')}
+                  {t.templates.category}{getSortIndicator('category')}
                 </th>
-                <th style={{ padding: '10px', border: '1px solid #ccc' }}>Item</th>
-                <th style={{ padding: '10px', border: '1px solid #ccc' }}>Type</th>
-                <th style={{ padding: '10px', border: '1px solid #ccc' }}>Price</th>
-                <th style={{ padding: '10px', border: '1px solid #ccc' }}>Qty</th>
-                <th style={{ padding: '10px', border: '1px solid #ccc' }}>Actions</th>
+                <th style={{ padding: '10px', border: '1px solid #ccc' }}>{t.templates.item}</th>
+                <th style={{ padding: '10px', border: '1px solid #ccc' }}>{t.templates.type}</th>
+                <th style={{ padding: '10px', border: '1px solid #ccc' }}>{t.templates.price}</th>
+                <th style={{ padding: '10px', border: '1px solid #ccc' }}>{t.templates.quantity}</th>
+                <th style={{ padding: '10px', border: '1px solid #ccc' }}>{t.templates.actions}</th>
               </tr>
             </thead>
             <tbody>
@@ -233,10 +261,10 @@ const TemplatesPage: React.FC = () => {
                   <td style={{ padding: '10px', border: '1px solid #ccc' }}>
                     {template.isContainer ? (
                       <span style={{ color: '#7AB8C0', fontWeight: 'bold' }}>
-                        Container ({template.contents?.length || 0} items)
+                        {t.templates.containerWithItems.replace('{count}', String(template.contents?.length || 0))}
                       </span>
                     ) : (
-                      'Simple Item'
+                      t.templates.simpleItem
                     )}
                   </td>
                   <td style={{ padding: '10px', border: '1px solid #ccc' }}>
@@ -247,24 +275,31 @@ const TemplatesPage: React.FC = () => {
                   </td>
                   <td style={{ padding: '10px', border: '1px solid #ccc' }}>
                     <button
-                      onClick={() => navigate(`/templates/${template.id}`)}
+                      onClick={() => navigate(`/templates/${template.id}/edit`)}
                       className="btn-small"
                       style={{ marginRight: '5px' }}
                     >
-                      View
+                      {t.templates.view}
                     </button>
                     <button
                       onClick={() => navigate(`/templates/${template.id}/edit`)}
                       className="btn-small"
                       style={{ marginRight: '5px' }}
                     >
-                      Edit
+                      {t.templates.edit}
+                    </button>
+                    <button
+                      onClick={() => handleOpenAddModal(template)}
+                      className="btn-small"
+                      style={{ marginRight: '5px', backgroundColor: '#5cb85c', color: 'white' }}
+                    >
+                      {t.templates.addToCharacter}
                     </button>
                     <button
                       onClick={() => handleDelete(template.id, template.name)}
                       className="btn-small"
                     >
-                      Delete
+                      {t.templates.delete}
                     </button>
                   </td>
                 </tr>
@@ -275,7 +310,9 @@ const TemplatesPage: React.FC = () => {
           {/* Pagination */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              Showing {templates.content.length} of {templates.totalElements} templates
+              {t.templates.showing
+                .replace('{count}', String(templates.content.length))
+                .replace('{total}', String(templates.totalElements))}
             </div>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
               <button
@@ -283,23 +320,78 @@ const TemplatesPage: React.FC = () => {
                 disabled={page === 0}
                 className="btn-small"
               >
-                Previous
+                {t.templates.previous}
               </button>
               <span>
-                Page {page + 1} of {templates.totalPages || 1}
+                {t.templates.page} {page + 1} {t.templates.of} {templates.totalPages || 1}
               </span>
               <button
                 onClick={() => setPage(page + 1)}
                 disabled={page >= templates.totalPages - 1}
                 className="btn-small"
               >
-                Next
+                {t.templates.next}
               </button>
             </div>
           </div>
         </>
       ) : (
-        <p>No templates found. Create your first template to get started!</p>
+        <p>{t.templates.noTemplatesFound}</p>
+      )}
+
+      {addModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'white', padding: '30px', maxWidth: '520px', width: '90%', borderRadius: '4px', maxHeight: '80vh', overflowY: 'auto' }}>
+            <h3 style={{ marginTop: 0 }}>{t.templates.addToCharacterTitle.replace('{name}', addModal.template.name)}</h3>
+
+            <div style={{ marginBottom: '15px' }}>
+              <label><strong>{t.templates.selectCharacter}</strong></label>
+              <select
+                value={selectedCharId}
+                onChange={(e) => setSelectedCharId(e.target.value ? Number(e.target.value) : '')}
+                style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+              >
+                <option value="">{t.templates.selectACharacter}</option>
+                {characters.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ marginBottom: '20px', padding: '15px', background: '#f9f9f9', border: '1px solid #ddd' }}>
+              <strong>{t.templates.willCreate}</strong>
+              <div style={{ marginTop: '10px' }}>
+                <div>
+                  {addModal.template.isContainer ? '\u{1F4E6}' : '\u2022'}{' '}
+                  <strong>{addModal.template.item}</strong> ({addModal.template.category}) &times;{addModal.template.quantity}
+                  {addModal.template.priceInCopper ? ` \u2014 ${formatPrice(addModal.template.priceInCopper)}` : ''}
+                </div>
+                {addModal.template.contents && addModal.template.contents.length > 0 && (
+                  <div style={{ marginLeft: '20px', marginTop: '8px' }}>
+                    {addModal.template.contents.map((c, i) => (
+                      <div key={i} style={{ marginTop: '4px', color: '#555' }}>
+                        &rarr; <strong>{c.item}</strong> ({c.category}) &times;{c.quantity}
+                        {c.priceInCopper ? ` \u2014 ${formatPrice(c.priceInCopper)}` : ''}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button onClick={() => setAddModal(null)} className="btn-small">{t.templateForm.cancel}</button>
+              <button
+                onClick={handleConfirmAdd}
+                disabled={selectedCharId === '' || addLoading}
+                className="btn-primary"
+                style={{ backgroundColor: '#5cb85c' }}
+              >
+                {addLoading ? t.common.loading : t.templates.confirmAdd}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

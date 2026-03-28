@@ -2,14 +2,16 @@ package com.inventory.controller;
 
 import com.inventory.dto.InventoryRequest;
 import com.inventory.dto.InventoryResponse;
-import com.inventory.exception.InvalidOperationException;
+import com.inventory.dto.UpdateQuantityRequest;
 import com.inventory.service.InventoryService;
+import com.inventory.service.TemplateService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
@@ -18,9 +20,11 @@ import java.util.Map;
 public class InventoryController {
 
     private final InventoryService inventoryService;
+    private final TemplateService templateService;
 
-    public InventoryController(InventoryService inventoryService) {
+    public InventoryController(InventoryService inventoryService, TemplateService templateService) {
         this.inventoryService = inventoryService;
+        this.templateService = templateService;
     }
 
     @GetMapping
@@ -40,8 +44,9 @@ public class InventoryController {
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long characterId,
             @Valid @RequestBody InventoryRequest request) {
-        return ResponseEntity.ok(inventoryService.createInventory(
-                userDetails.getUsername(), characterId, request));
+        InventoryResponse created = inventoryService.createInventory(
+                userDetails.getUsername(), characterId, request);
+        return ResponseEntity.created(URI.create("/api/characters/" + characterId + "/inventory/" + created.getId())).body(created);
     }
 
     @PutMapping("/{inventoryId}")
@@ -71,13 +76,10 @@ public class InventoryController {
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long characterId,
             @PathVariable Long inventoryId,
-            @RequestBody Map<String, Integer> request) {
-        Integer quantityChange = request.get("quantityChange");
-        if (quantityChange == null) {
-            throw new InvalidOperationException("Quantity change is required");
-        }
+            @Valid @RequestBody UpdateQuantityRequest request) {
         return ResponseEntity.ok(inventoryService.updateQuantity(
-                userDetails.getUsername(), characterId, inventoryId, quantityChange));
+                userDetails.getUsername(), characterId, inventoryId,
+                request.getQuantityChange(), request.getReason()));
     }
     
     @GetMapping("/{inventoryId}/contents")
@@ -97,5 +99,28 @@ public class InventoryController {
         Double totalWeight = inventoryService.calculateTotalWeight(
                 userDetails.getUsername(), characterId, inventoryId);
         return ResponseEntity.ok(Map.of("totalWeight", totalWeight));
+    }
+    
+    @PostMapping("/from-template/{templateId}")
+    public ResponseEntity<InventoryResponse> addFromTemplate(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long characterId,
+            @PathVariable Long templateId) {
+        InventoryResponse created = templateService.addTemplateToInventory(
+                userDetails.getUsername(), characterId, templateId);
+        return ResponseEntity.created(
+                java.util.Objects.requireNonNull(URI.create("/api/characters/" + characterId + "/inventory/" + created.getId())))
+                .body(created);
+    }
+
+    @PostMapping("/{inventoryId}/clone")
+    public ResponseEntity<Map<String, Object>> cloneInventory(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long characterId,
+            @PathVariable Long inventoryId,
+            @RequestParam(required = false, defaultValue = "false") boolean includeContents) {
+        Map<String, Object> result = inventoryService.cloneInventoryItem(
+                userDetails.getUsername(), characterId, inventoryId, includeContents);
+        return ResponseEntity.created(URI.create("/api/characters/" + characterId + "/inventory")).body(result);
     }
 }

@@ -11,6 +11,7 @@ import com.inventory.repository.CharacterRepository;
 import com.inventory.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -22,25 +23,27 @@ public class CharacterService {
 
     private final CharacterRepository characterRepository;
     private final UserRepository userRepository;
-    private final PyarrCalendarService calendarService;
+    private final CalendarService calendarService;
 
-    public CharacterService(CharacterRepository characterRepository, 
+    public CharacterService(CharacterRepository characterRepository,
                           UserRepository userRepository,
-                          PyarrCalendarService calendarService) {
+                          CalendarService calendarService) {
         this.characterRepository = characterRepository;
         this.userRepository = userRepository;
         this.calendarService = calendarService;
     }
 
+    @Transactional(readOnly = true)
     public List<CharacterResponse> getCharactersByUser(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         List<Character> characters = characterRepository.findByUserId(user.getId());
         return characters.stream()
-                .map(c -> new CharacterResponse(c, calendarService))
+                .map(c -> toResponse(c))
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public CharacterResponse createCharacter(String username, CharacterRequest request) {
         log.debug("Creating character '{}' for user '{}'", request.getName(), username);
         
@@ -59,9 +62,10 @@ public class CharacterService {
         Character saved = characterRepository.save(character);
         log.info("Character created successfully: {} (ID: {})", saved.getName(), saved.getId());
         
-        return new CharacterResponse(saved, calendarService);
+        return toResponse(saved);
     }
 
+    @Transactional
     public void deleteCharacter(String username, Long characterId) {
         log.info("Deleting character ID {} for user '{}'", characterId, username);
         
@@ -75,6 +79,7 @@ public class CharacterService {
         log.info("Character deleted successfully: {} (ID: {})", character.getName(), characterId);
     }
 
+    @Transactional
     public CharacterResponse incrementDay(String username, Long characterId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -90,9 +95,10 @@ public class CharacterService {
         character.setCurrentDay(newDate.get("day"));
         
         Character saved = characterRepository.save(character);
-        return new CharacterResponse(saved, calendarService);
+        return toResponse(saved);
     }
 
+    @Transactional
     public CharacterResponse decrementDay(String username, Long characterId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -108,9 +114,10 @@ public class CharacterService {
         character.setCurrentDay(newDate.get("day"));
         
         Character saved = characterRepository.save(character);
-        return new CharacterResponse(saved, calendarService);
+        return toResponse(saved);
     }
 
+    @Transactional
     public CharacterResponse updateCharacter(String username, Long characterId, CharacterRequest request) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -139,6 +146,31 @@ public class CharacterService {
         }
 
         Character saved = characterRepository.save(character);
-        return new CharacterResponse(saved, calendarService);
+        return toResponse(saved);
+    }
+
+    private CharacterResponse toResponse(Character character) {
+        CharacterResponse r = new CharacterResponse();
+        r.setId(character.getId());
+        r.setName(character.getName());
+        r.setCreatedAt(character.getCreatedAt());
+        r.setCurrentYear(character.getCurrentYear() != null ? character.getCurrentYear() : 3692);
+        r.setCurrentDay(character.getCurrentDay() != null ? character.getCurrentDay() : 1);
+        enrich(r);
+        return r;
+    }
+
+    private void enrich(CharacterResponse r) {
+        try {
+            var calendarMonth = calendarService.getCalendarMonth(r.getCurrentDay());
+            r.setGodName(calendarMonth.getGodName());
+            r.setGodMonthNumber(calendarMonth.getGodMonthNumber());
+            r.setSeason(calendarMonth.getSeason());
+        } catch (Exception e) {
+            // If unable to get calendar month, leave fields as null
+            r.setGodName(null);
+            r.setGodMonthNumber(null);
+            r.setSeason(null);
+        }
     }
 }

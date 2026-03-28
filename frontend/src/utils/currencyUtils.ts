@@ -1,13 +1,13 @@
 /**
  * Utility functions for currency conversion between gold, silver, and copper.
  * Conversion rates:
- * - 1 gold = 100 silver
- * - 1 gold = 10000 copper
+ * - 1 gold = 10 silver
+ * - 1 gold = 1000 copper
  * - 1 silver = 100 copper
  */
 
 export const COPPER_PER_SILVER = 100;
-export const COPPER_PER_GOLD = 10000;
+export const COPPER_PER_GOLD = 1000;
 
 /**
  * Convert gold, silver, and copper to total copper value.

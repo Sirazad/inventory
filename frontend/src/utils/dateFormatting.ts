@@ -6,7 +6,7 @@ export const MONTHS_PER_YEAR = 31;
 export const DAYS_PER_YEAR = MONTHS_PER_YEAR * DAYS_PER_MONTH; // 620
 
 // Calendar month interface
-interface CalendarMonth {
+export interface CalendarMonth {
   number: number;
   name: string;
   godName: string;
@@ -14,39 +14,39 @@ interface CalendarMonth {
   season: string;
 }
 
-// Pyarr calendar months (31 months total)
-const CALENDAR_MONTHS: CalendarMonth[] = [
-  { number: 1, name: 'Szándék', godName: 'Kyel', godMonthNumber: 1, season: 'Hideg évszak' },
-  { number: 2, name: 'Akarat', godName: 'Kyel', godMonthNumber: 2, season: 'Hideg évszak' },
-  { number: 3, name: 'Harag', godName: 'Kyel', godMonthNumber: 3, season: 'Hideg évszak' },
-  { number: 4, name: 'Csend', godName: 'Kyel', godMonthNumber: 4, season: 'Hideg évszak' },
-  { number: 5, name: 'Lélek', godName: 'Darton', godMonthNumber: 1, season: 'Meleg évszak' },
-  { number: 6, name: 'Ész', godName: 'Darton', godMonthNumber: 2, season: 'Meleg évszak' },
-  { number: 7, name: 'Szív', godName: 'Darton', godMonthNumber: 3, season: 'Meleg évszak' },
-  { number: 8, name: 'Bánat', godName: 'Darton', godMonthNumber: 4, season: 'Meleg évszak' },
-  { number: 9, name: 'Fény', godName: 'Uwel', godMonthNumber: 1, season: 'Meleg évszak' },
-  { number: 10, name: 'Árny', godName: 'Uwel', godMonthNumber: 2, season: 'Meleg évszak' },
-  { number: 11, name: 'Kezdet', godName: 'Uwel', godMonthNumber: 3, season: 'Meleg évszak' },
-  { number: 12, name: 'Vég', godName: 'Uwel', godMonthNumber: 4, season: 'Meleg évszak' },
-  { number: 13, name: 'Dal', godName: 'Albourne', godMonthNumber: 1, season: 'Esős évszak' },
-  { number: 14, name: 'Vers', godName: 'Albourne', godMonthNumber: 2, season: 'Esős évszak' },
-  { number: 15, name: 'Mese', godName: 'Albourne', godMonthNumber: 3, season: 'Esős évszak' },
-  { number: 16, name: 'Álom', godName: 'Albourne', godMonthNumber: 4, season: 'Esős évszak' },
-  { number: 17, name: 'Múlt', godName: 'Adron', godMonthNumber: 1, season: 'Esős évszak' },
-  { number: 18, name: 'Jelen', godName: 'Adron', godMonthNumber: 2, season: 'Esős évszak' },
-  { number: 19, name: 'Jövő', godName: 'Adron', godMonthNumber: 3, season: 'Esős évszak' },
-  { number: 20, name: 'Örökkévalóság', godName: 'Adron', godMonthNumber: 4, season: 'Esős évszak' },
-  { number: 21, name: 'Tűz', godName: 'Krad', godMonthNumber: 1, season: 'Meleg évszak' },
-  { number: 22, name: 'Víz', godName: 'Krad', godMonthNumber: 2, season: 'Meleg évszak' },
-  { number: 23, name: 'Levegő', godName: 'Krad', godMonthNumber: 3, season: 'Meleg évszak' },
-  { number: 24, name: 'Föld', godName: 'Krad', godMonthNumber: 4, season: 'Meleg évszak' },
-  { number: 25, name: 'Élet', godName: 'Dreina', godMonthNumber: 1, season: 'Meleg évszak' },
-  { number: 26, name: 'Halál', godName: 'Dreina', godMonthNumber: 2, season: 'Meleg évszak' },
-  { number: 27, name: 'Újjászületés', godName: 'Dreina', godMonthNumber: 3, season: 'Meleg évszak' },
-  { number: 28, name: 'Béke', godName: 'Antoh', godMonthNumber: 1, season: 'Hideg évszak' },
-  { number: 29, name: 'Szerelem', godName: 'Antoh', godMonthNumber: 2, season: 'Hideg évszak' },
-  { number: 30, name: 'Gyűlölet', godName: 'Antoh', godMonthNumber: 3, season: 'Hideg évszak' },
-  { number: 31, name: 'Remény', godName: 'Arel', godMonthNumber: 1, season: 'Hideg évszak' },
+// Pyarr calendar months (31 months total) — source of truth: calendar_configuration SQL
+export const CALENDAR_MONTHS: CalendarMonth[] = [
+  { number: 1,  name: 'Szándék',             godName: 'Kyel',     godMonthNumber: 1, season: 'Hideg évszak' },
+  { number: 2,  name: 'Akarat',              godName: 'Kyel',     godMonthNumber: 2, season: 'Hideg évszak' },
+  { number: 3,  name: 'Harag',               godName: 'Kyel',     godMonthNumber: 3, season: 'Hideg évszak' },
+  { number: 4,  name: 'Végítélet',           godName: 'Kyel',     godMonthNumber: 4, season: 'Hideg évszak' },
+  { number: 5,  name: 'Sikolyok',            godName: 'Darton',   godMonthNumber: 1, season: 'Hideg évszak' },
+  { number: 6,  name: 'Csend',               godName: 'Darton',   godMonthNumber: 2, season: 'Hideg évszak' },
+  { number: 7,  name: 'Kacaj',               godName: 'Darton',   godMonthNumber: 3, season: 'Hideg évszak' },
+  { number: 8,  name: 'Pengék',              godName: 'Uwel',     godMonthNumber: 1, season: 'Hideg évszak' },
+  { number: 9,  name: 'Csontok',             godName: 'Uwel',     godMonthNumber: 2, season: 'Hideg évszak' },
+  { number: 10, name: 'Hamvak',              godName: 'Uwel',     godMonthNumber: 3, season: 'Hideg évszak' },
+  { number: 11, name: 'Lant',                godName: 'Albourne', godMonthNumber: 1, season: 'Meleg évszak' },
+  { number: 12, name: 'Álmok',               godName: 'Albourne', godMonthNumber: 2, season: 'Meleg évszak' },
+  { number: 13, name: 'Ébredés',             godName: 'Albourne', godMonthNumber: 3, season: 'Meleg évszak' },
+  { number: 14, name: 'Áldozat',             godName: 'Adron',    godMonthNumber: 1, season: 'Meleg évszak' },
+  { number: 15, name: 'Engesztelés',         godName: 'Adron',    godMonthNumber: 2, season: 'Meleg évszak' },
+  { number: 16, name: 'Lángok',              godName: 'Adron',    godMonthNumber: 3, season: 'Meleg évszak' },
+  { number: 17, name: 'Feloldozás',          godName: 'Adron',    godMonthNumber: 4, season: 'Meleg évszak' },
+  { number: 18, name: 'Ifjak',               godName: 'Krad',     godMonthNumber: 1, season: 'Meleg évszak' },
+  { number: 19, name: 'Bölcsek',             godName: 'Krad',     godMonthNumber: 2, season: 'Meleg évszak' },
+  { number: 20, name: 'Beavatottak',         godName: 'Krad',     godMonthNumber: 3, season: 'Meleg évszak' },
+  { number: 21, name: 'Felemelkedők',        godName: 'Krad',     godMonthNumber: 4, season: 'Meleg évszak' },
+  { number: 22, name: 'Fogadalmak',          godName: 'Dreina',   godMonthNumber: 1, season: 'Esős évszak'  },
+  { number: 23, name: 'Esküvések',           godName: 'Dreina',   godMonthNumber: 2, season: 'Esős évszak'  },
+  { number: 24, name: 'Fohászok',            godName: 'Dreina',   godMonthNumber: 3, season: 'Esős évszak'  },
+  { number: 25, name: 'Hullámok',            godName: 'Antoh',    godMonthNumber: 1, season: 'Esős évszak'  },
+  { number: 26, name: 'Áradás',              godName: 'Antoh',    godMonthNumber: 2, season: 'Esős évszak'  },
+  { number: 27, name: 'Tengercsend',         godName: 'Antoh',    godMonthNumber: 3, season: 'Esős évszak'  },
+  { number: 28, name: 'Zivatar',             godName: 'Arel',     godMonthNumber: 1, season: 'Esős évszak'  },
+  { number: 29, name: 'Kék Acél',            godName: 'Arel',     godMonthNumber: 2, season: 'Esős évszak'  },
+  { number: 30, name: 'Sólyomszárny',        godName: 'Arel',     godMonthNumber: 3, season: 'Esős évszak'  },
+  { number: 31, name: 'Holdak és vándorok',  godName: 'Arel',     godMonthNumber: 4, season: 'Esős évszak'  },
 ];
 
 // Create a Map for O(1) lookups by month number

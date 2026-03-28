@@ -19,9 +19,12 @@ import jakarta.persistence.criteria.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,23 +36,24 @@ public class InventoryService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final InventoryHistoryRepository inventoryHistoryRepository;
-    private final PyarrCalendarService pyarrCalendarService;
+    private final CalendarService calendarService;
 
-    public InventoryService(InventoryRepository inventoryRepository, 
+    public InventoryService(InventoryRepository inventoryRepository,
                           CharacterRepository characterRepository,
                           UserRepository userRepository,
                           CategoryRepository categoryRepository,
                           InventoryHistoryRepository inventoryHistoryRepository,
-                          PyarrCalendarService pyarrCalendarService) {
+                          CalendarService calendarService) {
         this.inventoryRepository = inventoryRepository;
         this.characterRepository = characterRepository;
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
         this.inventoryHistoryRepository = inventoryHistoryRepository;
-        this.pyarrCalendarService = pyarrCalendarService;
+        this.calendarService = calendarService;
     }
 
-    public List<InventoryResponse> getInventoryByCharacter(String username, Long characterId, 
+    @Transactional(readOnly = true)
+    public List<InventoryResponse> getInventoryByCharacter(String username, Long characterId,
                                                    String category, Double minPrice, Double maxWeight, String itemName) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -95,7 +99,7 @@ public class InventoryService {
 
         List<Inventory> inventories = inventoryRepository.findAll(spec);
         return inventories.stream()
-                .map(inv -> new InventoryResponse(inv, pyarrCalendarService))
+                .map(inv -> toResponse(inv))
                 .collect(Collectors.toList());
     }
     
@@ -112,6 +116,7 @@ public class InventoryService {
                     .replace("_", "\\_");
     }
 
+    @Transactional
     public InventoryResponse createInventory(String username, Long characterId, InventoryRequest request) {
         log.debug("Creating inventory item '{}' for character ID {}", request.getItem(), characterId);
         
@@ -154,9 +159,10 @@ public class InventoryService {
         log.info("Inventory item created: {} (ID: {}) for character ID {}", 
                 saved.getItem(), saved.getId(), characterId);
         
-        return new InventoryResponse(saved, pyarrCalendarService);
+        return toResponse(saved);
     }
 
+    @Transactional
     public InventoryResponse updateInventory(String username, Long characterId, Long inventoryId, InventoryRequest request) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -205,9 +211,10 @@ public class InventoryService {
         }
 
         Inventory saved = inventoryRepository.save(inventory);
-        return new InventoryResponse(saved, pyarrCalendarService);
+        return toResponse(saved);
     }
 
+    @Transactional
     public void removeInventory(String username, Long characterId, Long inventoryId, String removalText) {
         log.info("Removing inventory item ID {} for character ID {}", inventoryId, characterId);
         
@@ -231,7 +238,8 @@ public class InventoryService {
                 inventory.getItem(), inventoryId, removalText);
     }
     
-    public InventoryResponse updateQuantity(String username, Long characterId, Long inventoryId, int quantityChange) {
+    @Transactional
+    public InventoryResponse updateQuantity(String username, Long characterId, Long inventoryId, int quantityChange, String callerReason) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -245,16 +253,25 @@ public class InventoryService {
         int newQuantity = currentQuantity + quantityChange;
 
         if (quantityChange > 0) {
-            // Quantity increase - just update modified date
+            // Quantity increase - just update modified date; callerReason ignored
             inventory.setQuantity(newQuantity);
             inventory.setModifiedYear(character.getCurrentYear());
             inventory.setModifiedDay(character.getCurrentDay());
             Inventory saved = inventoryRepository.save(inventory);
-            return new InventoryResponse(saved, pyarrCalendarService);
+            return toResponse(saved);
         } else if (quantityChange < 0) {
             // Quantity decrease - create history record and update/remove item
             int decreaseAmount = Math.abs(quantityChange);
-            
+
+            // Build auto-generated reason based on partial vs full removal
+            String autoReason;
+            if (newQuantity > 0) {
+                autoReason = "Quantity reduced by " + decreaseAmount + " (from " + currentQuantity + " to " + newQuantity + ")";
+            } else {
+                autoReason = "All " + currentQuantity + " item(s) removed";
+            }
+            String resolvedReason = (callerReason != null && !callerReason.isBlank()) ? callerReason : autoReason;
+
             // Create history record for the removed item(s)
             InventoryHistory history = new InventoryHistory();
             history.setInventory(inventory);
@@ -268,6 +285,7 @@ public class InventoryService {
             history.setWeight(inventory.getWeight());
             history.setRemovedYear(character.getCurrentYear());
             history.setRemovedDay(character.getCurrentDay());
+            history.setRemovalReason(resolvedReason);
             inventoryHistoryRepository.save(history);
 
             if (newQuantity > 0) {
@@ -276,24 +294,26 @@ public class InventoryService {
                 inventory.setModifiedYear(character.getCurrentYear());
                 inventory.setModifiedDay(character.getCurrentDay());
                 Inventory saved = inventoryRepository.save(inventory);
-                return new InventoryResponse(saved, pyarrCalendarService);
+                return toResponse(saved);
             } else {
                 // No items left - mark as removed
                 inventory.setQuantity(0);
                 inventory.setRemoved(true);
+                inventory.setRemovedText(resolvedReason);
                 inventory.setRemovedYear(character.getCurrentYear());
                 inventory.setRemovedDay(character.getCurrentDay());
                 inventory.setModifiedYear(character.getCurrentYear());
                 inventory.setModifiedDay(character.getCurrentDay());
                 Inventory saved = inventoryRepository.save(inventory);
-                return new InventoryResponse(saved, pyarrCalendarService);
+                return toResponse(saved);
             }
         }
-        
+
         // No change - return as is without saving
-        return new InventoryResponse(inventory, pyarrCalendarService);
+        return toResponse(inventory);
     }
     
+    @Transactional(readOnly = true)
     public List<InventoryResponse> getItemsInContainer(String username, Long characterId, Long containerId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -307,10 +327,11 @@ public class InventoryService {
 
         List<Inventory> items = inventoryRepository.findByContainerIdAndRemovedFalse(containerId);
         return items.stream()
-                .map(item -> new InventoryResponse(item, pyarrCalendarService))
+                .map(item -> toResponse(item))
                 .collect(Collectors.toList());
     }
     
+    @Transactional(readOnly = true)
     public Double calculateTotalWeight(String username, Long characterId, Long inventoryId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -375,5 +396,165 @@ public class InventoryService {
         
         // Otherwise, check if its container is inside the ancestor
         return isDescendantOf(item.getContainerId(), ancestor, depth + 1);
+    }
+    
+    /**
+     * Clone an inventory item with optional recursive container cloning.
+     * Returns a map with the cloned item and a list of cloned containers with their item counts.
+     */
+    @Transactional
+    public Map<String, Object> cloneInventoryItem(String username, Long characterId, 
+                                                   Long inventoryId, boolean includeContents) {
+        log.debug("Cloning inventory item ID {} for character ID {}, includeContents: {}", 
+                inventoryId, characterId, includeContents);
+        
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Character character = characterRepository.findByIdAndUserId(characterId, user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Character not found"));
+
+        Inventory originalItem = inventoryRepository.findByIdAndCharacterId(inventoryId, characterId)
+                .orElseThrow(() -> new ResourceNotFoundException("Inventory item not found"));
+        
+        // Track cloned containers for success message
+        List<Map<String, Object>> clonedContainers = new ArrayList<>();
+        
+        // Clone the item (and optionally its contents if it's a container)
+        Inventory clonedItem = cloneItemRecursive(originalItem, originalItem.getContainer(), 
+                                                   character, 0, includeContents, clonedContainers);
+        
+        log.info("Successfully cloned inventory item '{}' (ID: {}) to new ID: {}", 
+                originalItem.getItem(), inventoryId, clonedItem.getId());
+        
+        // Prepare response
+        Map<String, Object> response = new HashMap<>();
+        response.put("clonedItem", toResponse(clonedItem));
+        response.put("clonedContainers", clonedContainers);
+        
+        return response;
+    }
+    
+    private InventoryResponse toResponse(Inventory inv) {
+        InventoryResponse r = new InventoryResponse();
+        r.setId(inv.getId());
+        r.setCategory(inv.getCategory());
+        r.setItem(inv.getItem());
+        r.setQuality(inv.getQuality());
+        r.setDescription(inv.getDescription());
+        r.setPriceInCopper(inv.getPriceInCopper());
+        r.setGold(inv.getGold());
+        r.setSilver(inv.getSilver());
+        r.setCopper(inv.getCopper());
+        r.setQuantity(inv.getQuantity());
+        r.setAddedUpdated(inv.getAddedUpdated());
+        r.setWeight(inv.getWeight());
+        r.setContainerId(inv.getContainerId());
+        r.setRemoved(inv.getRemoved());
+        r.setRemovedText(inv.getRemovedText());
+        r.setAddedYear(inv.getAddedYear());
+        r.setAddedDay(inv.getAddedDay());
+        r.setModifiedYear(inv.getModifiedYear());
+        r.setModifiedDay(inv.getModifiedDay());
+        r.setRemovedYear(inv.getRemovedYear());
+        r.setRemovedDay(inv.getRemovedDay());
+        r.setCreatedAt(inv.getCreatedAt());
+        r.setUpdatedAt(inv.getUpdatedAt());
+        enrich(r, inv);
+        return r;
+    }
+
+    private void enrich(InventoryResponse r, Inventory inv) {
+        if (inv.getAddedYear() != null && inv.getAddedDay() != null) {
+            try {
+                var calendarMonth = calendarService.getCalendarMonth(inv.getAddedDay());
+                r.setAddedGodName(calendarMonth.getGodName());
+                r.setAddedGodMonthNumber(calendarMonth.getGodMonthNumber());
+                r.setAddedSeason(calendarMonth.getSeason());
+            } catch (IllegalArgumentException e) {
+                // Invalid date values - leave fields as null
+                r.setAddedGodName(null);
+                r.setAddedGodMonthNumber(null);
+                r.setAddedSeason(null);
+            }
+        }
+
+        if (inv.getModifiedYear() != null && inv.getModifiedDay() != null) {
+            try {
+                var calendarMonth = calendarService.getCalendarMonth(inv.getModifiedDay());
+                r.setModifiedGodName(calendarMonth.getGodName());
+                r.setModifiedGodMonthNumber(calendarMonth.getGodMonthNumber());
+                r.setModifiedSeason(calendarMonth.getSeason());
+            } catch (IllegalArgumentException e) {
+                // Invalid date values - leave fields as null
+                r.setModifiedGodName(null);
+                r.setModifiedGodMonthNumber(null);
+                r.setModifiedSeason(null);
+            }
+        }
+    }
+
+    /**
+     * Recursive helper to clone an inventory item and optionally its contents.
+     */
+    private Inventory cloneItemRecursive(Inventory original, Inventory targetContainer, 
+                                        Character character, int depth, boolean includeContents,
+                                        List<Map<String, Object>> clonedContainers) {
+        // Prevent infinite recursion
+        if (depth > 10) {
+            throw new InvalidOperationException("Container nesting too deep (max 10 levels)");
+        }
+        
+        // Create new inventory item with same properties
+        Inventory clone = new Inventory();
+        clone.setCategory(original.getCategory());
+        
+        // Set category entity if it exists
+        if (original.getCategory() != null && !original.getCategory().isEmpty()) {
+            categoryRepository.findByName(original.getCategory())
+                    .ifPresent(clone::setCategoryEntity);
+        }
+        
+        clone.setItem(original.getItem());
+        clone.setQuality(original.getQuality());
+        clone.setDescription(original.getDescription());
+        clone.setPriceInCopper(original.getPriceInCopper());
+        clone.setQuantity(original.getQuantity());
+        clone.setAddedUpdated(original.getAddedUpdated());
+        clone.setWeight(original.getWeight());
+        clone.setCharacter(character);
+        clone.setContainer(targetContainer);
+        clone.setIsContainer(original.getIsContainer());
+        
+        // Set added date from character's current date (NOT from original item)
+        clone.setAddedYear(character.getCurrentYear());
+        clone.setAddedDay(character.getCurrentDay());
+        
+        // Modified date should be null (new item has not been modified yet)
+        clone.setModifiedYear(null);
+        clone.setModifiedDay(null);
+        
+        // Save the cloned item
+        Inventory savedClone = inventoryRepository.save(clone);
+        
+        // If it's a container and includeContents is true, recursively clone all contained items
+        if (Boolean.TRUE.equals(original.getIsContainer()) && includeContents) {
+            List<Inventory> containedItems = inventoryRepository.findByContainerIdAndRemovedFalse(original.getId());
+            int itemCount = containedItems.size();
+            
+            // Track this container for success message
+            Map<String, Object> containerInfo = new HashMap<>();
+            containerInfo.put("name", savedClone.getItem());
+            containerInfo.put("count", itemCount);
+            clonedContainers.add(containerInfo);
+            
+            // Clone each contained item recursively
+            for (Inventory containedItem : containedItems) {
+                cloneItemRecursive(containedItem, savedClone, character, depth + 1, 
+                                  true, clonedContainers);
+            }
+        }
+        
+        return savedClone;
     }
 }

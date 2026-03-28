@@ -1,16 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { templateService, categoryService } from '../services/api';
-import { ItemTemplate, TemplateContentRequest, Category } from '../types';
+import { ItemTemplate, Category } from '../types';
 import Notification from '../components/Notification';
+import { useLanguage } from '../i18n/LanguageContext';
 import { toCopperValue, getGold, getSilver, getCopper } from '../utils/currencyUtils';
-
-const MAX_TEMPLATES_FETCH = 1000;
+import { getApiErrorMessage } from '../utils/errorUtils';
 
 const TemplateFormPage: React.FC = () => {
-  const { templateId } = useParams<{ templateId: string }>();
+  const { templateId: rawTemplateId } = useParams<{ templateId: string }>();
   const navigate = useNavigate();
-  const isEditMode = !!templateId;
+  const { t } = useLanguage();
+
+  const parsedTemplateId = rawTemplateId ? Number(rawTemplateId) : undefined;
+  const isEditMode = parsedTemplateId !== undefined;
+
+  useEffect(() => {
+    if (rawTemplateId !== undefined && (parsedTemplateId === undefined || isNaN(parsedTemplateId))) {
+      navigate('/templates', { replace: true });
+    }
+  }, [rawTemplateId, parsedTemplateId, navigate]);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [allTemplates, setAllTemplates] = useState<ItemTemplate[]>([]);
@@ -42,16 +51,17 @@ const TemplateFormPage: React.FC = () => {
     quantity?: string;
     weight?: string;
     isReference: boolean;
+    templateFilter?: string;
   }>>([]);
 
   useEffect(() => {
     loadCategories();
-    loadAllTemplates();
-    if (isEditMode) {
+    loadTemplates();
+    if (isEditMode && parsedTemplateId !== undefined) {
       loadTemplate();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [templateId]);
+  }, [rawTemplateId]);
 
   const loadCategories = async () => {
     try {
@@ -62,18 +72,19 @@ const TemplateFormPage: React.FC = () => {
     }
   };
 
-  const loadAllTemplates = async () => {
+  const loadTemplates = useCallback(async () => {
     try {
-      const response = await templateService.getAllTemplates(0, MAX_TEMPLATES_FETCH, 'name', 'ASC');
+      const response = await templateService.searchTemplates(undefined, undefined, undefined, 0, 100, 'name', 'ASC');
       setAllTemplates(response.content);
     } catch (err) {
       console.error('Failed to load templates', err);
     }
-  };
+  }, []);
 
   const loadTemplate = async () => {
+    if (parsedTemplateId === undefined || isNaN(parsedTemplateId)) return;
     try {
-      const template = await templateService.getTemplate(Number(templateId));
+      const template = await templateService.getTemplate(parsedTemplateId);
       
       // Calculate gold, silver, copper from priceInCopper using utility
       const gold = getGold(template.priceInCopper);
@@ -128,7 +139,7 @@ const TemplateFormPage: React.FC = () => {
       }
     } catch (err) {
       console.error('Failed to load template', err);
-      setNotification({ message: 'Failed to load template', type: 'error' });
+      setNotification({ message: t.templateForm.loadFailed, type: 'error' });
       setTimeout(() => navigate('/templates'), 2000);
     }
   };
@@ -142,9 +153,10 @@ const TemplateFormPage: React.FC = () => {
     const copper = parseInt(formData.copper) || 0;
     const priceInCopper = toCopperValue(gold, silver, copper);
 
-    const contents: TemplateContentRequest[] = formData.isContainer ? contentItems.map(item => {
+    const contents = formData.isContainer ? contentItems.map(item => {
       if (item.isReference) {
         return {
+          id: item.id,
           referencedTemplateId: item.referencedTemplateId!,
           quantityOverride: item.quantityOverride,
         };
@@ -155,6 +167,7 @@ const TemplateFormPage: React.FC = () => {
         const itemPrice = toCopperValue(goldValue, silverValue, copperValue);
 
         return {
+          id: item.id,
           category: item.category!,
           item: item.item!,
           quality: item.quality || undefined,
@@ -180,20 +193,20 @@ const TemplateFormPage: React.FC = () => {
     };
 
     try {
-      if (isEditMode) {
-        await templateService.updateTemplate(Number(templateId), request);
-        setNotification({ message: 'Template updated successfully!', type: 'success' });
+      if (isEditMode && parsedTemplateId !== undefined) {
+        await templateService.updateTemplate(parsedTemplateId, request);
+        setNotification({ message: t.templateForm.updateSuccess, type: 'success' });
         setTimeout(() => navigate('/templates'), 1500);
       } else {
         await templateService.createTemplate(request);
-        setNotification({ message: 'Template created successfully!', type: 'success' });
+        setNotification({ message: t.templateForm.createSuccess, type: 'success' });
         setTimeout(() => navigate('/templates'), 1500);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to save template', err);
-      setNotification({ 
-        message: 'Failed to save template: ' + (err.response?.data?.message || err.message),
-        type: 'error'
+      setNotification({
+        message: getApiErrorMessage(err, isEditMode ? t.templateForm.updateFailed : t.templateForm.createFailed),
+        type: 'error',
       });
     }
   };
@@ -206,7 +219,7 @@ const TemplateFormPage: React.FC = () => {
     setContentItems(contentItems.filter((_, i) => i !== index));
   };
 
-  const updateContentItem = (index: number, field: string, value: any) => {
+  const updateContentItem = (index: number, field: string, value: string | number | boolean | undefined) => {
     const updated = [...contentItems];
     updated[index] = { ...updated[index], [field]: value };
     setContentItems(updated);
@@ -216,36 +229,36 @@ const TemplateFormPage: React.FC = () => {
     <div className="page-container max-width-1200">
       <div className="mb-20">
         <button onClick={() => navigate('/templates')} className="btn-primary">
-          ← Back to Templates
+          ← {t.templateForm.backToTemplates}
         </button>
       </div>
 
-      <h2>{isEditMode ? 'Edit Template' : 'Create New Template'}</h2>
+      <h2>{isEditMode ? t.templateForm.editTemplate : t.templateForm.createNewTemplate}</h2>
 
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '20px', padding: '20px', border: '2px solid #7AB8C0', backgroundColor: 'white' }}>
-          <h3>Template Information</h3>
+          <h3>{t.templateForm.templateInformation}</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
             <div>
-              <label>Name (unique) *</label>
+              <label>{t.templateForm.nameUnique}</label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
                 style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-                placeholder="e.g., Healing Kit, Health Potion"
+                placeholder={t.templateForm.namePlaceholder}
               />
             </div>
             <div>
-              <label>Category *</label>
+              <label>{t.templateForm.categoryLabel}</label>
               <select
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 required
                 style={{ width: '100%', padding: '8px', marginTop: '5px' }}
               >
-                <option value="">Select Category</option>
+                <option value="">{t.templateForm.selectCategory}</option>
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.name}>
                     {cat.name}
@@ -254,28 +267,28 @@ const TemplateFormPage: React.FC = () => {
               </select>
             </div>
             <div>
-              <label>Item *</label>
+              <label>{t.templateForm.itemLabel}</label>
               <input
                 type="text"
                 value={formData.item}
                 onChange={(e) => setFormData({ ...formData, item: e.target.value })}
                 required
                 style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-                placeholder="e.g., Leather Pouch, Potion Bottle"
+                placeholder={t.templateForm.itemPlaceholder}
               />
             </div>
             <div>
-              <label>Quality</label>
+              <label>{t.templateForm.quality}</label>
               <input
                 type="text"
                 value={formData.quality}
                 onChange={(e) => setFormData({ ...formData, quality: e.target.value })}
                 style={{ width: '100%', padding: '8px', marginTop: '5px' }}
-                placeholder="e.g., Common, Rare"
+                placeholder={t.templateForm.qualityPlaceholder}
               />
             </div>
             <div>
-              <label>Quantity *</label>
+              <label>{t.templateForm.quantityLabel}</label>
               <input
                 type="number"
                 min="1"
@@ -286,12 +299,12 @@ const TemplateFormPage: React.FC = () => {
               />
             </div>
             <div>
-              <label>Price</label>
+              <label>{t.templateForm.priceLabel}</label>
               <div style={{ display: 'flex', gap: '5px', marginTop: '5px' }}>
                 <input
                   type="number"
                   min="0"
-                  placeholder="Gold"
+                  placeholder={t.templateForm.gold}
                   value={formData.gold}
                   onChange={(e) => setFormData({ ...formData, gold: e.target.value })}
                   style={{ width: '30%', padding: '8px' }}
@@ -300,7 +313,7 @@ const TemplateFormPage: React.FC = () => {
                 <input
                   type="number"
                   min="0"
-                  placeholder="Silver"
+                  placeholder={t.templateForm.silver}
                   value={formData.silver}
                   onChange={(e) => setFormData({ ...formData, silver: e.target.value })}
                   style={{ width: '30%', padding: '8px' }}
@@ -309,7 +322,7 @@ const TemplateFormPage: React.FC = () => {
                 <input
                   type="number"
                   min="0"
-                  placeholder="Copper"
+                  placeholder={t.templateForm.copper}
                   value={formData.copper}
                   onChange={(e) => setFormData({ ...formData, copper: e.target.value })}
                   style={{ width: '30%', padding: '8px' }}
@@ -318,7 +331,7 @@ const TemplateFormPage: React.FC = () => {
               </div>
             </div>
             <div>
-              <label>Weight (kg)</label>
+              <label>{t.templateForm.weightKg}</label>
               <input
                 type="number"
                 step="0.01"
@@ -336,14 +349,14 @@ const TemplateFormPage: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, isContainer: e.target.checked })}
                   style={{ marginRight: '8px' }}
                 />
-                Is Container
+                {t.templateForm.isContainer}
               </label>
               <div style={{ fontSize: '12px', color: '#666', marginTop: '3px' }}>
-                Check if this template can contain other items
+                {t.templateForm.isContainerHelp}
               </div>
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
-              <label>Description *</label>
+              <label>{t.templateForm.description}</label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -358,16 +371,16 @@ const TemplateFormPage: React.FC = () => {
         {/* Container Contents */}
         {formData.isContainer && (
           <div style={{ marginBottom: '20px', padding: '20px', border: '2px solid #7AB8C0', backgroundColor: 'white' }}>
-            <h3>Container Contents</h3>
+            <h3>{t.templateForm.containerContents}</h3>
             {contentItems.map((content, index) => (
               <div key={index} style={{ marginBottom: '15px', padding: '15px', border: '1px solid #ddd', backgroundColor: '#f9f9f9' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                  <h4 style={{ margin: 0 }}>Content Item #{index + 1}</h4>
+                  <h4 style={{ margin: 0 }}>{t.templateForm.contentItem.replace('{number}', String(index + 1))}</h4>
                   <button type="button" onClick={() => removeContentItem(index)} className="btn-small" style={{ backgroundColor: '#d9534f', color: 'white' }}>
-                    Remove
+                    {t.templateForm.remove}
                   </button>
                 </div>
-                
+
                 <div style={{ marginBottom: '10px' }}>
                   <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
                     <input
@@ -376,38 +389,48 @@ const TemplateFormPage: React.FC = () => {
                       onChange={(e) => updateContentItem(index, 'isReference', e.target.checked)}
                       style={{ marginRight: '8px' }}
                     />
-                    Reference Existing Template
+                    {t.templateForm.referenceExistingTemplate}
                   </label>
                 </div>
 
                 {content.isReference ? (
                   <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
                     <div>
-                      <label>Select Template *</label>
+                      <label>{t.templateForm.selectTemplate}</label>
+                      <input
+                        type="text"
+                        placeholder={t.templateForm.filterTemplates}
+                        value={content.templateFilter || ''}
+                        onChange={(e) => updateContentItem(index, 'templateFilter', e.target.value)}
+                        style={{ width: '100%', padding: '8px', marginTop: '5px', marginBottom: '4px', boxSizing: 'border-box' }}
+                      />
                       <select
                         value={content.referencedTemplateId || ''}
                         onChange={(e) => updateContentItem(index, 'referencedTemplateId', parseInt(e.target.value))}
                         required
-                        style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                        style={{ width: '100%', padding: '8px' }}
                       >
-                        <option value="">Select a template</option>
+                        <option value="">{t.templateForm.selectATemplate}</option>
                         {allTemplates
-                          .filter(t => t.id !== Number(templateId)) // Don't allow self-reference
-                          .map((t) => (
-                            <option key={t.id} value={t.id}>
-                              {t.name} ({t.category} - {t.item})
+                          .filter(tmpl => tmpl.id !== parsedTemplateId)
+                          .filter(tmpl => !content.templateFilter ||
+                            tmpl.name.toLowerCase().includes(content.templateFilter.toLowerCase()) ||
+                            tmpl.item.toLowerCase().includes(content.templateFilter.toLowerCase()))
+                          .map((tmpl) => (
+                            <option key={tmpl.id} value={tmpl.id}>
+                              {tmpl.name} ({tmpl.category} - {tmpl.item})
                             </option>
                           ))}
                       </select>
                     </div>
                     <div>
-                      <label>Quantity Override</label>
+                      <label>{t.templateForm.quantityOverride}</label>
                       <input
                         type="number"
                         min="1"
                         value={content.quantityOverride || ''}
                         onChange={(e) => updateContentItem(index, 'quantityOverride', e.target.value ? parseInt(e.target.value) : undefined)}
-                        placeholder="Leave empty to use template quantity"
+                        placeholder={t.templateForm.quantityOverrideHelp}
                         style={{ width: '100%', padding: '8px', marginTop: '5px' }}
                       />
                     </div>
@@ -415,14 +438,14 @@ const TemplateFormPage: React.FC = () => {
                 ) : (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                     <div>
-                      <label>Category *</label>
+                      <label>{t.templateForm.categoryRequired}</label>
                       <select
                         value={content.category || ''}
                         onChange={(e) => updateContentItem(index, 'category', e.target.value)}
                         required
                         style={{ width: '100%', padding: '8px', marginTop: '5px' }}
                       >
-                        <option value="">Select Category</option>
+                        <option value="">{t.templateForm.selectCategory}</option>
                         {categories.map((cat) => (
                           <option key={cat.id} value={cat.name}>
                             {cat.name}
@@ -431,7 +454,7 @@ const TemplateFormPage: React.FC = () => {
                       </select>
                     </div>
                     <div>
-                      <label>Item *</label>
+                      <label>{t.templateForm.itemRequired}</label>
                       <input
                         type="text"
                         value={content.item || ''}
@@ -441,7 +464,7 @@ const TemplateFormPage: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label>Quality</label>
+                      <label>{t.templateForm.quality}</label>
                       <input
                         type="text"
                         value={content.quality || ''}
@@ -450,7 +473,7 @@ const TemplateFormPage: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label>Quantity *</label>
+                      <label>{t.templateForm.quantityRequired}</label>
                       <input
                         type="number"
                         min="1"
@@ -461,7 +484,7 @@ const TemplateFormPage: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label>Price</label>
+                      <label>{t.templateForm.priceLabel}</label>
                       <div style={{ display: 'flex', gap: '5px', marginTop: '5px' }}>
                         <input
                           type="number"
@@ -493,7 +516,7 @@ const TemplateFormPage: React.FC = () => {
                       </div>
                     </div>
                     <div>
-                      <label>Weight (kg)</label>
+                      <label>{t.templateForm.weightKg}</label>
                       <input
                         type="number"
                         step="0.01"
@@ -504,11 +527,12 @@ const TemplateFormPage: React.FC = () => {
                       />
                     </div>
                     <div style={{ gridColumn: '1 / -1' }}>
-                      <label>Description</label>
+                      <label>{t.templateForm.description}</label>
                       <input
                         type="text"
                         value={content.description || ''}
                         onChange={(e) => updateContentItem(index, 'description', e.target.value)}
+                        required
                         style={{ width: '100%', padding: '8px', marginTop: '5px' }}
                       />
                     </div>
@@ -516,19 +540,19 @@ const TemplateFormPage: React.FC = () => {
                 )}
               </div>
             ))}
-            
+
             <button type="button" onClick={addContentItem} className="btn-primary">
-              + Add Content Item
+              + {t.templateForm.addContentItem}
             </button>
           </div>
         )}
 
         <div style={{ marginTop: '20px' }}>
           <button type="submit" className="btn-primary" style={{ marginRight: '10px' }}>
-            {isEditMode ? 'Update Template' : 'Create Template'}
+            {isEditMode ? t.templateForm.updateTemplate : t.templateForm.createTemplate}
           </button>
           <button type="button" onClick={() => navigate('/templates')} className="btn-primary">
-            Cancel
+            {t.templateForm.cancel}
           </button>
         </div>
       </form>

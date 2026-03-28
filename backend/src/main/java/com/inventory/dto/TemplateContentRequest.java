@@ -9,7 +9,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TemplateContentRequest {
-    
+
+    /** Present when updating an existing content row — absent when adding a new one. */
+    private Long id;
+
     private Long referencedTemplateId;
     
     private Integer quantityOverride;

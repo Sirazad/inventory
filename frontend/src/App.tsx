@@ -1,12 +1,18 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Characters from './pages/Characters';
-import InventoryPage from './pages/InventoryPage';
+import InventoryPage from './pages/inventory';
 import Categories from './pages/Categories';
 import TemplatesPage from './pages/TemplatesPage';
 import TemplateFormPage from './pages/TemplateFormPage';
+
+const ScrollToTop: React.FC = () => {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  return null;
+};
 
 const PrivateRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
   const token = localStorage.getItem('token');
@@ -17,6 +23,7 @@ const App: React.FC = () => {
   return (
     <BrowserRouter>
       <div style={{ minHeight: '100vh', backgroundColor: 'white' }}>
+        <ScrollToTop />
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

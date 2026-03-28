@@ -4,6 +4,7 @@ import { authService } from '../services/api';
 import { RegisterRequest } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
 import LanguageToggle from '../components/LanguageToggle';
+import { getApiErrorMessage } from '../utils/errorUtils';
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState<RegisterRequest>({
@@ -23,9 +24,8 @@ const Register: React.FC = () => {
       localStorage.setItem('token', response.token);
       localStorage.setItem('username', response.username);
       navigate('/characters');
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.error || t.register.errorGeneric;
-      setError(errorMessage);
+    } catch (err: unknown) {
+      setError(getApiErrorMessage(err, t.register.errorGeneric));
     }
   };
 

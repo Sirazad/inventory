@@ -45,6 +45,7 @@ export interface Inventory {
   modifiedGodName?: string;
   modifiedGodMonthNumber?: number;
   modifiedSeason?: string;
+  isContainer?: boolean;
 }
 
 export interface LoginRequest {
@@ -95,8 +96,6 @@ export interface InventoryUpdateRequest {
 export interface Category {
   id: number;
   name: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface CategoryRequest {
@@ -155,6 +154,7 @@ export interface TemplateRequest {
 }
 
 export interface TemplateContentRequest {
+  id?: number;
   referencedTemplateId?: number;
   quantityOverride?: number;
   category?: string;
@@ -176,4 +176,10 @@ export interface Page<T> {
   number: number;
   first: boolean;
   last: boolean;
+}
+
+export interface ApiError {
+  error?: string;
+  message?: string;
+  status?: number;
 }

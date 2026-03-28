@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class PyarrCalendarService {
+public class PyarrCalendarService implements CalendarService {
     
     private final CalendarMonthRepository calendarMonthRepository;
     

@@ -4,22 +4,8 @@ import { characterService, authService } from '../services/api';
 import { Character } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
 import LanguageToggle from '../components/LanguageToggle';
-import { formatPyarrDate, calculateMonthAndDay, DAYS_PER_MONTH } from '../utils/dateFormatting';
-
-// Pyarr calendar months (31 months)
-const CALENDAR_MONTHS = [
-  { number: 1, name: 'Szándék' }, { number: 2, name: 'Akarat' }, { number: 3, name: 'Harag' },
-  { number: 4, name: 'Végítélet' }, { number: 5, name: 'Sikolyok' }, { number: 6, name: 'Csend' },
-  { number: 7, name: 'Kacaj' }, { number: 8, name: 'Pengék' }, { number: 9, name: 'Csontok' },
-  { number: 10, name: 'Hamvak' }, { number: 11, name: 'Lant' }, { number: 12, name: 'Álmok' },
-  { number: 13, name: 'Ébredés' }, { number: 14, name: 'Áldozat' }, { number: 15, name: 'Engesztelés' },
-  { number: 16, name: 'Lángok' }, { number: 17, name: 'Feloldozás' }, { number: 18, name: 'Ifjak' },
-  { number: 19, name: 'Bölcsek' }, { number: 20, name: 'Beavatottak' }, { number: 21, name: 'Felemelkedők' },
-  { number: 22, name: 'Fogadalmak' }, { number: 23, name: 'Esküvések' }, { number: 24, name: 'Fohászok' },
-  { number: 25, name: 'Hullámok' }, { number: 26, name: 'Áradás' }, { number: 27, name: 'Tengercsend' },
-  { number: 28, name: 'Zivatar' }, { number: 29, name: 'Kék Acél' }, { number: 30, name: 'Sólyomszárny' },
-  { number: 31, name: 'Holdak és vándorok' }
-];
+import { formatPyarrDate, calculateMonthAndDay, DAYS_PER_MONTH, CALENDAR_MONTHS } from '../utils/dateFormatting';
+import { getApiErrorMessage } from '../utils/errorUtils';
 
 interface EditingCharacter {
   id: number;
@@ -57,9 +43,8 @@ const Characters: React.FC = () => {
       await characterService.createCharacter(newCharacterName);
       setNewCharacterName('');
       loadCharacters();
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.error || t.characters.failedCreate;
-      alert(errorMessage);
+    } catch (err: unknown) {
+      alert(getApiErrorMessage(err, t.characters.failedCreate));
     }
   };
 
@@ -98,12 +83,12 @@ const Characters: React.FC = () => {
 
   const handleEditCharacter = (character: Character) => {
     // Calculate month and day from currentDay
-    const { monthNumber, dayInMonth } = calculateMonthAndDay(character.currentDay);
-    
+    const { monthNumber, dayInMonth } = calculateMonthAndDay(character.currentDay ?? 1);
+
     setEditingCharacter({
       id: character.id,
       name: character.name,
-      year: character.currentYear,
+      year: character.currentYear ?? 1,
       month: monthNumber,
       day: dayInMonth
     });
@@ -128,9 +113,8 @@ const Characters: React.FC = () => {
         char.id === editingCharacter.id ? updatedCharacter : char
       ));
       setEditingCharacter(null);
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.error || t.characters.failedUpdate;
-      alert(errorMessage);
+    } catch (err: unknown) {
+      alert(getApiErrorMessage(err, t.characters.failedUpdate));
     }
   };
 
