@@ -1,12 +1,13 @@
 package com.inventory.controller;
 
 import com.inventory.dto.CategoryRequest;
-import com.inventory.entity.Category;
+import com.inventory.dto.CategoryResponse;
 import com.inventory.service.CategoryService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -20,19 +21,19 @@ public class CategoryController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Category>> getAllCategories() {
+    public ResponseEntity<List<CategoryResponse>> getAllCategories() {
         return ResponseEntity.ok(categoryService.getAllCategories());
     }
 
     @PostMapping
-    public ResponseEntity<Category> createCategory(@Valid @RequestBody CategoryRequest request) {
-        Category category = categoryService.createCategory(request);
-        return ResponseEntity.ok(category);
+    public ResponseEntity<CategoryResponse> createCategory(@Valid @RequestBody CategoryRequest request) {
+        CategoryResponse created = categoryService.createCategory(request);
+        return ResponseEntity.created(URI.create("/api/categories/" + created.getId())).body(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Category> updateCategory(@PathVariable Long id, @Valid @RequestBody CategoryRequest request) {
-        Category category = categoryService.updateCategory(id, request);
+    public ResponseEntity<CategoryResponse> updateCategory(@PathVariable Long id, @Valid @RequestBody CategoryRequest request) {
+        CategoryResponse category = categoryService.updateCategory(id, request);
         return ResponseEntity.ok(category);
     }
 

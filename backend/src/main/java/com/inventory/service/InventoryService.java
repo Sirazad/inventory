@@ -36,23 +36,24 @@ public class InventoryService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final InventoryHistoryRepository inventoryHistoryRepository;
-    private final PyarrCalendarService pyarrCalendarService;
+    private final CalendarService calendarService;
 
-    public InventoryService(InventoryRepository inventoryRepository, 
+    public InventoryService(InventoryRepository inventoryRepository,
                           CharacterRepository characterRepository,
                           UserRepository userRepository,
                           CategoryRepository categoryRepository,
                           InventoryHistoryRepository inventoryHistoryRepository,
-                          PyarrCalendarService pyarrCalendarService) {
+                          CalendarService calendarService) {
         this.inventoryRepository = inventoryRepository;
         this.characterRepository = characterRepository;
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
         this.inventoryHistoryRepository = inventoryHistoryRepository;
-        this.pyarrCalendarService = pyarrCalendarService;
+        this.calendarService = calendarService;
     }
 
-    public List<InventoryResponse> getInventoryByCharacter(String username, Long characterId, 
+    @Transactional(readOnly = true)
+    public List<InventoryResponse> getInventoryByCharacter(String username, Long characterId,
                                                    String category, Double minPrice, Double maxWeight, String itemName) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -98,7 +99,7 @@ public class InventoryService {
 
         List<Inventory> inventories = inventoryRepository.findAll(spec);
         return inventories.stream()
-                .map(inv -> new InventoryResponse(inv, pyarrCalendarService))
+                .map(inv -> toResponse(inv))
                 .collect(Collectors.toList());
     }
     
@@ -115,6 +116,7 @@ public class InventoryService {
                     .replace("_", "\\_");
     }
 
+    @Transactional
     public InventoryResponse createInventory(String username, Long characterId, InventoryRequest request) {
         log.debug("Creating inventory item '{}' for character ID {}", request.getItem(), characterId);
         
@@ -157,9 +159,10 @@ public class InventoryService {
         log.info("Inventory item created: {} (ID: {}) for character ID {}", 
                 saved.getItem(), saved.getId(), characterId);
         
-        return new InventoryResponse(saved, pyarrCalendarService);
+        return toResponse(saved);
     }
 
+    @Transactional
     public InventoryResponse updateInventory(String username, Long characterId, Long inventoryId, InventoryRequest request) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -208,9 +211,10 @@ public class InventoryService {
         }
 
         Inventory saved = inventoryRepository.save(inventory);
-        return new InventoryResponse(saved, pyarrCalendarService);
+        return toResponse(saved);
     }
 
+    @Transactional
     public void removeInventory(String username, Long characterId, Long inventoryId, String removalText) {
         log.info("Removing inventory item ID {} for character ID {}", inventoryId, characterId);
         
@@ -234,7 +238,8 @@ public class InventoryService {
                 inventory.getItem(), inventoryId, removalText);
     }
     
-    public InventoryResponse updateQuantity(String username, Long characterId, Long inventoryId, int quantityChange) {
+    @Transactional
+    public InventoryResponse updateQuantity(String username, Long characterId, Long inventoryId, int quantityChange, String callerReason) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -248,16 +253,25 @@ public class InventoryService {
         int newQuantity = currentQuantity + quantityChange;
 
         if (quantityChange > 0) {
-            // Quantity increase - just update modified date
+            // Quantity increase - just update modified date; callerReason ignored
             inventory.setQuantity(newQuantity);
             inventory.setModifiedYear(character.getCurrentYear());
             inventory.setModifiedDay(character.getCurrentDay());
             Inventory saved = inventoryRepository.save(inventory);
-            return new InventoryResponse(saved, pyarrCalendarService);
+            return toResponse(saved);
         } else if (quantityChange < 0) {
             // Quantity decrease - create history record and update/remove item
             int decreaseAmount = Math.abs(quantityChange);
-            
+
+            // Build auto-generated reason based on partial vs full removal
+            String autoReason;
+            if (newQuantity > 0) {
+                autoReason = "Quantity reduced by " + decreaseAmount + " (from " + currentQuantity + " to " + newQuantity + ")";
+            } else {
+                autoReason = "All " + currentQuantity + " item(s) removed";
+            }
+            String resolvedReason = (callerReason != null && !callerReason.isBlank()) ? callerReason : autoReason;
+
             // Create history record for the removed item(s)
             InventoryHistory history = new InventoryHistory();
             history.setInventory(inventory);
@@ -271,6 +285,7 @@ public class InventoryService {
             history.setWeight(inventory.getWeight());
             history.setRemovedYear(character.getCurrentYear());
             history.setRemovedDay(character.getCurrentDay());
+            history.setRemovalReason(resolvedReason);
             inventoryHistoryRepository.save(history);
 
             if (newQuantity > 0) {
@@ -279,24 +294,26 @@ public class InventoryService {
                 inventory.setModifiedYear(character.getCurrentYear());
                 inventory.setModifiedDay(character.getCurrentDay());
                 Inventory saved = inventoryRepository.save(inventory);
-                return new InventoryResponse(saved, pyarrCalendarService);
+                return toResponse(saved);
             } else {
                 // No items left - mark as removed
                 inventory.setQuantity(0);
                 inventory.setRemoved(true);
+                inventory.setRemovedText(resolvedReason);
                 inventory.setRemovedYear(character.getCurrentYear());
                 inventory.setRemovedDay(character.getCurrentDay());
                 inventory.setModifiedYear(character.getCurrentYear());
                 inventory.setModifiedDay(character.getCurrentDay());
                 Inventory saved = inventoryRepository.save(inventory);
-                return new InventoryResponse(saved, pyarrCalendarService);
+                return toResponse(saved);
             }
         }
-        
+
         // No change - return as is without saving
-        return new InventoryResponse(inventory, pyarrCalendarService);
+        return toResponse(inventory);
     }
     
+    @Transactional(readOnly = true)
     public List<InventoryResponse> getItemsInContainer(String username, Long characterId, Long containerId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -310,10 +327,11 @@ public class InventoryService {
 
         List<Inventory> items = inventoryRepository.findByContainerIdAndRemovedFalse(containerId);
         return items.stream()
-                .map(item -> new InventoryResponse(item, pyarrCalendarService))
+                .map(item -> toResponse(item))
                 .collect(Collectors.toList());
     }
     
+    @Transactional(readOnly = true)
     public Double calculateTotalWeight(String username, Long characterId, Long inventoryId) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -411,12 +429,71 @@ public class InventoryService {
         
         // Prepare response
         Map<String, Object> response = new HashMap<>();
-        response.put("clonedItem", new InventoryResponse(clonedItem, pyarrCalendarService));
+        response.put("clonedItem", toResponse(clonedItem));
         response.put("clonedContainers", clonedContainers);
         
         return response;
     }
     
+    private InventoryResponse toResponse(Inventory inv) {
+        InventoryResponse r = new InventoryResponse();
+        r.setId(inv.getId());
+        r.setCategory(inv.getCategory());
+        r.setItem(inv.getItem());
+        r.setQuality(inv.getQuality());
+        r.setDescription(inv.getDescription());
+        r.setPriceInCopper(inv.getPriceInCopper());
+        r.setGold(inv.getGold());
+        r.setSilver(inv.getSilver());
+        r.setCopper(inv.getCopper());
+        r.setQuantity(inv.getQuantity());
+        r.setAddedUpdated(inv.getAddedUpdated());
+        r.setWeight(inv.getWeight());
+        r.setContainerId(inv.getContainerId());
+        r.setRemoved(inv.getRemoved());
+        r.setRemovedText(inv.getRemovedText());
+        r.setAddedYear(inv.getAddedYear());
+        r.setAddedDay(inv.getAddedDay());
+        r.setModifiedYear(inv.getModifiedYear());
+        r.setModifiedDay(inv.getModifiedDay());
+        r.setRemovedYear(inv.getRemovedYear());
+        r.setRemovedDay(inv.getRemovedDay());
+        r.setCreatedAt(inv.getCreatedAt());
+        r.setUpdatedAt(inv.getUpdatedAt());
+        enrich(r, inv);
+        return r;
+    }
+
+    private void enrich(InventoryResponse r, Inventory inv) {
+        if (inv.getAddedYear() != null && inv.getAddedDay() != null) {
+            try {
+                var calendarMonth = calendarService.getCalendarMonth(inv.getAddedDay());
+                r.setAddedGodName(calendarMonth.getGodName());
+                r.setAddedGodMonthNumber(calendarMonth.getGodMonthNumber());
+                r.setAddedSeason(calendarMonth.getSeason());
+            } catch (IllegalArgumentException e) {
+                // Invalid date values - leave fields as null
+                r.setAddedGodName(null);
+                r.setAddedGodMonthNumber(null);
+                r.setAddedSeason(null);
+            }
+        }
+
+        if (inv.getModifiedYear() != null && inv.getModifiedDay() != null) {
+            try {
+                var calendarMonth = calendarService.getCalendarMonth(inv.getModifiedDay());
+                r.setModifiedGodName(calendarMonth.getGodName());
+                r.setModifiedGodMonthNumber(calendarMonth.getGodMonthNumber());
+                r.setModifiedSeason(calendarMonth.getSeason());
+            } catch (IllegalArgumentException e) {
+                // Invalid date values - leave fields as null
+                r.setModifiedGodName(null);
+                r.setModifiedGodMonthNumber(null);
+                r.setModifiedSeason(null);
+            }
+        }
+    }
+
     /**
      * Recursive helper to clone an inventory item and optionally its contents.
      */

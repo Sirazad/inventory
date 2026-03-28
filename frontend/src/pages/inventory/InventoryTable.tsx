@@ -3,6 +3,7 @@ import { Inventory } from '../../types';
 import { VisibleColumns } from './types';
 import { formatInventoryDate } from '../../utils/dateFormatting';
 import { TranslationKeys } from '../../i18n/translations';
+import styles from './InventoryTable.module.css';
 
 interface Props {
   inventory: Inventory[];
@@ -92,9 +93,9 @@ const ItemRow: React.FC<ItemRowProps> = ({
 
   return (
     <React.Fragment>
-      <tr style={{ backgroundColor: 'white' }}>
+      <tr className={styles.row}>
         {visibleColumns.category && (
-          <td style={{ padding: '10px', border: '1px solid #ccc', paddingLeft }}>
+          <td className="table-cell" style={{ paddingLeft }}>
             {isContainer(item) && !hasActiveFilters && (
               <button
                 onClick={() => onToggleContainer(item.id)}
@@ -107,7 +108,7 @@ const ItemRow: React.FC<ItemRowProps> = ({
           </td>
         )}
         {!visibleColumns.category && isContainer(item) && !hasActiveFilters && (
-          <td style={{ padding: '10px', border: '1px solid #ccc', width: '50px', paddingLeft }}>
+          <td className="table-cell" style={{ width: '50px', paddingLeft }}>
             <button
               onClick={() => onToggleContainer(item.id)}
               className="btn-tiny"
@@ -118,27 +119,27 @@ const ItemRow: React.FC<ItemRowProps> = ({
         )}
         {/* Spacer cell for non-containers when category is hidden and no filters */}
         {!visibleColumns.category && !isContainer(item) && !hasActiveFilters && nestingLevel === 0 && (
-          <td style={{ padding: '10px', border: '1px solid #ccc', width: '50px' }}></td>
+          <td className="table-cell" style={{ width: '50px' }}></td>
         )}
         {visibleColumns.item && (
-          <td style={{ padding: '10px', border: '1px solid #ccc', fontWeight: isContainer(item) ? 'bold' : 'normal' }}>
+          <td className={`table-cell ${isContainer(item) ? styles.boldCell : ''}`}>
             {item.item}
             {hasActiveFilters && item.containerId && (
-              <div style={{ fontSize: '0.85em', color: '#666', fontStyle: 'italic', fontWeight: 'normal' }}>
+              <div className={styles.containerHint}>
                 📦 {t.inventory.inContainer} {getContainerName(allInventory, item.containerId)}
               </div>
             )}
           </td>
         )}
-        {visibleColumns.quality && <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.quality || '-'}</td>}
-        {visibleColumns.description && <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.description}</td>}
+        {visibleColumns.quality && <td className="table-cell">{item.quality || '-'}</td>}
+        {visibleColumns.description && <td className="table-cell">{item.description}</td>}
         {visibleColumns.price && (
-          <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
+          <td className="table-cell-right">
             {formatPrice(item)}
           </td>
         )}
         {visibleColumns.quantity && (
-          <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
+          <td className="table-cell-center">
             <div className="quantity-controls">
               <button
                 onClick={() => onQuantityChange(item, -1)}
@@ -161,7 +162,7 @@ const ItemRow: React.FC<ItemRowProps> = ({
           </td>
         )}
         {visibleColumns.weight && (
-          <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'right' }}>
+          <td className="table-cell-right">
             {isContainer(item) && containerWeights.has(item.id) ? (
               <strong>{containerWeights.get(item.id)?.toFixed(2)} {t.inventory.kgTotal}</strong>
             ) : item.weight ? (
@@ -172,18 +173,18 @@ const ItemRow: React.FC<ItemRowProps> = ({
           </td>
         )}
         {visibleColumns.added && (
-          <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
+          <td className="table-cell">
             {formatInventoryDate(item.addedYear, item.addedDay, item.addedGodName, item.addedGodMonthNumber, item.addedSeason, t)}
           </td>
         )}
         {visibleColumns.modified && (
-          <td style={{ padding: '10px', border: '1px solid #ccc', fontSize: '0.9em' }}>
+          <td className="table-cell">
             {formatInventoryDate(item.modifiedYear, item.modifiedDay, item.modifiedGodName, item.modifiedGodMonthNumber, item.modifiedSeason, t)}
           </td>
         )}
-        {visibleColumns.notes && <td style={{ padding: '10px', border: '1px solid #ccc' }}>{item.addedUpdated || '-'}</td>}
+        {visibleColumns.notes && <td className="table-cell">{item.addedUpdated || '-'}</td>}
         {visibleColumns.actions && (
-          <td style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center' }}>
+          <td className="table-cell-center">
             <button onClick={() => onClone(item)} className="btn-small mr-5">
               {t.inventory.clone}
             </button>
@@ -201,8 +202,8 @@ const ItemRow: React.FC<ItemRowProps> = ({
       {!hasActiveFilters && isContainer(item) && isExpanded && (
         <>
           {contents.length === 0 && (
-            <tr key={`empty-${item.id}`} style={{ backgroundColor: 'white' }}>
-              <td colSpan={getColspan(visibleColumns, hasActiveFilters)} style={{ padding: '10px', border: '1px solid #ccc', textAlign: 'center', fontStyle: 'italic', color: '#999' }}>
+            <tr key={`empty-${item.id}`} className={styles.row}>
+              <td colSpan={getColspan(visibleColumns, hasActiveFilters)} className={`table-cell ${styles.emptyContainer}`}>
                 {t.inventory.containerEmpty}
               </td>
             </tr>
@@ -257,21 +258,21 @@ const InventoryTable: React.FC<Props> = ({
   }
 
   return (
-    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+    <table className={styles.table}>
       <thead>
-        <tr style={{ backgroundColor: 'white' }}>
-          {!visibleColumns.category && !hasActiveFilters && <th style={{ padding: '10px', width: '50px', border: '1px solid #ccc' }}></th>}
-          {visibleColumns.category && <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>{t.inventory.category}</th>}
-          {visibleColumns.item && <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>{t.inventory.item}</th>}
-          {visibleColumns.quality && <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>{t.inventory.quality}</th>}
-          {visibleColumns.description && <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>{t.inventory.description}</th>}
-          {visibleColumns.price && <th style={{ padding: '10px', textAlign: 'right', border: '1px solid #ccc' }}>{t.inventory.price}</th>}
-          {visibleColumns.quantity && <th style={{ padding: '10px', textAlign: 'right', border: '1px solid #ccc' }}>{t.inventory.quantity}</th>}
-          {visibleColumns.weight && <th style={{ padding: '10px', textAlign: 'right', border: '1px solid #ccc' }}>{t.inventory.weightKg}</th>}
-          {visibleColumns.added && <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>{t.inventory.added}</th>}
-          {visibleColumns.modified && <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>{t.inventory.modified}</th>}
-          {visibleColumns.notes && <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ccc' }}>{t.inventory.addedUpdated}</th>}
-          {visibleColumns.actions && <th style={{ padding: '10px', textAlign: 'center', border: '1px solid #ccc' }}>{t.inventory.actions}</th>}
+        <tr className={styles.theadRow}>
+          {!visibleColumns.category && !hasActiveFilters && <th className="table-cell" style={{ width: '50px' }}></th>}
+          {visibleColumns.category && <th className="table-cell">{t.inventory.category}</th>}
+          {visibleColumns.item && <th className="table-cell">{t.inventory.item}</th>}
+          {visibleColumns.quality && <th className="table-cell">{t.inventory.quality}</th>}
+          {visibleColumns.description && <th className="table-cell">{t.inventory.description}</th>}
+          {visibleColumns.price && <th className="table-cell-right">{t.inventory.price}</th>}
+          {visibleColumns.quantity && <th className="table-cell-right">{t.inventory.quantity}</th>}
+          {visibleColumns.weight && <th className="table-cell-right">{t.inventory.weightKg}</th>}
+          {visibleColumns.added && <th className="table-cell">{t.inventory.added}</th>}
+          {visibleColumns.modified && <th className="table-cell">{t.inventory.modified}</th>}
+          {visibleColumns.notes && <th className="table-cell">{t.inventory.addedUpdated}</th>}
+          {visibleColumns.actions && <th className="table-cell-center">{t.inventory.actions}</th>}
         </tr>
       </thead>
       <tbody>

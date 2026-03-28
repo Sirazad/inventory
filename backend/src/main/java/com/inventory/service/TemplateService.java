@@ -25,22 +25,31 @@ public class TemplateService {
 
     private static final int MAX_PAGE_SIZE = 100;
 
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+        "id", "name", "category", "item", "quality",
+        "priceInCopper", "quantity", "weight", "isContainer",
+        "createdAt", "updatedAt"
+    );
+
     private final ItemTemplateRepository itemTemplateRepository;
     private final TemplateContentRepository templateContentRepository;
     private final CharacterRepository characterRepository;
     private final InventoryRepository inventoryRepository;
-    private final PyarrCalendarService pyarrCalendarService;
+    private final UserRepository userRepository;
+    private final CalendarService calendarService;
 
     public TemplateService(ItemTemplateRepository itemTemplateRepository,
                           TemplateContentRepository templateContentRepository,
                           CharacterRepository characterRepository,
                           InventoryRepository inventoryRepository,
-                          PyarrCalendarService pyarrCalendarService) {
+                          UserRepository userRepository,
+                          CalendarService calendarService) {
         this.itemTemplateRepository = itemTemplateRepository;
         this.templateContentRepository = templateContentRepository;
         this.characterRepository = characterRepository;
         this.inventoryRepository = inventoryRepository;
-        this.pyarrCalendarService = pyarrCalendarService;
+        this.userRepository = userRepository;
+        this.calendarService = calendarService;
     }
 
     // Search with pagination
@@ -49,7 +58,12 @@ public class TemplateService {
             String name, Boolean isContainer, String category,
             int page, int size, String sortBy, String sortDir) {
         
-        Sort.Direction direction = "DESC".equalsIgnoreCase(sortDir) ? 
+        if (!ALLOWED_SORT_FIELDS.contains(sortBy)) {
+            throw new InvalidOperationException(
+                "Invalid sort field: '" + sortBy + "'. Allowed values: " + ALLOWED_SORT_FIELDS);
+        }
+
+        Sort.Direction direction = "DESC".equalsIgnoreCase(sortDir) ?
             Sort.Direction.DESC : Sort.Direction.ASC;
         Pageable pageable = PageRequest.of(page, Math.min(size, MAX_PAGE_SIZE), Sort.by(direction, sortBy));
         
@@ -152,10 +166,13 @@ public class TemplateService {
 
     // Instantiate template to inventory with recursive resolution
     @Transactional
-    public InventoryResponse addTemplateToInventory(Long characterId, Long templateId) {
+    public InventoryResponse addTemplateToInventory(String username, Long characterId, Long templateId) {
         log.debug("Adding template ID {} to character ID {} inventory", templateId, characterId);
-        
-        com.inventory.entity.Character character = characterRepository.findById(characterId)
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        com.inventory.entity.Character character = characterRepository.findByIdAndUserId(characterId, user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Character not found"));
         
         ItemTemplate template = findTemplateOrThrow(templateId);
@@ -171,7 +188,7 @@ public class TemplateService {
         }
         
         log.info("Template '{}' added to character ID {} inventory", template.getName(), characterId);
-        return new InventoryResponse(savedMain, pyarrCalendarService);
+        return toInventoryResponse(savedMain);
     }
 
     // Private helper methods
@@ -318,6 +335,60 @@ public class TemplateService {
                 .map(TemplateContentResponse::new)
                 .collect(Collectors.toList()));
         return response;
+    }
+
+    private InventoryResponse toInventoryResponse(Inventory inv) {
+        InventoryResponse r = new InventoryResponse();
+        r.setId(inv.getId());
+        r.setCategory(inv.getCategory());
+        r.setItem(inv.getItem());
+        r.setQuality(inv.getQuality());
+        r.setDescription(inv.getDescription());
+        r.setPriceInCopper(inv.getPriceInCopper());
+        r.setGold(inv.getGold());
+        r.setSilver(inv.getSilver());
+        r.setCopper(inv.getCopper());
+        r.setQuantity(inv.getQuantity());
+        r.setAddedUpdated(inv.getAddedUpdated());
+        r.setWeight(inv.getWeight());
+        r.setContainerId(inv.getContainerId());
+        r.setRemoved(inv.getRemoved());
+        r.setRemovedText(inv.getRemovedText());
+        r.setAddedYear(inv.getAddedYear());
+        r.setAddedDay(inv.getAddedDay());
+        r.setModifiedYear(inv.getModifiedYear());
+        r.setModifiedDay(inv.getModifiedDay());
+        r.setRemovedYear(inv.getRemovedYear());
+        r.setRemovedDay(inv.getRemovedDay());
+        r.setCreatedAt(inv.getCreatedAt());
+        r.setUpdatedAt(inv.getUpdatedAt());
+        if (inv.getAddedYear() != null && inv.getAddedDay() != null) {
+            try {
+                var calendarMonth = calendarService.getCalendarMonth(inv.getAddedDay());
+                r.setAddedGodName(calendarMonth.getGodName());
+                r.setAddedGodMonthNumber(calendarMonth.getGodMonthNumber());
+                r.setAddedSeason(calendarMonth.getSeason());
+            } catch (IllegalArgumentException e) {
+                // Invalid date values - leave fields as null
+                r.setAddedGodName(null);
+                r.setAddedGodMonthNumber(null);
+                r.setAddedSeason(null);
+            }
+        }
+        if (inv.getModifiedYear() != null && inv.getModifiedDay() != null) {
+            try {
+                var calendarMonth = calendarService.getCalendarMonth(inv.getModifiedDay());
+                r.setModifiedGodName(calendarMonth.getGodName());
+                r.setModifiedGodMonthNumber(calendarMonth.getGodMonthNumber());
+                r.setModifiedSeason(calendarMonth.getSeason());
+            } catch (IllegalArgumentException e) {
+                // Invalid date values - leave fields as null
+                r.setModifiedGodName(null);
+                r.setModifiedGodMonthNumber(null);
+                r.setModifiedSeason(null);
+            }
+        }
+        return r;
     }
 
     private ItemTemplate findTemplateOrThrow(Long id) {

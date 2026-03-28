@@ -5,6 +5,8 @@ import com.inventory.dto.TemplateRequest;
 import com.inventory.dto.TemplateResponse;
 import com.inventory.service.TemplateService;
 import jakarta.validation.Valid;
+import java.net.URI;
+import java.util.Objects;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -53,7 +55,8 @@ public class TemplateController {
     @PostMapping
     public ResponseEntity<TemplateResponse> createTemplate(
             @Valid @RequestBody TemplateRequest request) {
-        return ResponseEntity.ok(templateService.createTemplate(request));
+        TemplateResponse created = templateService.createTemplate(request);
+        return ResponseEntity.created(URI.create("/api/templates/" + created.getId())).body(created);
     }
 
     @PutMapping("/{id}")
@@ -71,8 +74,10 @@ public class TemplateController {
 
     @PostMapping("/{templateId}/add-to-character/{characterId}")
     public ResponseEntity<InventoryResponse> addTemplateToInventory(
+            @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long characterId,
             @PathVariable Long templateId) {
-        return ResponseEntity.ok(templateService.addTemplateToInventory(characterId, templateId));
+        InventoryResponse created = templateService.addTemplateToInventory(userDetails.getUsername(), characterId, templateId);
+        return ResponseEntity.created(Objects.requireNonNull(URI.create("/api/characters/" + characterId + "/inventory/" + created.getId()))).body(created);
     }
 }

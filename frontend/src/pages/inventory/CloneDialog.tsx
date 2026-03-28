@@ -1,6 +1,7 @@
 import React from 'react';
 import { Inventory } from '../../types';
 import { TranslationKeys } from '../../i18n/translations';
+import styles from './CloneDialog.module.css';
 
 interface Props {
   item: Inventory;
@@ -10,32 +11,14 @@ interface Props {
 
 const CloneDialog: React.FC<Props> = ({ item, onResponse, t }) => {
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000,
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        padding: '30px',
-        borderRadius: '8px',
-        maxWidth: '500px',
-        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-      }}>
-        <h3 style={{ marginTop: 0 }}>{t.inventory.cloneContainer}</h3>
+    <div className={styles.overlay}>
+      <div className={styles.card}>
+        <h3 className={styles.cardTitle}>{t.inventory.cloneContainer}</h3>
         <p>{t.inventory.cloneContainerQuestion}</p>
-        <div style={{ display: 'flex', gap: '10px', marginTop: '20px', justifyContent: 'flex-end' }}>
+        <div className={styles.buttonRow}>
           <button
             onClick={() => onResponse(true)}
-            className="btn-primary"
-            style={{ backgroundColor: '#5cb85c' }}
+            className={`btn-primary ${styles.btnSuccess}`}
           >
             {t.inventory.cloneWithContents}
           </button>

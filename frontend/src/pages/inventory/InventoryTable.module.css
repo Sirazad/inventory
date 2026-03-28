@@ -1,0 +1,29 @@
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.theadRow {
+  background-color: white;
+}
+
+.row {
+  background-color: white;
+}
+
+.containerHint {
+  font-size: 0.85em;
+  color: #666;
+  font-style: italic;
+  font-weight: normal;
+}
+
+.boldCell {
+  font-weight: bold;
+}
+
+.emptyContainer {
+  text-align: center;
+  font-style: italic;
+  color: #999;
+}

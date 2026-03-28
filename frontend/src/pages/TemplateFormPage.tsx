@@ -1,21 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { templateService, categoryService } from '../services/api';
 import { ItemTemplate, TemplateContentRequest, Category } from '../types';
 import Notification from '../components/Notification';
 import { useLanguage } from '../i18n/LanguageContext';
 import { toCopperValue, getGold, getSilver, getCopper } from '../utils/currencyUtils';
-
-const MAX_TEMPLATES_FETCH = 1000;
+import { getApiErrorMessage } from '../utils/errorUtils';
 
 const TemplateFormPage: React.FC = () => {
-  const { templateId } = useParams<{ templateId: string }>();
+  const { templateId: rawTemplateId } = useParams<{ templateId: string }>();
   const navigate = useNavigate();
-  const isEditMode = !!templateId;
   const { t } = useLanguage();
+
+  const parsedTemplateId = rawTemplateId ? Number(rawTemplateId) : undefined;
+  const isEditMode = parsedTemplateId !== undefined;
+
+  useEffect(() => {
+    if (rawTemplateId !== undefined && (parsedTemplateId === undefined || isNaN(parsedTemplateId))) {
+      navigate('/templates', { replace: true });
+    }
+  }, [rawTemplateId, parsedTemplateId, navigate]);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [allTemplates, setAllTemplates] = useState<ItemTemplate[]>([]);
+  const [templatePage, setTemplatePage] = useState(0);
+  const [hasMoreTemplates, setHasMoreTemplates] = useState(true);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -48,12 +57,12 @@ const TemplateFormPage: React.FC = () => {
 
   useEffect(() => {
     loadCategories();
-    loadAllTemplates();
-    if (isEditMode) {
+    loadTemplatesPage(0);
+    if (isEditMode && parsedTemplateId !== undefined) {
       loadTemplate();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [templateId]);
+  }, [rawTemplateId]);
 
   const loadCategories = async () => {
     try {
@@ -64,18 +73,31 @@ const TemplateFormPage: React.FC = () => {
     }
   };
 
-  const loadAllTemplates = async () => {
+  const loadTemplatesPage = useCallback(async (page: number) => {
     try {
-      const response = await templateService.getAllTemplates(0, MAX_TEMPLATES_FETCH, 'name', 'ASC');
-      setAllTemplates(response.content);
+      const response = await templateService.getAllTemplates(page, 50, 'name', 'ASC');
+      if (page === 0) {
+        setAllTemplates(response.content);
+      } else {
+        setAllTemplates(prev => [...prev, ...response.content]);
+      }
+      setTemplatePage(page);
+      setHasMoreTemplates(page + 1 < response.totalPages);
     } catch (err) {
       console.error('Failed to load templates', err);
+    }
+  }, []);
+
+  const loadMoreTemplates = () => {
+    if (hasMoreTemplates) {
+      loadTemplatesPage(templatePage + 1);
     }
   };
 
   const loadTemplate = async () => {
+    if (parsedTemplateId === undefined || isNaN(parsedTemplateId)) return;
     try {
-      const template = await templateService.getTemplate(Number(templateId));
+      const template = await templateService.getTemplate(parsedTemplateId);
       
       // Calculate gold, silver, copper from priceInCopper using utility
       const gold = getGold(template.priceInCopper);
@@ -182,8 +204,8 @@ const TemplateFormPage: React.FC = () => {
     };
 
     try {
-      if (isEditMode) {
-        await templateService.updateTemplate(Number(templateId), request);
+      if (isEditMode && parsedTemplateId !== undefined) {
+        await templateService.updateTemplate(parsedTemplateId, request);
         setNotification({ message: t.templateForm.updateSuccess, type: 'success' });
         setTimeout(() => navigate('/templates'), 1500);
       } else {
@@ -191,11 +213,11 @@ const TemplateFormPage: React.FC = () => {
         setNotification({ message: t.templateForm.createSuccess, type: 'success' });
         setTimeout(() => navigate('/templates'), 1500);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to save template', err);
       setNotification({
-        message: (isEditMode ? t.templateForm.updateFailed : t.templateForm.createFailed) + ': ' + (err.response?.data?.message || err.message),
-        type: 'error'
+        message: getApiErrorMessage(err, isEditMode ? t.templateForm.updateFailed : t.templateForm.createFailed),
+        type: 'error',
       });
     }
   };
@@ -208,7 +230,7 @@ const TemplateFormPage: React.FC = () => {
     setContentItems(contentItems.filter((_, i) => i !== index));
   };
 
-  const updateContentItem = (index: number, field: string, value: any) => {
+  const updateContentItem = (index: number, field: string, value: string | number | boolean | undefined) => {
     const updated = [...contentItems];
     updated[index] = { ...updated[index], [field]: value };
     setContentItems(updated);
@@ -394,13 +416,18 @@ const TemplateFormPage: React.FC = () => {
                       >
                         <option value="">{t.templateForm.selectATemplate}</option>
                         {allTemplates
-                          .filter(t => t.id !== Number(templateId)) // Don't allow self-reference
-                          .map((t) => (
-                            <option key={t.id} value={t.id}>
-                              {t.name} ({t.category} - {t.item})
+                          .filter(tmpl => tmpl.id !== parsedTemplateId) // Don't allow self-reference
+                          .map((tmpl) => (
+                            <option key={tmpl.id} value={tmpl.id}>
+                              {tmpl.name} ({tmpl.category} - {tmpl.item})
                             </option>
                           ))}
                       </select>
+                      {hasMoreTemplates && (
+                        <button type="button" onClick={loadMoreTemplates} className="btn-small" style={{ marginTop: '5px' }}>
+                          {t.templateForm.loadMore}
+                        </button>
+                      )}
                     </div>
                     <div>
                       <label>{t.templateForm.quantityOverride}</label>

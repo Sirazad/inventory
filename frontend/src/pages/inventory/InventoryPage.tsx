@@ -4,6 +4,7 @@ import { inventoryService, categoryService, templateService } from '../../servic
 import { Inventory, Category } from '../../types';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { getApiErrorMessage, isApiStatus } from '../../utils/errorUtils';
+import { toCopperValue } from '../../utils/currencyUtils';
 import { InventoryFormData, InventoryFiltersState, VisibleColumns, EMPTY_FORM_DATA, EMPTY_FILTERS, DEFAULT_VISIBLE_COLUMNS } from './types';
 import InventoryFilters from './InventoryFilters';
 import ColumnSettings from './ColumnSettings';
@@ -132,7 +133,7 @@ const InventoryPage: React.FC = () => {
             const gold = parseInt(formData.gold) || 0;
             const silver = parseInt(formData.silver) || 0;
             const copper = parseInt(formData.copper) || 0;
-            const priceInCopper = gold * 10000 + silver * 100 + copper;
+            const priceInCopper = toCopperValue(gold, silver, copper);
             const templateData = {
               name: formData.item,
               category: formData.category,
@@ -233,10 +234,18 @@ const InventoryPage: React.FC = () => {
   };
 
   const handleQuantityChange = async (item: Inventory, delta: number) => {
-    const newQuantity = Math.max(1, item.quantity + delta);
+    const newQuantity = Math.max(0, item.quantity + delta);
     if (newQuantity === item.quantity) return;
+
+    let reason: string | undefined;
+    if (delta < 0 && newQuantity === 0) {
+      const input = prompt(t.inventory.enterRemovalReason);
+      // If user cancels (null) or leaves blank, proceed with no reason — backend auto-generates
+      reason = (input !== null && input.trim() !== '') ? input.trim() : undefined;
+    }
+
     try {
-      const updatedItem = await inventoryService.updateQuantity(characterId, item.id, delta);
+      const updatedItem = await inventoryService.updateQuantity(characterId, item.id, delta, reason);
       setInventory(inventory.map(i => i.id === item.id ? updatedItem : i).filter(i => !i.removed));
     } catch {
       alert(t.inventory.failedUpdateQuantity);

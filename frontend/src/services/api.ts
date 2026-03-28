@@ -128,11 +128,12 @@ export const inventoryService = {
   updateQuantity: async (
     characterId: number,
     inventoryId: number,
-    quantityChange: number
+    quantityChange: number,
+    reason?: string
   ): Promise<Inventory> => {
     const response = await axiosInstance.patch(
       `/characters/${characterId}/inventory/${inventoryId}/quantity`,
-      { quantityChange }
+      { quantityChange, ...(reason ? { reason } : {}) }
     );
     return response.data;
   },

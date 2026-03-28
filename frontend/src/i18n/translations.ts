@@ -318,6 +318,7 @@ export const translations = {
       updateFailed: 'Failed to update template',
       loadFailed: 'Failed to load template',
       loadCategoriesFailed: 'Failed to load categories',
+      loadMore: 'Load more templates...',
     },
     // Common
     common: {
@@ -644,6 +645,7 @@ export const translations = {
       updateFailed: 'Sablon frissítése sikertelen',
       loadFailed: 'Sablon betöltése sikertelen',
       loadCategoriesFailed: 'Kategóriák betöltése sikertelen',
+      loadMore: 'További sablonok betöltése...',
     },
     // Common
     common: {

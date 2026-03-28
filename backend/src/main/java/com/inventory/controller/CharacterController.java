@@ -9,6 +9,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -30,7 +31,8 @@ public class CharacterController {
     public ResponseEntity<CharacterResponse> createCharacter(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody CharacterRequest request) {
-        return ResponseEntity.ok(characterService.createCharacter(userDetails.getUsername(), request));
+        CharacterResponse created = characterService.createCharacter(userDetails.getUsername(), request);
+        return ResponseEntity.created(URI.create("/api/characters/" + created.getId())).body(created);
     }
 
     @DeleteMapping("/{id}")
