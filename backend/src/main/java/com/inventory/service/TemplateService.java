@@ -170,7 +170,8 @@ public class TemplateService {
         
         ItemTemplate template = findTemplateOrThrow(id);
         String name = template.getName();
-        
+
+        templateContentRepository.deleteByTemplateId(id);
         itemTemplateRepository.delete(template);
         log.info("Template deleted: {} (ID: {})", name, id);
     }

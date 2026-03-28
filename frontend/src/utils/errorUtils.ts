@@ -6,8 +6,8 @@ import axios from 'axios';
  */
 export function getApiErrorMessage(err: unknown, fallback: string): string {
   if (axios.isAxiosError(err)) {
-    return err.response?.data?.error
-      ?? err.response?.data?.message
+    return err.response?.data?.message
+      ?? err.response?.data?.error
       ?? fallback;
   }
   if (err instanceof Error) {
