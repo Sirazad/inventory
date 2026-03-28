@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -77,12 +78,6 @@ public class TemplateService {
         return templates.map(this::toResponse);
     }
 
-    // Get all with pagination
-    @Transactional(readOnly = true)
-    public Page<TemplateResponse> getAllTemplates(int page, int size, String sortBy, String sortDir) {
-        return searchTemplates(null, null, null, page, size, sortBy, sortDir);
-    }
-
     // Get single template with resolved contents
     @Transactional(readOnly = true)
     public TemplateResponse getTemplate(Long id) {
@@ -120,29 +115,45 @@ public class TemplateService {
     @Transactional
     public TemplateResponse updateTemplate(Long id, TemplateRequest request) {
         log.debug("Updating template ID: {}", id);
-        
+
         ItemTemplate template = findTemplateOrThrow(id);
-        
-        // Check name uniqueness if changed
-        if (!template.getName().equals(request.getName()) && 
+
+        if (!template.getName().equals(request.getName()) &&
             itemTemplateRepository.existsByName(request.getName())) {
             throw new InvalidOperationException("Template with name '" + request.getName() + "' already exists");
         }
-        
-        // Delete existing contents
-        templateContentRepository.deleteByTemplateId(id);
-        
+
         mapRequestToEntity(request, template);
         itemTemplateRepository.save(template);
-        
-        // Re-add contents
-        if (request.getIsContainer() != null && request.getIsContainer() && 
-            request.getContents() != null && !request.getContents().isEmpty()) {
+
+        boolean isContainer = request.getIsContainer() != null && request.getIsContainer();
+
+        if (isContainer && request.getContents() != null && !request.getContents().isEmpty()) {
+            Map<Long, TemplateContent> existingById = templateContentRepository.findByTemplateId(id)
+                .stream().collect(Collectors.toMap(TemplateContent::getId, c -> c));
+
+            Set<Long> requestedIds = request.getContents().stream()
+                .filter(c -> c.getId() != null)
+                .map(TemplateContentRequest::getId)
+                .collect(Collectors.toSet());
+
+            // Delete rows that are no longer present in the request
+            existingById.keySet().stream()
+                .filter(existingId -> !requestedIds.contains(existingId))
+                .forEach(templateContentRepository::deleteById);
+
             for (TemplateContentRequest contentReq : request.getContents()) {
-                createTemplateContent(template, contentReq);
+                TemplateContent existing = contentReq.getId() != null ? existingById.get(contentReq.getId()) : null;
+                if (existing != null) {
+                    updateTemplateContent(existing, template, contentReq);
+                } else {
+                    createTemplateContent(template, contentReq);
+                }
             }
+        } else {
+            templateContentRepository.deleteByTemplateId(id);
         }
-        
+
         log.info("Template updated: {} (ID: {})", template.getName(), id);
         return getTemplate(id);
     }
@@ -196,15 +207,33 @@ public class TemplateService {
     private void createTemplateContent(ItemTemplate template, TemplateContentRequest contentReq) {
         TemplateContent content = new TemplateContent();
         content.setTemplate(template);
-        
+        applyContentRequest(content, template, contentReq);
+        templateContentRepository.save(content);
+    }
+
+    private void updateTemplateContent(TemplateContent content, ItemTemplate template, TemplateContentRequest contentReq) {
+        applyContentRequest(content, template, contentReq);
+        templateContentRepository.save(content);
+    }
+
+    private void applyContentRequest(TemplateContent content, ItemTemplate template, TemplateContentRequest contentReq) {
+        // Reset both modes so switching reference ↔ direct never leaves stale fields
+        content.setReferencedTemplate(null);
+        content.setQuantityOverride(null);
+        content.setCategory(null);
+        content.setItem(null);
+        content.setQuality(null);
+        content.setDescription(null);
+        content.setPriceInCopper(null);
+        content.setQuantity(null);
+        content.setWeight(null);
+
         if (contentReq.getReferencedTemplateId() != null) {
-            // Validate circular reference
             validateNoCircularReference(template.getId(), contentReq.getReferencedTemplateId());
             ItemTemplate refTemplate = findTemplateOrThrow(contentReq.getReferencedTemplateId());
             content.setReferencedTemplate(refTemplate);
             content.setQuantityOverride(contentReq.getQuantityOverride());
         } else {
-            // Direct definition
             if (contentReq.getCategory() == null || contentReq.getItem() == null) {
                 throw new InvalidOperationException(
                     "Template content must have either referenced_template_id OR category and item");
@@ -218,8 +247,6 @@ public class TemplateService {
             content.setQuantity(contentReq.getQuantity());
             content.setWeight(contentReq.getWeight());
         }
-        
-        templateContentRepository.save(content);
     }
 
     private void resolveAndCreateInventoryItem(
@@ -287,22 +314,32 @@ public class TemplateService {
     }
 
     private void validateNoCircularReference(Long templateId, Long referencedTemplateId) {
-        Set<Long> visited = new HashSet<>();
-        if (hasCircularReference(referencedTemplateId, templateId, visited)) {
+        if (hasCircularReference(referencedTemplateId, templateId)) {
             throw new InvalidOperationException("Circular template reference detected");
         }
     }
 
-    private boolean hasCircularReference(Long currentId, Long targetId, Set<Long> visited) {
-        if (currentId.equals(targetId)) return true;
-        if (visited.contains(currentId)) return false;
-        visited.add(currentId);
-        
-        List<TemplateContent> contents = templateContentRepository.findByTemplateId(currentId);
-        for (TemplateContent content : contents) {
-            if (content.getReferencedTemplate() != null) {
-                if (hasCircularReference(content.getReferencedTemplate().getId(), targetId, visited)) {
-                    return true;
+    /**
+     * BFS reachability check: returns true if targetId is reachable from startId
+     * through the template reference graph. Loads one level at a time to avoid N+1 queries.
+     */
+    private boolean hasCircularReference(Long startId, Long targetId) {
+        if (startId.equals(targetId)) return true;
+
+        Set<Long> toVisit = new HashSet<>();
+        toVisit.add(startId);
+        Set<Long> visited = new HashSet<>();
+
+        while (!toVisit.isEmpty()) {
+            List<TemplateContent> contents = templateContentRepository.findByTemplateIdIn(toVisit);
+            visited.addAll(toVisit);
+            toVisit = new HashSet<>();
+
+            for (TemplateContent content : contents) {
+                if (content.getReferencedTemplate() != null) {
+                    Long refId = content.getReferencedTemplate().getId();
+                    if (refId.equals(targetId)) return true;
+                    if (!visited.contains(refId)) toVisit.add(refId);
                 }
             }
         }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { templateService } from '../services/api';
-import { ItemTemplate, Page } from '../types';
+import { templateService, characterService } from '../services/api';
+import { ItemTemplate, Page, Character } from '../types';
 import { getGold, getSilver, getCopper } from '../utils/currencyUtils';
 import { useLanguage } from '../i18n/LanguageContext';
 import { getApiErrorMessage } from '../utils/errorUtils';
@@ -29,10 +29,19 @@ const TemplatesPage: React.FC = () => {
     category: ''
   });
 
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [addModal, setAddModal] = useState<{ template: ItemTemplate } | null>(null);
+  const [selectedCharId, setSelectedCharId] = useState<number | ''>('');
+  const [addLoading, setAddLoading] = useState(false);
+
   useEffect(() => {
     loadTemplates();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, size, sortBy, sortDir, appliedFilters]);
+
+  useEffect(() => {
+    characterService.getCharacters().then(setCharacters).catch(console.error);
+  }, []);
 
   const loadTemplates = async () => {
     setLoading(true);
@@ -58,6 +67,30 @@ const TemplatesPage: React.FC = () => {
   const handleSearch = () => {
     setAppliedFilters({ ...filters });
     setPage(0);
+  };
+
+  const handleOpenAddModal = async (template: ItemTemplate) => {
+    try {
+      const full = await templateService.getTemplate(template.id);
+      setAddModal({ template: full });
+      setSelectedCharId('');
+    } catch {
+      alert(t.templates.addFailed);
+    }
+  };
+
+  const handleConfirmAdd = async () => {
+    if (!addModal || selectedCharId === '') return;
+    setAddLoading(true);
+    try {
+      await templateService.addTemplateToInventory(Number(selectedCharId), addModal.template.id);
+      setAddModal(null);
+      alert(t.templates.addSuccess);
+    } catch (err: unknown) {
+      alert(getApiErrorMessage(err, t.templates.addFailed));
+    } finally {
+      setAddLoading(false);
+    }
   };
 
   const handleDelete = async (id: number, name: string) => {
@@ -242,7 +275,7 @@ const TemplatesPage: React.FC = () => {
                   </td>
                   <td style={{ padding: '10px', border: '1px solid #ccc' }}>
                     <button
-                      onClick={() => navigate(`/templates/${template.id}`)}
+                      onClick={() => navigate(`/templates/${template.id}/edit`)}
                       className="btn-small"
                       style={{ marginRight: '5px' }}
                     >
@@ -254,6 +287,13 @@ const TemplatesPage: React.FC = () => {
                       style={{ marginRight: '5px' }}
                     >
                       {t.templates.edit}
+                    </button>
+                    <button
+                      onClick={() => handleOpenAddModal(template)}
+                      className="btn-small"
+                      style={{ marginRight: '5px', backgroundColor: '#5cb85c', color: 'white' }}
+                    >
+                      {t.templates.addToCharacter}
                     </button>
                     <button
                       onClick={() => handleDelete(template.id, template.name)}
@@ -297,6 +337,61 @@ const TemplatesPage: React.FC = () => {
         </>
       ) : (
         <p>{t.templates.noTemplatesFound}</p>
+      )}
+
+      {addModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'white', padding: '30px', maxWidth: '520px', width: '90%', borderRadius: '4px', maxHeight: '80vh', overflowY: 'auto' }}>
+            <h3 style={{ marginTop: 0 }}>{t.templates.addToCharacterTitle.replace('{name}', addModal.template.name)}</h3>
+
+            <div style={{ marginBottom: '15px' }}>
+              <label><strong>{t.templates.selectCharacter}</strong></label>
+              <select
+                value={selectedCharId}
+                onChange={(e) => setSelectedCharId(e.target.value ? Number(e.target.value) : '')}
+                style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+              >
+                <option value="">{t.templates.selectACharacter}</option>
+                {characters.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ marginBottom: '20px', padding: '15px', background: '#f9f9f9', border: '1px solid #ddd' }}>
+              <strong>{t.templates.willCreate}</strong>
+              <div style={{ marginTop: '10px' }}>
+                <div>
+                  {addModal.template.isContainer ? '\u{1F4E6}' : '\u2022'}{' '}
+                  <strong>{addModal.template.item}</strong> ({addModal.template.category}) &times;{addModal.template.quantity}
+                  {addModal.template.priceInCopper ? ` \u2014 ${formatPrice(addModal.template.priceInCopper)}` : ''}
+                </div>
+                {addModal.template.contents && addModal.template.contents.length > 0 && (
+                  <div style={{ marginLeft: '20px', marginTop: '8px' }}>
+                    {addModal.template.contents.map((c, i) => (
+                      <div key={i} style={{ marginTop: '4px', color: '#555' }}>
+                        &rarr; <strong>{c.item}</strong> ({c.category}) &times;{c.quantity}
+                        {c.priceInCopper ? ` \u2014 ${formatPrice(c.priceInCopper)}` : ''}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button onClick={() => setAddModal(null)} className="btn-small">{t.templateForm.cancel}</button>
+              <button
+                onClick={handleConfirmAdd}
+                disabled={selectedCharId === '' || addLoading}
+                className="btn-primary"
+                style={{ backgroundColor: '#5cb85c' }}
+              >
+                {addLoading ? t.common.loading : t.templates.confirmAdd}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

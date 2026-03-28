@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { templateService, categoryService } from '../services/api';
-import { ItemTemplate, TemplateContentRequest, Category } from '../types';
+import { ItemTemplate, Category } from '../types';
 import Notification from '../components/Notification';
 import { useLanguage } from '../i18n/LanguageContext';
 import { toCopperValue, getGold, getSilver, getCopper } from '../utils/currencyUtils';
@@ -23,8 +23,6 @@ const TemplateFormPage: React.FC = () => {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [allTemplates, setAllTemplates] = useState<ItemTemplate[]>([]);
-  const [templatePage, setTemplatePage] = useState(0);
-  const [hasMoreTemplates, setHasMoreTemplates] = useState(true);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -53,11 +51,12 @@ const TemplateFormPage: React.FC = () => {
     quantity?: string;
     weight?: string;
     isReference: boolean;
+    templateFilter?: string;
   }>>([]);
 
   useEffect(() => {
     loadCategories();
-    loadTemplatesPage(0);
+    loadTemplates();
     if (isEditMode && parsedTemplateId !== undefined) {
       loadTemplate();
     }
@@ -73,26 +72,14 @@ const TemplateFormPage: React.FC = () => {
     }
   };
 
-  const loadTemplatesPage = useCallback(async (page: number) => {
+  const loadTemplates = useCallback(async () => {
     try {
-      const response = await templateService.getAllTemplates(page, 50, 'name', 'ASC');
-      if (page === 0) {
-        setAllTemplates(response.content);
-      } else {
-        setAllTemplates(prev => [...prev, ...response.content]);
-      }
-      setTemplatePage(page);
-      setHasMoreTemplates(page + 1 < response.totalPages);
+      const response = await templateService.searchTemplates(undefined, undefined, undefined, 0, 100, 'name', 'ASC');
+      setAllTemplates(response.content);
     } catch (err) {
       console.error('Failed to load templates', err);
     }
   }, []);
-
-  const loadMoreTemplates = () => {
-    if (hasMoreTemplates) {
-      loadTemplatesPage(templatePage + 1);
-    }
-  };
 
   const loadTemplate = async () => {
     if (parsedTemplateId === undefined || isNaN(parsedTemplateId)) return;
@@ -166,9 +153,10 @@ const TemplateFormPage: React.FC = () => {
     const copper = parseInt(formData.copper) || 0;
     const priceInCopper = toCopperValue(gold, silver, copper);
 
-    const contents: TemplateContentRequest[] = formData.isContainer ? contentItems.map(item => {
+    const contents = formData.isContainer ? contentItems.map(item => {
       if (item.isReference) {
         return {
+          id: item.id,
           referencedTemplateId: item.referencedTemplateId!,
           quantityOverride: item.quantityOverride,
         };
@@ -179,6 +167,7 @@ const TemplateFormPage: React.FC = () => {
         const itemPrice = toCopperValue(goldValue, silverValue, copperValue);
 
         return {
+          id: item.id,
           category: item.category!,
           item: item.item!,
           quality: item.quality || undefined,
@@ -408,26 +397,31 @@ const TemplateFormPage: React.FC = () => {
                   <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
                     <div>
                       <label>{t.templateForm.selectTemplate}</label>
+                      <input
+                        type="text"
+                        placeholder={t.templateForm.filterTemplates}
+                        value={content.templateFilter || ''}
+                        onChange={(e) => updateContentItem(index, 'templateFilter', e.target.value)}
+                        style={{ width: '100%', padding: '8px', marginTop: '5px', marginBottom: '4px', boxSizing: 'border-box' }}
+                      />
                       <select
                         value={content.referencedTemplateId || ''}
                         onChange={(e) => updateContentItem(index, 'referencedTemplateId', parseInt(e.target.value))}
                         required
-                        style={{ width: '100%', padding: '8px', marginTop: '5px' }}
+                        style={{ width: '100%', padding: '8px' }}
                       >
                         <option value="">{t.templateForm.selectATemplate}</option>
                         {allTemplates
-                          .filter(tmpl => tmpl.id !== parsedTemplateId) // Don't allow self-reference
+                          .filter(tmpl => tmpl.id !== parsedTemplateId)
+                          .filter(tmpl => !content.templateFilter ||
+                            tmpl.name.toLowerCase().includes(content.templateFilter.toLowerCase()) ||
+                            tmpl.item.toLowerCase().includes(content.templateFilter.toLowerCase()))
                           .map((tmpl) => (
                             <option key={tmpl.id} value={tmpl.id}>
                               {tmpl.name} ({tmpl.category} - {tmpl.item})
                             </option>
                           ))}
                       </select>
-                      {hasMoreTemplates && (
-                        <button type="button" onClick={loadMoreTemplates} className="btn-small" style={{ marginTop: '5px' }}>
-                          {t.templateForm.loadMore}
-                        </button>
-                      )}
                     </div>
                     <div>
                       <label>{t.templateForm.quantityOverride}</label>

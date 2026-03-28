@@ -4,6 +4,7 @@ import com.inventory.dto.InventoryRequest;
 import com.inventory.dto.InventoryResponse;
 import com.inventory.dto.UpdateQuantityRequest;
 import com.inventory.service.InventoryService;
+import com.inventory.service.TemplateService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,9 +20,11 @@ import java.util.Map;
 public class InventoryController {
 
     private final InventoryService inventoryService;
+    private final TemplateService templateService;
 
-    public InventoryController(InventoryService inventoryService) {
+    public InventoryController(InventoryService inventoryService, TemplateService templateService) {
         this.inventoryService = inventoryService;
+        this.templateService = templateService;
     }
 
     @GetMapping
@@ -98,6 +101,18 @@ public class InventoryController {
         return ResponseEntity.ok(Map.of("totalWeight", totalWeight));
     }
     
+    @PostMapping("/from-template/{templateId}")
+    public ResponseEntity<InventoryResponse> addFromTemplate(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long characterId,
+            @PathVariable Long templateId) {
+        InventoryResponse created = templateService.addTemplateToInventory(
+                userDetails.getUsername(), characterId, templateId);
+        return ResponseEntity.created(
+                java.util.Objects.requireNonNull(URI.create("/api/characters/" + characterId + "/inventory/" + created.getId())))
+                .body(created);
+    }
+
     @PostMapping("/{inventoryId}/clone")
     public ResponseEntity<Map<String, Object>> cloneInventory(
             @AuthenticationPrincipal UserDetails userDetails,

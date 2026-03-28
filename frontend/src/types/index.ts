@@ -96,8 +96,6 @@ export interface InventoryUpdateRequest {
 export interface Category {
   id: number;
   name: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface CategoryRequest {
@@ -156,6 +154,7 @@ export interface TemplateRequest {
 }
 
 export interface TemplateContentRequest {
+  id?: number;
   referencedTemplateId?: number;
   quantityOverride?: number;
   category?: string;

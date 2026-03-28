@@ -186,16 +186,6 @@ export const categoryService = {
 };
 
 export const templateService = {
-  getAllTemplates: async (page: number = 0, size: number = 20, sortBy: string = 'name', sortDir: string = 'ASC'): Promise<Page<ItemTemplate>> => {
-    const params = new URLSearchParams();
-    params.append('page', page.toString());
-    params.append('size', size.toString());
-    params.append('sortBy', sortBy);
-    params.append('sortDir', sortDir);
-    const response = await axiosInstance.get(`/templates?${params.toString()}`);
-    return response.data;
-  },
-
   searchTemplates: async (
     name?: string,
     isContainer?: boolean,
@@ -237,7 +227,7 @@ export const templateService = {
   },
 
   addTemplateToInventory: async (characterId: number, templateId: number): Promise<Inventory> => {
-    const response = await axiosInstance.post(`/templates/${templateId}/add-to-character/${characterId}`);
+    const response = await axiosInstance.post(`/characters/${characterId}/inventory/from-template/${templateId}`);
     return response.data;
   },
 };

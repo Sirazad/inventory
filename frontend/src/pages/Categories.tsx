@@ -123,7 +123,6 @@ const Categories: React.FC = () => {
             <thead>
               <tr>
                 <th className="table-cell">{t.categories.name}</th>
-                <th className="table-cell">{t.categories.created}</th>
                 <th className="table-cell-center">{t.categories.actions}</th>
               </tr>
             </thead>
@@ -131,9 +130,6 @@ const Categories: React.FC = () => {
               {categories.map((category) => (
                 <tr key={category.id}>
                   <td className="table-cell">{category.name}</td>
-                  <td className="table-cell">
-                    {new Date(category.createdAt).toLocaleDateString()}
-                  </td>
                   <td className="table-cell-center">
                     <button
                       onClick={() => handleEdit(category)}

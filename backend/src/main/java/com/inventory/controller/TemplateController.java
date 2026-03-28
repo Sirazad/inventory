@@ -1,16 +1,12 @@
 package com.inventory.controller;
 
-import com.inventory.dto.InventoryResponse;
 import com.inventory.dto.TemplateRequest;
 import com.inventory.dto.TemplateResponse;
 import com.inventory.service.TemplateService;
 import jakarta.validation.Valid;
 import java.net.URI;
-import java.util.Objects;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -29,8 +25,8 @@ public class TemplateController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "name") String sortBy,
             @RequestParam(defaultValue = "ASC") String sortDir) {
-        
-        return ResponseEntity.ok(templateService.getAllTemplates(page, size, sortBy, sortDir));
+
+        return ResponseEntity.ok(templateService.searchTemplates(null, null, null, page, size, sortBy, sortDir));
     }
 
     @GetMapping("/search")
@@ -72,12 +68,4 @@ public class TemplateController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/{templateId}/add-to-character/{characterId}")
-    public ResponseEntity<InventoryResponse> addTemplateToInventory(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long characterId,
-            @PathVariable Long templateId) {
-        InventoryResponse created = templateService.addTemplateToInventory(userDetails.getUsername(), characterId, templateId);
-        return ResponseEntity.created(Objects.requireNonNull(URI.create("/api/characters/" + characterId + "/inventory/" + created.getId()))).body(created);
-    }
 }

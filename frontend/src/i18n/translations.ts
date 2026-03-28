@@ -268,6 +268,14 @@ export const translations = {
       next: 'Next',
       showing: 'Showing {count} of {total} templates',
       manageTemplates: 'Manage Templates',
+      addToCharacter: 'Add to Character',
+      addToCharacterTitle: 'Add "{name}" to Character',
+      selectCharacter: 'Select Character',
+      selectACharacter: 'Select a character...',
+      willCreate: 'This will add to inventory:',
+      confirmAdd: 'Add to Inventory',
+      addSuccess: 'Template added to inventory!',
+      addFailed: 'Failed to add template to inventory',
     },
     // Template form page
     templateForm: {
@@ -319,6 +327,7 @@ export const translations = {
       loadFailed: 'Failed to load template',
       loadCategoriesFailed: 'Failed to load categories',
       loadMore: 'Load more templates...',
+      filterTemplates: 'Filter templates...',
     },
     // Common
     common: {
@@ -595,6 +604,14 @@ export const translations = {
       next: 'Következő',
       showing: '{count} / {total} sablon megjelenítve',
       manageTemplates: 'Sablonok kezelése',
+      addToCharacter: 'Karakterhez adás',
+      addToCharacterTitle: '"{name}" hozzáadása karakterhez',
+      selectCharacter: 'Karakter kiválasztása',
+      selectACharacter: 'Válassz egy karaktert...',
+      willCreate: 'Ez a következőket adja a felszereléshez:',
+      confirmAdd: 'Hozzáadás a felszereléshez',
+      addSuccess: 'Sablon hozzáadva a felszereléshez!',
+      addFailed: 'Sablon hozzáadása sikertelen',
     },
     // Template form page
     templateForm: {
@@ -646,6 +663,7 @@ export const translations = {
       loadFailed: 'Sablon betöltése sikertelen',
       loadCategoriesFailed: 'Kategóriák betöltése sikertelen',
       loadMore: 'További sablonok betöltése...',
+      filterTemplates: 'Sablonok szűrése...',
     },
     // Common
     common: {
