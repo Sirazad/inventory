@@ -1,5 +1,6 @@
 package com.inventory.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -40,5 +41,6 @@ public class TemplateRequest {
 
     private Boolean isContainer;
 
+    @Valid
     private List<TemplateContentRequest> contents;
 }

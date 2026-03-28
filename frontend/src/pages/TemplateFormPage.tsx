@@ -532,6 +532,7 @@ const TemplateFormPage: React.FC = () => {
                         type="text"
                         value={content.description || ''}
                         onChange={(e) => updateContentItem(index, 'description', e.target.value)}
+                        required
                         style={{ width: '100%', padding: '8px', marginTop: '5px' }}
                       />
                     </div>

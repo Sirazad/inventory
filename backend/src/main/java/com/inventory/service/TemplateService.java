@@ -230,13 +230,25 @@ public class TemplateService {
 
         if (contentReq.getReferencedTemplateId() != null) {
             validateNoCircularReference(template.getId(), contentReq.getReferencedTemplateId());
+            if (contentReq.getQuantityOverride() != null && contentReq.getQuantityOverride() < 1) {
+                throw new InvalidOperationException("Quantity override must be at least 1");
+            }
             ItemTemplate refTemplate = findTemplateOrThrow(contentReq.getReferencedTemplateId());
             content.setReferencedTemplate(refTemplate);
             content.setQuantityOverride(contentReq.getQuantityOverride());
         } else {
-            if (contentReq.getCategory() == null || contentReq.getItem() == null) {
+            if (contentReq.getCategory() == null || contentReq.getCategory().isBlank()
+                    || contentReq.getItem() == null || contentReq.getItem().isBlank()) {
                 throw new InvalidOperationException(
                     "Template content must have either referenced_template_id OR category and item");
+            }
+            if (contentReq.getDescription() == null || contentReq.getDescription().isBlank()) {
+                throw new InvalidOperationException(
+                    "Template content in direct mode must have a description");
+            }
+            if (contentReq.getQuantity() == null || contentReq.getQuantity() < 1) {
+                throw new InvalidOperationException(
+                    "Template content in direct mode must have a quantity of at least 1");
             }
             content.setCategory(contentReq.getCategory());
             content.setItem(contentReq.getItem());
