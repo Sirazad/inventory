@@ -1,0 +1,31 @@
+# Git files
+.git
+.gitignore
+.github
+
+# Documentation
+README.md
+DEPLOYMENT.md
+IMPLEMENTATION.md
+SECURITY.md
+
+# Build artifacts (Maven builds inside Docker, so we don't need to exclude target/)
+# Everything is copied to the build stage and built there
+
+# IDE files
+.idea
+.vscode
+*.iml
+*.iws
+*.ipr
+.settings
+.project
+.classpath
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
