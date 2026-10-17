@@ -48,10 +48,13 @@ services:
       - backend
     networks:
       - inventory-network
+      - platform-net
 
 networks:
   inventory-network:
     driver: bridge
+  platform-net:
+    external: true
 
 volumes:
   postgres-data:
